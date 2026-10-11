@@ -5,7 +5,7 @@ export interface PricedItem {
   name: string
   price: Paise
   durationMinutes: number
-  isAddOn?: boolean
+  isAddOn?: boolean | null
   requiresDeposit?: 'auto' | 'always' | 'never' | null
 }
 

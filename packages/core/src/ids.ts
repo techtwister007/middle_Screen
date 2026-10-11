@@ -16,3 +16,10 @@ export const slugify = (input: string): string =>
     .trim()
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-')
+
+/** Postgres ids are numbers; ids that arrive from URLs and forms are strings. Normalise them. */
+export const asId = (value: unknown): string | number => {
+  if (typeof value === 'number') return value
+  const s = String(value)
+  return /^\d+$/.test(s) ? Number(s) : s
+}

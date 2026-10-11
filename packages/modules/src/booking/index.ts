@@ -1,6 +1,7 @@
 import {
   type ID,
   MINUTE_MS,
+  asId,
   addDays,
   defineModule,
   emit,
@@ -244,8 +245,9 @@ const staffDays = async (
 export const getAvailableSlots = async (
   payload: Payload,
   tenant: ID,
-  input: { date: string; serviceIds: ID[]; staffId?: ID | null; now?: Date },
+  raw: { date: string; serviceIds: ID[]; staffId?: ID | null; now?: Date },
 ): Promise<{ slots: Slot[]; durationMinutes: number }> => {
+  const input = { ...raw, serviceIds: raw.serviceIds.map(asId), staffId: raw.staffId ? asId(raw.staffId) : null }
   const salon = await loadSalon(payload, tenant)
   const services = await loadServices(payload, tenant, input.serviceIds)
   const durationMinutes = services.reduce((n, s) => n + s.durationMinutes, 0)
@@ -278,7 +280,16 @@ export interface RequestBookingInput {
   actorType?: 'customer' | 'staff'
 }
 
-export const requestBooking = async (payload: Payload, tenant: ID, input: RequestBookingInput) => {
+export const requestBooking = async (payload: Payload, tenant: ID, raw: RequestBookingInput) => {
+  const input: RequestBookingInput = {
+    ...raw,
+    customerId: asId(raw.customerId),
+    serviceIds: raw.serviceIds.map(asId),
+    staffId: raw.staffId ? asId(raw.staffId) : null,
+    designId: raw.designId ? asId(raw.designId) : null,
+    inspirationIds: (raw.inspirationIds ?? []).map(asId),
+    groupId: raw.groupId ? asId(raw.groupId) : null,
+  }
   const salon = await loadSalon(payload, tenant)
   const services = await loadServices(payload, tenant, input.serviceIds)
   const q = quote(services, {

@@ -1,4 +1,4 @@
-import { formatDuration } from '@salon/modules'
+import { formatDuration } from '@salon/modules/client'
 import { formatINR, formatIST } from '@salon/core'
 import type { SectionProps, ThemeLayout } from '@salon/themes'
 import { Badge, Reveal, SectionTitle, buttonClass, cn } from '@salon/ui'
@@ -41,7 +41,7 @@ export interface HomeData {
   timezone: string
 }
 
-type P = SectionProps & { data: HomeData }
+type P = Omit<SectionProps, 'data'> & { data: HomeData }
 
 export const Hero = ({ salon, base, customer, data }: P) => {
   const { layout, labels } = data
