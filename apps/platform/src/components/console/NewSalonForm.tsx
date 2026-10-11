@@ -208,8 +208,20 @@ export const NewSalonForm = ({ defaultDemo }: { defaultDemo: boolean }) => {
               {DAYS.map(([d, label]) => (
                 <div className='grid grid-cols-[2.5rem_1fr_1fr_auto] items-center gap-2 py-1 text-sm' key={d}>
                   <span>{label}</span>
-                  <input aria-label={`${label} opens`} className='h-10 min-w-0 rounded-btn border border-line px-2' defaultValue='10:30' name={`open_${d}`} type='time' />
-                  <input aria-label={`${label} closes`} className='h-10 min-w-0 rounded-btn border border-line px-2' defaultValue='20:00' name={`close_${d}`} type='time' />
+                  <input
+                    aria-label={`${label} opens`}
+                    className='h-10 min-w-0 rounded-btn border border-line px-2'
+                    defaultValue='10:30'
+                    name={`open_${d}`}
+                    type='time'
+                  />
+                  <input
+                    aria-label={`${label} closes`}
+                    className='h-10 min-w-0 rounded-btn border border-line px-2'
+                    defaultValue='20:00'
+                    name={`close_${d}`}
+                    type='time'
+                  />
                   <label className='flex min-h-10 items-center gap-1 text-xs text-muted'>
                     <input name={`closed_${d}`} type='checkbox' /> Shut
                   </label>

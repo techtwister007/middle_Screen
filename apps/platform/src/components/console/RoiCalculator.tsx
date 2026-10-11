@@ -96,8 +96,8 @@ export const RoiCalculator = ({
             </p>
           </div>
           <p className='rounded-card bg-tint p-4 font-heading text-xl'>
-            "One refill at {formatINR(bill * 100)} pays for {bill * 100 >= cost ? 'the whole month' : `${Math.round(((bill * 100) / cost) * 100)}% of the month`}. Everything
-            else is profit."
+            "One refill at {formatINR(bill * 100)} pays for{' '}
+            {bill * 100 >= cost ? 'the whole month' : `${Math.round(((bill * 100) / cost) * 100)}% of the month`}. Everything else is profit."
           </p>
           <p className='text-xs text-muted'>If the numbers don't work for this salon, say so. An honest no beats a cancellation in month two.</p>
         </div>

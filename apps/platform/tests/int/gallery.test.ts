@@ -72,7 +72,7 @@ describe('design library', () => {
     expect(design?.service?.name).toBe('Gel polish (hands)')
     expect(design?.published).toBe(true)
     // The photo is the salon's own copy.
-    const media = await repo.findByID<{ tenant: unknown }>('media', (design?.images[0] as { id: ID }).id)
+    const media = await repo.findByID<{ tenant: unknown }>('media', (design!.images[0] as { id: ID }).id)
     expect(media).not.toBeNull()
 
     const again = await copyLibraryDesign(payload, salon.id, libraryId)

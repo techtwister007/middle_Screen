@@ -193,19 +193,18 @@ export const BookingFlow = (p: Props) => {
   const urlStep = searchParams.get('step')
   const [step, setStep] = useState<Step>(() => (allowed(urlStep) ? urlStep : firstStep))
   const pushed = useRef(0)
+  const booked = useRef<string | number | null>(null)
   useEffect(() => {
     const onPop = () => {
       pushed.current = Math.max(0, pushed.current - 1)
+      // Back after booking: show the appointment instead of an old step that would book again.
+      if (booked.current !== null) router.replace(`/s/${p.slug}/appointments/${booked.current}`)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [])
+  }, [router, p.slug])
   useEffect(() => {
-    if (result) {
-      // Back after booking: show the appointment instead of an old step that would book again.
-      if (urlStep !== 'done') router.replace(`/s/${p.slug}/appointments/${result.appointmentId}`)
-      return
-    }
+    if (result) return
     const target = allowed(urlStep) ? urlStep : firstStep
     if (target !== step) setStep(target)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -315,6 +314,7 @@ export const BookingFlow = (p: Props) => {
         window.location.href = res.data.payUrl
         return
       }
+      booked.current = res.data!.appointmentId
       setResult({ appointmentId: res.data!.appointmentId, status: res.data!.status })
       go('done', {}, true)
       router.refresh()

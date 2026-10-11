@@ -73,11 +73,20 @@ export const createRealSalon = async (payload: Payload, input: RealSalonInput) =
     : await media(
         payload,
         tenant,
-        { data: await renderLogo(input.name.slice(0, 1).toUpperCase(), input.primaryColor || '#B4537A', '#FFFFFF'), mimetype: 'image/png', name: `${input.slug}-logo.png` },
+        {
+          data: await renderLogo(input.name.slice(0, 1).toUpperCase(), input.primaryColor || '#B4537A', '#FFFFFF'),
+          mimetype: 'image/png',
+          name: `${input.slug}-logo.png`,
+        },
         'brand',
         `${input.name} logo`,
       )
-  await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { primaryColor: input.primaryColor || undefined, logo: logo.id } } as never })
+  await payload.update({
+    collection: 'salons',
+    id: tenant,
+    overrideAccess: true,
+    data: { brand: { primaryColor: input.primaryColor || undefined, logo: logo.id } } as never,
+  })
 
   await payload.create({
     collection: 'users',
@@ -100,13 +109,24 @@ export const createRealSalon = async (payload: Payload, input: RealSalonInput) =
       .join('')
       .slice(0, 2)
       .toUpperCase()
-    const avatar = await media(payload, tenant, { data: await renderAvatar(initials, COLORS[i % COLORS.length]), mimetype: 'image/jpeg', name: `${input.slug}-${initials}.jpg` }, 'brand', name)
+    const avatar = await media(
+      payload,
+      tenant,
+      { data: await renderAvatar(initials, COLORS[i % COLORS.length]), mimetype: 'image/jpeg', name: `${input.slug}-${initials}.jpg` },
+      'brand',
+      name,
+    )
     const user = (await payload.create({
       collection: 'users',
       overrideAccess: true,
       data: {
         name,
-        email: `${name.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '') || 'artist'}.${shortCode(4).toLowerCase()}@${input.slug}.invalid`,
+        email: `${
+          name
+            .split(' ')[0]
+            .toLowerCase()
+            .replace(/[^a-z]/g, '') || 'artist'
+        }.${shortCode(4).toLowerCase()}@${input.slug}.invalid`,
         password: shortCode(16),
         role: 'artist',
         bookable: true,
@@ -136,8 +156,16 @@ export const createRealSalon = async (payload: Payload, input: RealSalonInput) =
     await repo.create('designs', { title: p.title, images: [m.id], source: 'staff', published: true, order: i * 10 })
   }
   if (input.libraryLooks > 0) {
-    const looks = (await payload.find({ collection: 'library-designs', overrideAccess: true, depth: 0, limit: input.libraryLooks, sort: '-timesCopied', where: { published: { equals: true } } }))
-      .docs as unknown as { id: ID }[]
+    const looks = (
+      await payload.find({
+        collection: 'library-designs',
+        overrideAccess: true,
+        depth: 0,
+        limit: input.libraryLooks,
+        sort: '-timesCopied',
+        where: { published: { equals: true } },
+      })
+    ).docs as unknown as { id: ID }[]
     for (const l of looks) await copyLibraryDesign(payload, tenant, l.id)
   }
 
@@ -155,7 +183,19 @@ export const createRealSalon = async (payload: Payload, input: RealSalonInput) =
 export const deleteSalonCompletely = async (payload: Payload, salonId: ID) => {
   const repo = forTenant(payload, salonId)
   // Children before parents: relationship order matters for required links (e.g. photo tasks → visits).
-  const order = ['photo-tasks', 'ratings', 'contest-votes', 'contest-entries', 'messages', 'rewards', 'referrals', 'wallet-entries', 'payments', 'visits', 'appointments']
+  const order = [
+    'photo-tasks',
+    'ratings',
+    'contest-votes',
+    'contest-entries',
+    'messages',
+    'rewards',
+    'referrals',
+    'wallet-entries',
+    'payments',
+    'visits',
+    'appointments',
+  ]
   const rest = tenantCollections().filter((c) => !order.includes(c) && c !== 'media')
   for (const col of [...order, ...rest, 'media']) {
     for (let guard = 0; guard < 200; guard++) {
@@ -164,7 +204,8 @@ export const deleteSalonCompletely = async (payload: Payload, salonId: ID) => {
       for (const d of batch) await repo.delete(col, d.id).catch(() => null)
     }
   }
-  const users = (await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 500, where: { 'tenants.tenant': { equals: salonId } } })).docs as unknown as {
+  const users = (await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 500, where: { 'tenants.tenant': { equals: salonId } } }))
+    .docs as unknown as {
     id: ID
     role: string
     tenants?: { tenant: ID }[]

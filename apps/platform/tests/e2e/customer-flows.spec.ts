@@ -38,7 +38,11 @@ const pickSlot = async (page: Page, from = 1) => {
 const bookFirstDesign = async (page: Page, beforeConfirm?: () => Promise<void>) => {
   await page.goto(`${base}/designs`)
   // A design with a priced service (Studio may have looks without one, which start on the service step).
-  await page.locator(`a[href*="${base}/designs/"]`).filter({ hasText: /from ₹/ }).first().click()
+  await page
+    .locator(`a[href*="${base}/designs/"]`)
+    .filter({ hasText: /from ₹/ })
+    .first()
+    .click()
   await page.getByRole('link', { name: /book this look/i }).click()
   await expect(page).toHaveURL(/\/book/)
   const anyone = page.getByRole('button', { name: /anyone available/i })
@@ -47,7 +51,7 @@ const bookFirstDesign = async (page: Page, beforeConfirm?: () => Promise<void>) 
   await page.getByRole('button', { name: /review booking/i }).click()
   if (beforeConfirm) await beforeConfirm()
   await page.getByRole('button', { name: /confirm booking|deposit/i }).click()
-  await page.waitForURL(/\/(pay\/test|book)/)
+  await page.waitForURL(/\/pay\/test\/|step=done/)
   if (page.url().includes('/pay/test/')) {
     await page.getByRole('button', { name: /pay with upi/i }).click()
     await page.waitForURL(/\/appointments\/[^/?]+/)

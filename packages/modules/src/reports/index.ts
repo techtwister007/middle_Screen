@@ -342,7 +342,9 @@ export const salonHealth = async (payload: Payload, salon: { id: ID; createdAt: 
   const bookingsThisMonth = await repo.count('appointments', { createdAt: { greater_than_equal: monthStart.toISOString() } })
   const visitsThisMonth = await repo.count('visits', { and: [{ createdAt: { greater_than_equal: monthStart.toISOString() } }, NOT_VOID] })
   const costs = await all<{ total: number }>(payload, salon.id, 'cost-ledger', { period: { equals: monthStart.toISOString().slice(0, 7) } })
-  const failedMessages = await repo.count('messages', { and: [{ status: { equals: 'failed' } }, { createdAt: { greater_than_equal: monthStart.toISOString() } }] })
+  const failedMessages = await repo.count('messages', {
+    and: [{ status: { equals: 'failed' } }, { createdAt: { greater_than_equal: monthStart.toISOString() } }],
+  })
   const subscription = await repo.findOne<{ status?: string }>('subscriptions', {})
   const lastEvent = await repo.find<{ createdAt: string }>('events', { sort: '-createdAt', limit: 1 })
   const lastActivity = lastEvent.docs[0]?.createdAt ?? null

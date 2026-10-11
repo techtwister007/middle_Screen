@@ -51,7 +51,11 @@ test("the phone's back button walks back through the booking steps", async ({ pa
 test('a cancelled appointment says what happens to the deposit and offers Book again', async ({ page }) => {
   await login(page)
   await page.goto(`${base}/designs`)
-  await page.locator(`a[href*="${base}/designs/"]`).filter({ hasText: /from ₹/ }).first().click()
+  await page
+    .locator(`a[href*="${base}/designs/"]`)
+    .filter({ hasText: /from ₹/ })
+    .first()
+    .click()
   await page
     .getByTestId('design-book-bar')
     .getByRole('link', { name: /book this look/i })
@@ -73,7 +77,7 @@ test('a cancelled appointment says what happens to the deposit and offers Book a
   expect(picked).toBe(true)
   await page.getByRole('button', { name: /review booking/i }).click()
   await page.getByRole('button', { name: /confirm booking|deposit/i }).click()
-  await page.waitForURL(/\/(pay\/test|book)/)
+  await page.waitForURL(/\/pay\/test\/|step=done/)
   let id: string
   if (page.url().includes('/pay/test/')) {
     await page.getByRole('button', { name: /pay with upi/i }).click()

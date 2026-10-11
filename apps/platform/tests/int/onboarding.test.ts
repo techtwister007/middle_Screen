@@ -2,15 +2,18 @@ import { forTenant, type ID } from '@salon/core'
 import type { Payload } from 'payload'
 import sharp from 'sharp'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { createRealSalon, deleteSalonCompletely } from '@/lib/onboarding'
 import { parseMenuText } from '@/lib/menuText'
+import { createRealSalon, deleteSalonCompletely } from '@/lib/onboarding'
 import { NAIL_SERVICES } from '@/seed/content'
 import { seedSalon } from '@/seed/demo'
 import { payloadForTests } from '../helpers'
 
 let payload: Payload
 const uid = () => Math.random().toString(36).slice(2, 7)
-const photo = async (color: string) => sharp({ create: { width: 500, height: 500, channels: 3, background: color } }).jpeg().toBuffer()
+const photo = async (color: string) =>
+  sharp({ create: { width: 500, height: 500, channels: 3, background: color } })
+    .jpeg()
+    .toBuffer()
 
 beforeAll(async () => {
   payload = await payloadForTests()
@@ -82,7 +85,9 @@ describe('demo builder', () => {
       {
         ownerPassword: 'temp-pass-123',
         customers: 12,
-        designImages: await Promise.all(['#c04060', '#40a0c0', '#e0c050'].map(async (c, i) => ({ buffer: await photo(c), mimetype: 'image/jpeg', title: `Look ${i}` }))),
+        designImages: await Promise.all(
+          ['#c04060', '#40a0c0', '#e0c050'].map(async (c, i) => ({ buffer: await photo(c), mimetype: 'image/jpeg', title: `Look ${i}` })),
+        ),
         onCreated: (id) => {
           created = id
         },

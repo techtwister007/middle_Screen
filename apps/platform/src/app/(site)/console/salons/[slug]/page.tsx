@@ -3,13 +3,13 @@ import { salonHealth } from '@salon/modules'
 import { buttonClass, Stat } from '@salon/ui'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ResetPasswordButton } from '@/components/console/ResetPasswordButton'
 import { FeatureToggle, FieldSelect } from '@/components/console/SalonControls'
 import { ActionForm } from '@/components/studio/ActionForm'
 import { Field, inputClass } from '@/components/studio/Field'
-import { getPayloadClient } from '@/lib/payload'
 import { FlagButton } from '@/components/studio/FlagButton'
-import { ResetPasswordButton } from '@/components/console/ResetPasswordButton'
 import { FEATURE_LABELS } from '@/lib/featureLabels'
+import { getPayloadClient } from '@/lib/payload'
 import { getSalonAnyStatus, salonFeatures } from '@/lib/salon'
 import { demoLifecycle, saveSubscription } from '../../actions'
 
@@ -51,9 +51,8 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
   const byKind = new Map<string, number>()
   for (const c of costs) byKind.set(`${c.period} · ${c.kind}`, (byKind.get(`${c.period} · ${c.kind}`) ?? 0) + c.total)
   const settings = (salon.settings ?? {}) as Record<string, unknown>
-  const team = (
-    await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 50, where: { 'tenants.tenant': { equals: salon.id } } })
-  ).docs as unknown as { id: ID; name: string; role: string; email: string }[]
+  const team = (await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 50, where: { 'tenants.tenant': { equals: salon.id } } }))
+    .docs as unknown as { id: ID; name: string; role: string; email: string }[]
   const [serviceCount, designCount, linkScans] = await Promise.all([
     repo.count('services', { active: { equals: true } }),
     repo.count('designs', { published: { equals: true } }),
@@ -67,7 +66,11 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
     { label: 'Address and opening hours', done: Boolean(c.address && salon.hours?.length), hint: 'Studio → More → Salon page & brand' },
     { label: 'WhatsApp number for owner alerts', done: Boolean(c.whatsapp || c.phone) },
     { label: 'Google review link', done: Boolean(settings.googleReviewUrl), hint: 'Studio → More → Rules' },
-    { label: 'Payments: Razorpay account or UPI ID', done: Boolean((salon as { razorpayAccountId?: string }).razorpayAccountId || salon.upiVpa), hint: 'Set in /admin → Salons → Payments & messaging' },
+    {
+      label: 'Payments: Razorpay account or UPI ID',
+      done: Boolean((salon as { razorpayAccountId?: string }).razorpayAccountId || salon.upiVpa),
+      hint: 'Set in /admin → Salons → Payments & messaging',
+    },
     { label: 'Staff invited (owner plus artists)', done: team.length >= 2 },
     { label: 'Billing record', done: Boolean(sub?.status && sub.status !== 'pending') },
     { label: 'QR kit printed and scanned', done: linkScans > 0, hint: 'Studio → More → QR kit → printable posters' },
@@ -102,28 +105,43 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
       <div className='mt-8 flex flex-wrap gap-6'>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Status</span>
-          <FieldSelect field='status' options={[
+          <FieldSelect
+            field='status'
+            options={[
               ['trial', 'Trial'],
               ['active', 'Live'],
               ['suspended', 'Paused'],
               ['demo', 'Demo'],
-            ]} slug={slug} value={salon.status} />
+            ]}
+            slug={slug}
+            value={salon.status}
+          />
         </label>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Plan</span>
-          <FieldSelect field='plan' options={[
+          <FieldSelect
+            field='plan'
+            options={[
               ['starter', 'Starter'],
               ['studio', 'Studio'],
               ['growth', 'Growth'],
-            ]} slug={slug} value={salon.plan} />
+            ]}
+            slug={slug}
+            value={salon.plan}
+          />
         </label>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Theme</span>
-          <FieldSelect field='theme' options={[
+          <FieldSelect
+            field='theme'
+            options={[
               ['default', 'Blush'],
               ['luxe', 'Noir & Gold'],
               ['minimal', 'Studio White'],
-            ]} slug={slug} value={salon.theme ?? 'default'} />
+            ]}
+            slug={slug}
+            value={salon.theme ?? 'default'}
+          />
         </label>
       </div>
       {salon.status === 'demo' ? (
@@ -142,10 +160,18 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
             </Link>
             <FlagButton run={demoLifecycle.bind(null, slug, 'extend')}>Extend 7 days</FlagButton>
             <FlagButton run={demoLifecycle.bind(null, slug, 'keep')}>Keep (never pause)</FlagButton>
-            <FlagButton confirm='Make this demo a live salon? Sample customers and history stay until you remove them.' run={demoLifecycle.bind(null, slug, 'go-live')}>
+            <FlagButton
+              confirm='Make this demo a live salon? Sample customers and history stay until you remove them.'
+              run={demoLifecycle.bind(null, slug, 'go-live')}
+            >
               They said yes: go live
             </FlagButton>
-            <FlagButton className='text-red-700' confirm='Delete this demo and everything in it?' run={demoLifecycle.bind(null, slug, 'delete')} then='/console'>
+            <FlagButton
+              className='text-red-700'
+              confirm='Delete this demo and everything in it?'
+              run={demoLifecycle.bind(null, slug, 'delete')}
+              then='/console'
+            >
               Delete demo
             </FlagButton>
           </div>
@@ -180,7 +206,10 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
           {team.map((u) => (
             <div className='flex flex-wrap items-center justify-between gap-2 px-4 py-2' key={String(u.id)}>
               <span>
-                {u.name} <span className='text-muted'>· {u.role} · {u.email}</span>
+                {u.name}{' '}
+                <span className='text-muted'>
+                  · {u.role} · {u.email}
+                </span>
               </span>
               <ResetPasswordButton slug={slug} userId={u.id} />
             </div>
@@ -191,7 +220,14 @@ export default async function SalonDetail({ params, searchParams }: { params: Pr
       <h2 className='mb-3 mt-10 font-heading text-xl'>Features</h2>
       <div className='grid grid-cols-2 gap-2 md:grid-cols-4'>
         {FEATURES.map((f) => (
-          <FeatureToggle enabled={features.has(f)} feature={f} key={f} label={FEATURE_LABELS[f]} planDefault={(PLAN_FEATURES[salon.plan] ?? []).includes(f)} slug={slug} />
+          <FeatureToggle
+            enabled={features.has(f)}
+            feature={f}
+            key={f}
+            label={FEATURE_LABELS[f]}
+            planDefault={(PLAN_FEATURES[salon.plan] ?? []).includes(f)}
+            slug={slug}
+          />
         ))}
       </div>
       <h2 className='mb-3 mt-10 font-heading text-xl'>Billing</h2>

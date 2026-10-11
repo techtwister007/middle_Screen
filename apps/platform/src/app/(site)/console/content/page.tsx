@@ -136,7 +136,10 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           ['articles', `Care articles (${articles.totalDocs})`],
         ].map(([k, label]) => (
           <Link
-            className={cn('inline-flex min-h-11 items-center rounded-full border px-4 text-sm', tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
+            className={cn(
+              'inline-flex min-h-11 items-center rounded-full border px-4 text-sm',
+              tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
+            )}
             href={`?tab=${k}`}
             key={k}
           >
@@ -164,7 +167,11 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
                 <PackFields p={p} />
               </ActionForm>
               <div className='mt-3'>
-                <FlagButton className='text-red-700' confirm={`Delete "${p.title}"? Offers already launched by salons stay.`} run={deleteContent.bind(null, 'campaign-packs', p.id)}>
+                <FlagButton
+                  className='text-red-700'
+                  confirm={`Delete "${p.title}"? Offers already launched by salons stay.`}
+                  run={deleteContent.bind(null, 'campaign-packs', p.id)}
+                >
                   Delete pack
                 </FlagButton>
               </div>

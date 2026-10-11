@@ -696,7 +696,7 @@ export async function notPosted(slug: string, taskId: ID): Promise<Result> {
   try {
     const { repo } = await ctx(slug)
     const task = await repo.findByID<{ id: ID; status: string }>('photo-tasks', asId(taskId))
-    if (!task || task.status !== 'shared') return { ok: false, error: 'Nothing to check for this one' }
+    if (task?.status !== 'shared') return { ok: false, error: 'Nothing to check for this one' }
     await repo.update('photo-tasks', task.id, { status: 'sent' })
     revalidatePath(`/studio/${slug}/photos`)
     return { ok: true }

@@ -63,7 +63,9 @@ export async function createSalonFromForm(form: FormData): Promise<Result<{ slug
   if (!name || !slug) return { ok: false, error: 'Salon name is required' }
   if (['www', 'app', 'api', 'admin', 'studio', 'console'].includes(slug)) return { ok: false, error: `"${slug}" is reserved. Pick another link.` }
   const isDemo = form.get('demo') === 'on'
-  const ownerEmail = String(form.get('ownerEmail') || '').trim().toLowerCase()
+  const ownerEmail = String(form.get('ownerEmail') || '')
+    .trim()
+    .toLowerCase()
   const ownerPassword = String(form.get('ownerPassword') || '')
   if (!isDemo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ownerEmail)) return { ok: false, error: 'Owner login email is required for a real salon' }
   if (ownerPassword.length < 8) return { ok: false, error: 'Temporary password must be at least 8 characters' }
@@ -101,9 +103,10 @@ export async function createSalonFromForm(form: FormData): Promise<Result<{ slug
     .map((n) => n.trim())
     .filter(Boolean)
   const logoFile = form.get('logo')
-  const logo = logoFile instanceof File && logoFile.size > 0 && logoFile.type.startsWith('image/')
-    ? { data: Buffer.from(await logoFile.arrayBuffer()), mimetype: logoFile.type, name: logoFile.name || 'logo.png' }
-    : null
+  const logo =
+    logoFile instanceof File && logoFile.size > 0 && logoFile.type.startsWith('image/')
+      ? { data: Buffer.from(await logoFile.arrayBuffer()), mimetype: logoFile.type, name: logoFile.name || 'logo.png' }
+      : null
   const theme = (['default', 'luxe', 'minimal'].includes(String(form.get('theme'))) ? String(form.get('theme')) : 'default') as 'default' | 'luxe' | 'minimal'
   const plan = (['starter', 'studio', 'growth'].includes(String(form.get('plan'))) ? String(form.get('plan')) : 'studio') as 'starter' | 'studio' | 'growth'
   const primary = String(form.get('primary') || '')
@@ -122,7 +125,11 @@ export async function createSalonFromForm(form: FormData): Promise<Result<{ slug
         area: `${form.get('area') || 'Alkapuri'}, ${form.get('city') || 'Vadodara'}`,
         instagram: String(form.get('instagram') || '').replace(/^@/, ''),
         phone: String(form.get('phone') || '+919800000000'),
-        artists: (artists.length ? artists : ['Artist One']).map((n, i) => ({ name: n, specialties: [], color: ['#B4537A', '#8E6BBF', '#D98C6C', '#5E8C7A'][i % 4] })),
+        artists: (artists.length ? artists : ['Artist One']).map((n, i) => ({
+          name: n,
+          specialties: [],
+          color: ['#B4537A', '#8E6BBF', '#D98C6C', '#5E8C7A'][i % 4],
+        })),
         services: menu.length ? menu : NAIL_SERVICES,
         designCount: files.length || 12,
         customers: 120,
@@ -139,7 +146,9 @@ export async function createSalonFromForm(form: FormData): Promise<Result<{ slug
         },
       })
       createdId = salon.id
-      const current = (await payload.findByID({ collection: 'salons', id: salon.id, overrideAccess: true, depth: 0 })) as unknown as { brand?: Record<string, unknown> }
+      const current = (await payload.findByID({ collection: 'salons', id: salon.id, overrideAccess: true, depth: 0 })) as unknown as {
+        brand?: Record<string, unknown>
+      }
       const brand: Record<string, unknown> = { ...(current.brand ?? {}) }
       if (primary) brand.primaryColor = primary
       if (logo) {
@@ -189,7 +198,11 @@ export async function createSalonFromForm(form: FormData): Promise<Result<{ slug
     // All-or-nothing: remove whatever was created so the same link can be used again.
     const leftover =
       createdId ??
-      ((await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } })).docs[0] as { id: ID } | undefined)?.id
+      (
+        (await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } })).docs[0] as
+          | { id: ID }
+          | undefined
+      )?.id
     if (leftover) await deleteSalonCompletely(payload, leftover).catch((e) => console.error('rollback failed', e))
     return { ok: false, error: message }
   }
@@ -460,32 +473,58 @@ export async function presenter(slug: string, action: string): Promise<Result> {
         const personas = (await repo.find<{ id: ID }>('customers', { where: { sourceDetail: { equals: 'demo-persona' } }, limit: 100 })).docs
         const people = [...(customer ? [customer.id] : []), ...personas.map((p) => p.id)]
         for (const id of people) {
-          for (const col of ['photo-tasks', 'ratings', 'contest-votes', 'messages', 'rewards', 'wallet-entries', 'payments', 'visits', 'appointments', 'moodboards'])
+          for (const col of [
+            'photo-tasks',
+            'ratings',
+            'contest-votes',
+            'messages',
+            'rewards',
+            'wallet-entries',
+            'payments',
+            'visits',
+            'appointments',
+            'moodboards',
+          ])
             for (const d of (await repo.find<{ id: ID }>(col, { where: { customer: { equals: id } }, limit: 500 }).catch(() => ({ docs: [] as { id: ID }[] })))
               .docs)
               await repo.delete(col, d.id).catch(() => null)
-          for (const d of (await repo.find<{ id: ID }>('referrals', { where: { or: [{ referrer: { equals: id } }, { invitee: { equals: id } }] }, limit: 100 })).docs)
+          for (const d of (await repo.find<{ id: ID }>('referrals', { where: { or: [{ referrer: { equals: id } }, { invitee: { equals: id } }] }, limit: 100 }))
+            .docs)
             await repo.delete('referrals', d.id)
         }
         for (const p of personas) {
-          for (const d of (await repo.find<{ id: ID }>('loyalty-accounts', { where: { customer: { equals: p.id } }, limit: 5 })).docs) await repo.delete('loyalty-accounts', d.id)
+          for (const d of (await repo.find<{ id: ID }>('loyalty-accounts', { where: { customer: { equals: p.id } }, limit: 5 })).docs)
+            await repo.delete('loyalty-accounts', d.id)
           await repo.delete('customers', p.id)
         }
         if (customer) {
-          await repo.update('customers', customer.id, { visitCount: 0, lifetimeSpend: 0, lastVisitAt: null, nextDueDate: null, segment: 'lead', language: 'en' })
+          await repo.update('customers', customer.id, {
+            visitCount: 0,
+            lifetimeSpend: 0,
+            lastVisitAt: null,
+            nextDueDate: null,
+            segment: 'lead',
+            language: 'en',
+          })
           for (const a of (await repo.find<{ id: ID }>('loyalty-accounts', { where: { customer: { equals: customer.id } }, limit: 5 })).docs)
             await repo.update('loyalty-accounts', a.id, { stamps: 0, points: 0, tier: 'member' })
         }
         // 2. Offers launched during the demo go; contests closed during the demo reopen.
-        for (const o of (await repo.find<{ id: ID }>('offers', { where: { createdAt: { greater_than: started } }, limit: 100 })).docs) await repo.delete('offers', o.id)
-        for (const k of (await repo.find<{ id: ID }>('contests', { where: { and: [{ status: { not_equals: 'open' } }, { updatedAt: { greater_than: started } }] }, limit: 10 })).docs)
+        for (const o of (await repo.find<{ id: ID }>('offers', { where: { createdAt: { greater_than: started } }, limit: 100 })).docs)
+          await repo.delete('offers', o.id)
+        for (const k of (
+          await repo.find<{ id: ID }>('contests', { where: { and: [{ status: { not_equals: 'open' } }, { updatedAt: { greater_than: started } }] }, limit: 10 })
+        ).docs)
           await repo.update('contests', k.id, { status: 'open', winner: null, endsAt: new Date(Date.now() + 20 * 86_400_000).toISOString() })
         // 3. The original look.
         await payload.update({
           collection: 'salons',
           id: salon.id,
           overrideAccess: true,
-          data: { theme: salon.settings?.demoOriginalTheme ?? salon.theme ?? 'default', settings: { ...(salon.settings ?? {}), demoStartedAt: new Date().toISOString() } } as never,
+          data: {
+            theme: salon.settings?.demoOriginalTheme ?? salon.theme ?? 'default',
+            settings: { ...(salon.settings ?? {}), demoStartedAt: new Date().toISOString() },
+          } as never,
         })
         revalidatePath(`/s/${slug}`, 'layout')
         return { ok: true, message: 'Demo reset: theme, language, contest, offers and sample people are back to the start.' }
@@ -733,9 +772,8 @@ export async function demoLifecycle(slug: string, action: 'extend' | 'keep' | 'g
   try {
     await requirePlatformAdmin()
     const payload = await getPayloadClient()
-    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } })).docs[0] as unknown as
-      | { id: ID; status: string; settings?: Record<string, unknown> }
-      | undefined
+    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } }))
+      .docs[0] as unknown as { id: ID; status: string; settings?: Record<string, unknown> } | undefined
     if (!salon) return { ok: false, error: 'Salon not found' }
     if (action === 'delete') {
       if (salon.status !== 'demo' && salon.status !== 'suspended') return { ok: false, error: 'Only demos and paused salons can be deleted here' }
@@ -775,8 +813,11 @@ export async function resetStaffPassword(slug: string, userId: ID): Promise<Resu
       role: string
       tenants?: { tenant: ID }[]
     }
-    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } })).docs[0] as { id: ID } | undefined
-    if (!salon || user.role === 'platform-admin' || !user.tenants?.some((t) => String(t.tenant) === String(salon.id))) return { ok: false, error: 'Not a member of this salon' }
+    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 1, where: { slug: { equals: slug } } })).docs[0] as
+      | { id: ID }
+      | undefined
+    if (!salon || user.role === 'platform-admin' || !user.tenants?.some((t) => String(t.tenant) === String(salon.id)))
+      return { ok: false, error: 'Not a member of this salon' }
     const password = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('')
     await payload.update({ collection: 'users', id: asId(userId), overrideAccess: true, data: { password, loginAttempts: 0, lockUntil: null } as never })
     await audit('staff.password_reset', { slug, user: userId })

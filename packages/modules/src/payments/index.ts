@@ -40,7 +40,7 @@ export const Payments: CollectionConfig = {
 export const refundPayment = async (payload: Payload, tenant: ID, paymentId: ID, reason: string) => {
   const repo = forTenant(payload, tenant)
   const payment = await repo.findByID<PaymentDoc & { providerPaymentId?: string | null }>('payments', paymentId)
-  if (!payment || payment.status !== 'captured') return null
+  if (payment?.status !== 'captured') return null
   const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as {
     razorpayAccountId?: string | null
   }

@@ -10,7 +10,11 @@ const phone = () => `9${Math.floor(100000000 + Math.random() * 899999999)}`
 
 test('browse a design, log in with a phone code and book it', async ({ page }) => {
   await page.goto(`/s/${SLUG}/designs`)
-  await page.locator('a[href*="/designs/"]').filter({ hasText: /from ₹/ }).first().click()
+  await page
+    .locator('a[href*="/designs/"]')
+    .filter({ hasText: /from ₹/ })
+    .first()
+    .click()
   await expect(page.getByText('Total', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: /book this look/i }).click()
 
@@ -43,7 +47,7 @@ test('browse a design, log in with a phone code and book it', async ({ page }) =
   await expect(confirm).toBeVisible()
   await confirm.click()
 
-  await page.waitForURL(/\/(pay\/test|book)/)
+  await page.waitForURL(/\/pay\/test\/|step=done/)
   if (page.url().includes('/pay/test/')) {
     await page.getByRole('button', { name: /pay with upi/i }).click()
     await expect(page.getByText(/deposit received/i)).toBeVisible()

@@ -22,7 +22,11 @@ interface Row {
   settings?: { demoExpiresAt?: string | null; keepDemo?: boolean | null } | null
 }
 
-export default async function ConsoleHome({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; plan?: string; risk?: string; page?: string; sort?: string }> }) {
+export default async function ConsoleHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; plan?: string; risk?: string; page?: string; sort?: string }>
+}) {
   const sp = await searchParams
   const payload = await getPayloadClient()
   const and: Where[] = []
@@ -30,7 +34,14 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
   if (sp.status && sp.status !== 'all') and.push({ status: { equals: sp.status } })
   if (sp.plan && sp.plan !== 'all') and.push({ plan: { equals: sp.plan } })
   const all = (
-    await payload.find({ collection: 'salons', overrideAccess: true, depth: 0, limit: 2000, sort: sp.sort === 'name' ? 'name' : '-createdAt', where: and.length ? { and } : undefined })
+    await payload.find({
+      collection: 'salons',
+      overrideAccess: true,
+      depth: 0,
+      limit: 2000,
+      sort: sp.sort === 'name' ? 'name' : '-createdAt',
+      where: and.length ? { and } : undefined,
+    })
   ).docs as unknown as Row[]
   const withHealth = await Promise.all(all.map(async (s) => ({ s, h: await salonHealth(payload, s) })))
   const filtered = sp.risk && sp.risk !== 'any' ? withHealth.filter((x) => x.h.churnRisk === sp.risk) : withHealth
@@ -42,8 +53,12 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
   const live = everyone.filter((s) => s.status === 'active')
   const mrr = live.reduce((n, s) => n + (PLAN_PRICES[s.plan] ?? 0), 0)
   const soon = Date.now() + 2 * 86_400_000
-  const expiring = everyone.filter((s) => s.status === 'demo' && !s.settings?.keepDemo && s.settings?.demoExpiresAt && new Date(s.settings.demoExpiresAt).getTime() < soon)
-  const attention = withHealth.filter((x) => x.s.status === 'active' && (x.h.churnRisk === 'high' || x.h.failedMessages > 0 || x.h.billingStatus === 'past-due'))
+  const expiring = everyone.filter(
+    (s) => s.status === 'demo' && !s.settings?.keepDemo && s.settings?.demoExpiresAt && new Date(s.settings.demoExpiresAt).getTime() < soon,
+  )
+  const attention = withHealth.filter(
+    (x) => x.s.status === 'active' && (x.h.churnRisk === 'high' || x.h.failedMessages > 0 || x.h.billingStatus === 'past-due'),
+  )
   const qs = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(Object.entries({ ...sp, ...patch }).filter(([, v]) => v && v !== 'all' && v !== 'any') as [string, string][])
     return `?${next.toString()}`
@@ -64,7 +79,11 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
       <div className='mt-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
         <Stat label='Live salons' value={live.length} />
         <Stat label='MRR (list price)' value={formatINR(mrr)} />
-        <Stat hint={expiring.length ? `${expiring.length} pause within 2 days` : undefined} label='Demos' value={everyone.filter((s) => s.status === 'demo').length} />
+        <Stat
+          hint={expiring.length ? `${expiring.length} pause within 2 days` : undefined}
+          label='Demos'
+          value={everyone.filter((s) => s.status === 'demo').length}
+        />
         <Stat hint='High churn risk, failed messages or unpaid' label='Need attention' value={attention.length} />
       </div>
 
@@ -77,7 +96,12 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
                 <Link className='underline' href={`/console/salons/${s.slug}`}>
                   {s.name}
                 </Link>
-                : {[h.churnRisk === 'high' ? 'quiet for over a week' : '', h.failedMessages ? `${h.failedMessages} failed messages` : '', h.billingStatus === 'past-due' ? 'payment overdue' : '']
+                :{' '}
+                {[
+                  h.churnRisk === 'high' ? 'quiet for over a week' : '',
+                  h.failedMessages ? `${h.failedMessages} failed messages` : '',
+                  h.billingStatus === 'past-due' ? 'payment overdue' : '',
+                ]
                   .filter(Boolean)
                   .join(' · ')}
               </li>
@@ -98,7 +122,11 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
         ].map(([name, label, options]) => (
           <label className='text-sm' key={name as string}>
             <span className='mb-1 block text-muted'>{label as string}</span>
-            <select className='h-11 rounded-btn border border-line bg-surface px-3' defaultValue={sp[name as 'status'] ?? (options as readonly string[])[0]} name={name as string}>
+            <select
+              className='h-11 rounded-btn border border-line bg-surface px-3'
+              defaultValue={sp[name as 'status'] ?? (options as readonly string[])[0]}
+              name={name as string}
+            >
               {(options as readonly string[]).map((o) => (
                 <option key={o} value={o}>
                   {o}
@@ -150,7 +178,9 @@ export default async function ConsoleHome({ searchParams }: { searchParams: Prom
                 </td>
                 <td className='px-4 py-3'>{PLAN_LABELS[s.plan] ?? s.plan}</td>
                 <td className='px-4 py-3'>
-                  <Badge tone={s.status === 'active' ? 'success' : s.status === 'demo' ? 'brand' : s.status === 'trial' ? 'warning' : 'danger'}>{s.status}</Badge>
+                  <Badge tone={s.status === 'active' ? 'success' : s.status === 'demo' ? 'brand' : s.status === 'trial' ? 'warning' : 'danger'}>
+                    {s.status}
+                  </Badge>
                   {s.status === 'demo' && s.settings?.demoExpiresAt ? (
                     <p className='mt-1 text-xs text-muted'>{s.settings.keepDemo ? 'kept' : `pauses ${formatIST(s.settings.demoExpiresAt, 'd MMM')}`}</p>
                   ) : null}

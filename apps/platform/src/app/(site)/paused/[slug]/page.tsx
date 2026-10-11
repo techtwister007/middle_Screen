@@ -8,7 +8,7 @@ export const metadata = { title: 'Back soon', robots: { index: false } }
 export default async function PausedPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const salon = await getSalonAnyStatus(slug)
-  if (!salon || salon.status !== 'suspended') notFound()
+  if (salon?.status !== 'suspended') notFound()
   const phone = salon.contact?.whatsapp ?? salon.contact?.phone
   return (
     <main className='flex min-h-dvh items-center justify-center bg-[#FBF7F4] p-6 text-center text-[#2A2024]'>

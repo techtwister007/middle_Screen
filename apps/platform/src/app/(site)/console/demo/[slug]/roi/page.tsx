@@ -36,9 +36,7 @@ export default async function RoiPage({ params }: { params: Promise<{ slug: stri
       label: PLAN_LABELS[p],
       monthly: PLAN_PRICES[p],
       setup: PLAN_SETUP_FEES[p],
-      qr: vpa
-        ? await QRCode.toDataURL(upiUri(vpa, PLATFORM_NAME, PLAN_SETUP_FEES[p], `Setup ${salon.name}`.slice(0, 40)), { margin: 1, width: 320 })
-        : null,
+      qr: vpa ? await QRCode.toDataURL(upiUri(vpa, PLATFORM_NAME, PLAN_SETUP_FEES[p], `Setup ${salon.name}`.slice(0, 40)), { margin: 1, width: 320 }) : null,
     })),
   )
   return (

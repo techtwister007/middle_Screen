@@ -9,7 +9,7 @@ import { currentCustomer } from '@/lib/site'
 export async function GET(_: Request, { params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await getSalonBySlug(slug)
-  if (!salon || salon.status !== 'demo') return new Response('Not found', { status: 404 })
+  if (salon?.status !== 'demo') return new Response('Not found', { status: 404 })
   const customer = await currentCustomer(salon)
   const lang = (await cookies()).get('lang')?.value ?? ''
   const updatedAt = (salon as { updatedAt?: string }).updatedAt ?? ''

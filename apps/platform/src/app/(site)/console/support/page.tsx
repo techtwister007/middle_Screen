@@ -15,12 +15,21 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const sp = await searchParams
   const phone = sp.phone ? normalizePhone(sp.phone) : null
   const payload = await getPayloadClient()
-  let rows: { id: ID; name?: string; phone: string; visitCount?: number; lifetimeSpend?: number; lastVisitAt?: string; tenant: { id: ID; name: string; slug: string } }[] = []
+  let rows: {
+    id: ID
+    name?: string
+    phone: string
+    visitCount?: number
+    lifetimeSpend?: number
+    lastVisitAt?: string
+    tenant: { id: ID; name: string; slug: string }
+  }[] = []
   if (phone) {
     if (!sp.reason?.trim()) {
       // Ask for a reason first; nothing is looked up without one.
     } else {
-      rows = (await payload.find({ collection: 'customers', overrideAccess: true, depth: 1, limit: 50, where: { phone: { equals: phone } } })).docs as unknown as typeof rows
+      rows = (await payload.find({ collection: 'customers', overrideAccess: true, depth: 1, limit: 50, where: { phone: { equals: phone } } }))
+        .docs as unknown as typeof rows
       await payload.create({
         collection: 'audit-log',
         overrideAccess: true,
@@ -39,7 +48,13 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
         </label>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Reason (logged)</span>
-          <input className='h-11 w-full rounded-btn border border-line bg-surface px-3' defaultValue={sp.reason} name='reason' placeholder='Ticket #, or what they asked' required />
+          <input
+            className='h-11 w-full rounded-btn border border-line bg-surface px-3'
+            defaultValue={sp.reason}
+            name='reason'
+            placeholder='Ticket #, or what they asked'
+            required
+          />
         </label>
         <button className={buttonClass('primary', 'md', 'h-11')} type='submit'>
           Search

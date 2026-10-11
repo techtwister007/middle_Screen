@@ -54,7 +54,10 @@ export const FeatureToggle = ({
   const [pending, start] = useTransition()
   return (
     <button
-      className={cn('flex min-h-14 items-center justify-between gap-3 rounded-btn border px-3 py-2 text-sm', on ? 'border-brand bg-brand/8' : 'border-line bg-surface')}
+      className={cn(
+        'flex min-h-14 items-center justify-between gap-3 rounded-btn border px-3 py-2 text-sm',
+        on ? 'border-brand bg-brand/8' : 'border-line bg-surface',
+      )}
       disabled={pending}
       onClick={() => {
         setOn(!on)
@@ -64,7 +67,9 @@ export const FeatureToggle = ({
     >
       <span className='text-left'>
         <span className='block'>{label}</span>
-        <span className='block text-[11px] text-muted'>{on === planDefault ? 'plan default' : on ? 'switched on for this salon' : 'switched off for this salon'}</span>
+        <span className='block text-[11px] text-muted'>
+          {on === planDefault ? 'plan default' : on ? 'switched on for this salon' : 'switched off for this salon'}
+        </span>
       </span>
       <span className={cn('h-5 w-9 rounded-full p-0.5 transition', on ? 'bg-brand' : 'bg-line')}>
         <span className={cn('block h-4 w-4 rounded-full bg-white transition', on ? 'translate-x-4' : '')} />
