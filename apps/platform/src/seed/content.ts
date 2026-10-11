@@ -1,0 +1,172 @@
+import type { NailSpec } from './nailArt'
+
+export interface ServiceSeed {
+  name: string
+  category: string
+  price: number // rupees
+  minutes: number
+  cycleDays?: number
+  isAddOn?: boolean
+  description?: string
+  lastsDays?: number
+  aftercare?: string
+}
+
+export const NAIL_SERVICES: ServiceSeed[] = [
+  { name: 'Gel polish (hands)', category: 'gel', price: 799, minutes: 45, cycleDays: 21, lastsDays: 21, description: 'Long-lasting glossy gel in any shade.', aftercare: 'Avoid hot water for 24 hours. Use cuticle oil daily.' },
+  { name: 'Gel extensions with nail art', category: 'extensions', price: 1999, minutes: 120, cycleDays: 21, lastsDays: 28, description: 'Sculpted gel extensions with art on all nails.', aftercare: 'Do not use nails as tools. Book a refill in 3 weeks.' },
+  { name: 'Acrylic extensions', category: 'extensions', price: 2299, minutes: 135, cycleDays: 21, lastsDays: 28 },
+  { name: 'Refill', category: 'refill', price: 1199, minutes: 75, cycleDays: 21 },
+  { name: 'Classic manicure', category: 'manicure', price: 599, minutes: 40, cycleDays: 28 },
+  { name: 'Spa pedicure', category: 'pedicure', price: 899, minutes: 50, cycleDays: 30 },
+  { name: 'Bridal nails package', category: 'bridal', price: 4999, minutes: 180, description: 'Trial + wedding-day set with custom art.' },
+  { name: 'Gel removal', category: 'removal', price: 299, minutes: 20 },
+  { name: 'Chrome / cat-eye', category: 'add-on', price: 300, minutes: 15, isAddOn: true },
+  { name: 'Art on 2 nails', category: 'add-on', price: 200, minutes: 10, isAddOn: true },
+  { name: 'Stones & charms', category: 'add-on', price: 250, minutes: 15, isAddOn: true },
+]
+
+export const LASH_SERVICES: ServiceSeed[] = [
+  { name: 'Classic lash extensions', category: 'lashes', price: 2499, minutes: 120, cycleDays: 21 },
+  { name: 'Lash refill', category: 'lashes', price: 1299, minutes: 60, cycleDays: 21 },
+  { name: 'Brow lamination', category: 'brows', price: 1499, minutes: 45, cycleDays: 42 },
+]
+
+export interface DesignSeed {
+  title: string
+  category: string
+  service: string
+  addOns?: string[]
+  occasions: string[]
+  seasons?: string[]
+  colors: string[]
+  shape?: string
+  length?: string
+  spec: NailSpec
+  featured?: boolean
+}
+
+export const DESIGNS: DesignSeed[] = [
+  { title: 'Garba Glow', category: 'nail-art', service: 'Gel extensions with nail art', occasions: ['garba', 'festive'], seasons: ['navratri'], colors: ['purple', 'gold'], shape: 'almond', length: 'medium', spec: { style: 'garba', base: '#7A1E8C', accent: '#FFB000', background: ['#F7E8C9', '#E4B9D6'] }, featured: true },
+  { title: 'Mirror Chrome', category: 'chrome', service: 'Gel polish (hands)', addOns: ['Chrome / cat-eye'], occasions: ['party', 'date-night'], colors: ['silver', 'lilac'], shape: 'almond', length: 'medium', spec: { style: 'chrome', base: '#C9B8E8', accent: '#9AD0EC', background: ['#EEF0F6', '#CFD3E3'] }, featured: true },
+  { title: 'Milky Pink French', category: 'french', service: 'Gel extensions with nail art', occasions: ['office', 'everyday', 'wedding'], colors: ['pink', 'white'], shape: 'almond', length: 'medium', spec: { style: 'french', base: '#F3D9D3', accent: '#FFFFFF', background: ['#FBEFEA', '#E9CFC8'] } },
+  { title: 'Ocean Cat-Eye', category: 'cat-eye', service: 'Gel polish (hands)', addOns: ['Chrome / cat-eye'], occasions: ['party', 'vacation'], colors: ['navy', 'blue'], shape: 'almond', length: 'long', spec: { style: 'cat-eye', base: '#1E2A4A', accent: '#7FD1FF', background: ['#DDE6F0', '#9FB2C9'], length: 1.1 } },
+  { title: 'Diwali Diya Gold', category: 'nail-art', service: 'Gel extensions with nail art', occasions: ['festive'], seasons: ['diwali'], colors: ['maroon', 'gold'], shape: 'almond', length: 'medium', spec: { style: 'diya', base: '#6E0F1E', accent: '#F2A93B', background: ['#FBE7C6', '#E9B98A'] }, featured: true },
+  { title: 'Bridal Mehendi Lace', category: 'bridal', service: 'Bridal nails package', occasions: ['wedding'], seasons: ['wedding'], colors: ['nude', 'maroon'], shape: 'almond', length: 'long', spec: { style: 'lace', base: '#EBC9B8', accent: '#8B1E2D', background: ['#FBEFEF', '#EBC3C3'], length: 1.15 } },
+  { title: 'Minimal Moon', category: 'minimal', service: 'Gel polish (hands)', occasions: ['office', 'everyday'], colors: ['nude', 'white'], shape: 'oval', length: 'short', spec: { style: 'moon', base: '#E8D3C8', accent: '#FFFFFF', background: ['#F7F3F0', '#E2D8D1'], length: 0.85 } },
+  { title: 'Rose Ombré', category: 'ombre', service: 'Gel extensions with nail art', occasions: ['wedding', 'date-night'], colors: ['pink', 'rose'], shape: 'almond', length: 'long', spec: { style: 'ombre', base: '#F7D6DE', accent: '#C2416B', background: ['#FFF2F4', '#F0C9D3'], length: 1.1 } },
+  { title: 'Champagne Glitter', category: 'glitter', service: 'Gel polish (hands)', occasions: ['party', 'wedding'], colors: ['gold', 'nude'], shape: 'almond', length: 'medium', spec: { style: 'glitter', base: '#E9D2B4', accent: '#C9A45C', background: ['#FBF4EA', '#E6D2B8'] } },
+  { title: 'Cherry Red Classic', category: 'solid', service: 'Gel polish (hands)', occasions: ['everyday', 'date-night'], colors: ['red'], shape: 'oval', length: 'short', spec: { style: 'solid', base: '#B3132B', accent: '#ffffff', background: ['#FCEDEE', '#EBC6CB'], length: 0.9 } },
+  { title: 'Sage Marble', category: 'nail-art', service: 'Gel extensions with nail art', occasions: ['office', 'vacation'], colors: ['green', 'white'], shape: 'almond', length: 'medium', spec: { style: 'marble', base: '#C9D8C5', accent: '#5E7D5A', background: ['#F1F5EF', '#D3DFD0'] } },
+  { title: 'Polka Pop', category: 'nail-art', service: 'Gel polish (hands)', addOns: ['Art on 2 nails'], occasions: ['party', 'everyday'], colors: ['yellow', 'black'], shape: 'square', length: 'short', spec: { style: 'dots', base: '#FFE066', accent: '#1C1C1C', background: ['#FFFBEA', '#F4E3A1'], length: 0.85 } },
+  { title: 'Lavender Haze French', category: 'french', service: 'Gel polish (hands)', occasions: ['everyday'], colors: ['lavender', 'white'], shape: 'almond', length: 'medium', spec: { style: 'french', base: '#E6DDF2', accent: '#9B7BD1', background: ['#F6F2FB', '#DCD1EC'] } },
+  { title: 'Midnight Glitter', category: 'glitter', service: 'Gel extensions with nail art', occasions: ['party', 'date-night'], colors: ['black', 'silver'], shape: 'coffin', length: 'long', spec: { style: 'glitter', base: '#1B1B24', accent: '#C0C6D6', background: ['#E6E7EE', '#A9ACBC'], length: 1.15 } },
+  { title: 'Navratri Mirror Work', category: 'nail-art', service: 'Gel extensions with nail art', addOns: ['Stones & charms'], occasions: ['garba'], seasons: ['navratri'], colors: ['red', 'green', 'gold'], shape: 'almond', length: 'medium', spec: { style: 'garba', base: '#B3132B', accent: '#2E8B57', background: ['#FFF0D6', '#F2C59C'] }, featured: true },
+  { title: 'Peach Sorbet Ombré', category: 'ombre', service: 'Gel polish (hands)', occasions: ['vacation', 'everyday'], colors: ['peach', 'orange'], shape: 'oval', length: 'short', spec: { style: 'ombre', base: '#FFE3CF', accent: '#F28C5B', background: ['#FFF5EC', '#F6D5BD'], length: 0.9 } },
+  { title: 'Bridal Rose Gold', category: 'bridal', service: 'Bridal nails package', occasions: ['wedding'], seasons: ['wedding'], colors: ['rose gold', 'nude'], shape: 'almond', length: 'long', spec: { style: 'chrome', base: '#E8B7A6', accent: '#F6E1D3', background: ['#FDF1EC', '#EBC4B6'], length: 1.15 } },
+  { title: 'Emerald Cat-Eye', category: 'cat-eye', service: 'Gel polish (hands)', addOns: ['Chrome / cat-eye'], occasions: ['festive', 'party'], colors: ['green'], shape: 'almond', length: 'medium', spec: { style: 'cat-eye', base: '#0F3B2E', accent: '#7CFFC4', background: ['#E5F2EC', '#A9CDBE'] } },
+]
+
+export const FIRST_NAMES = ['Priya', 'Ananya', 'Hetal', 'Riddhi', 'Khushi', 'Nidhi', 'Pooja', 'Krupa', 'Dhruvi', 'Isha', 'Janvi', 'Mansi', 'Shreya', 'Aditi', 'Kavya', 'Bhumi', 'Tanvi', 'Neha', 'Ritu', 'Sneha', 'Zara', 'Aisha', 'Fatima', 'Simran', 'Harleen', 'Megha', 'Vidhi', 'Palak', 'Hiral', 'Jinal', 'Disha', 'Foram', 'Nirali', 'Charmi', 'Komal', 'Rutvi', 'Yesha', 'Avni', 'Mitali', 'Sejal']
+export const LAST_NAMES = ['Shah', 'Patel', 'Desai', 'Mehta', 'Joshi', 'Trivedi', 'Parikh', 'Modi', 'Vyas', 'Bhatt', 'Pandya', 'Gandhi', 'Thakkar', 'Rana', 'Chauhan', 'Solanki', 'Sheikh', 'Kapoor', 'Iyer', 'Nair']
+
+export const REVIEWS = [
+  'Riya is magic. My extensions lasted four weeks without a single lift!',
+  'Loved the garba design, got so many compliments at the pandal.',
+  'Super hygienic and they explained the aftercare properly.',
+  'Booking on the app took a minute. No more waiting for DM replies.',
+  'The photos they sent made my Instagram look so good.',
+  'Best French tips in Vadodara. Clean and so neat.',
+  'They fixed one chipped nail for free within the week. Great service.',
+  'Calm place, good music, and Meera is very patient.',
+]
+
+export const ARTICLES = [
+  {
+    title: 'How to make gel polish last three weeks',
+    slug: 'gel-polish-last-longer',
+    kind: 'aftercare',
+    serviceCategories: ['gel'],
+    summary: 'Five small habits that keep your gel glossy until your next appointment.',
+    body: '1. Skip hot water and saunas for 24 hours after your appointment.\n2. Use cuticle oil every night. Dry cuticles pull at the edges.\n3. Wear gloves for dishes and cleaning.\n4. Never peel or pick. Book a soak-off removal instead.\n5. Book your refill or removal around day 21.',
+  },
+  {
+    title: 'Caring for your new extensions',
+    slug: 'extensions-aftercare',
+    kind: 'aftercare',
+    serviceCategories: ['extensions', 'refill', 'bridal'],
+    summary: 'Your first week with extensions, and what to do if one lifts.',
+    body: 'Your nails are strongest after 24 hours. Avoid using them as tools: open cans with a spoon, type with the pads of your fingers. If a nail lifts or chips in the first 7 days, message us and we will fix it free. Book a refill in about 3 weeks so the growth does not weaken the structure.',
+  },
+  {
+    title: 'Navratri nail trends 2026',
+    slug: 'navratri-nail-trends-2026',
+    kind: 'trend',
+    serviceCategories: ['nail-art', 'extensions'],
+    summary: 'Mirror work, bandhani dots and jewel tones: what Vadodara is booking this Navratri.',
+    body: 'This season is all about colour that dances under the lights. Think mirror-work accents with tiny stones, bandhani-inspired dots, and jewel tones like emerald, ruby and marigold. Medium almond shapes stay strong through nine nights of garba. Book early: Navratri slots fill up fast.',
+  },
+  {
+    title: 'Planning your bridal nails',
+    slug: 'bridal-nails-guide',
+    kind: 'guide',
+    serviceCategories: ['bridal'],
+    summary: 'When to book your trial, what to bring and how to match your outfits.',
+    body: 'Book a trial 3–4 weeks before the wedding and the final set 2–3 days before. Bring photos of your outfits and jewellery. Nude bases with lace or mehendi-inspired art photograph beautifully and go with every function.',
+  },
+]
+
+export const CAMPAIGN_PACKS = [
+  {
+    title: 'Navratri 2026',
+    festival: 'navratri',
+    startsOn: '2026-10-11',
+    endsOn: '2026-10-20',
+    pitch: 'Garba-ready designs, pre-booking with deposits and a waitlist for the busiest nights.',
+    offerTitle: 'Navratri special: free stones on any garba design',
+    offerDescription: 'Book any Navratri design and get stones & charms free. Limited slots every evening.',
+    valueType: 'freebie',
+    value: 0,
+    galleryTag: 'navratri',
+    frame: 'navratri',
+  },
+  {
+    title: 'Diwali glow 2026',
+    festival: 'diwali',
+    startsOn: '2026-10-29',
+    endsOn: '2026-11-10',
+    pitch: 'Gold, maroon and diya art for the festival of lights, plus gift cards for family.',
+    offerTitle: 'Diwali: 15% off gold and chrome designs',
+    offerDescription: 'Shine this Diwali. 15% off every gold, chrome and diya design.',
+    valueType: 'percent',
+    value: 15,
+    galleryTag: 'diwali',
+    frame: 'diwali',
+  },
+  {
+    title: 'Wedding season 2026–27',
+    festival: 'wedding',
+    startsOn: '2026-11-15',
+    endsOn: '2027-02-28',
+    pitch: 'Bridal trials, bridal-party group bookings and mehendi-friendly designs.',
+    offerTitle: 'Bridal party: book 4, the bride’s set is 50% off',
+    offerDescription: 'Bring your bridesmaids. When four of you book together, the bride saves 50%.',
+    valueType: 'percent',
+    value: 50,
+    galleryTag: 'wedding',
+    frame: 'bridal',
+  },
+  {
+    title: "Valentine's 2027",
+    festival: 'valentines',
+    startsOn: '2027-02-01',
+    endsOn: '2027-02-14',
+    pitch: 'Reds, hearts and couple-friendly gift cards.',
+    offerTitle: "Valentine's: free heart art on 2 nails",
+    offerDescription: 'Any gel set this week comes with heart art on two nails, free.',
+    valueType: 'freebie',
+    value: 0,
+    galleryTag: 'valentines',
+    frame: 'classic',
+  },
+]
