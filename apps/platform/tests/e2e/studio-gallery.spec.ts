@@ -47,18 +47,35 @@ test('owner copies a look from the design library and can delete it again', asyn
     .filter({ has: page.getByRole('button', { name: '+ Add to my gallery' }) })
     .first()
   const title = (await card.locator('p').first().textContent())?.trim() ?? ''
+  const editLinks = async () => {
+    await page.goto(`/studio/${SLUG}/settings/gallery`)
+    return page
+      .getByTestId('design-card')
+      .filter({ hasText: title })
+      .getByRole('link', { name: 'Edit', exact: true })
+      .evaluateAll((links) => links.map((a) => a.getAttribute('href')))
+  }
+  const before = await editLinks()
+  await page.goto(`/studio/${SLUG}/settings/gallery?show=library`)
+  await page.waitForLoadState('networkidle')
   await card.getByRole('button', { name: '+ Add to my gallery' }).click()
   await expect(page.getByTestId('library-card').filter({ hasText: title }).getByText('✓ In your gallery')).toBeVisible()
 
   await page.goto(`/s/${SLUG}/designs`)
   await expect(page.getByText(title).first()).toBeVisible()
 
+  // The salon may already have its own design with the same name: edit the copy, which is the one that did not exist before.
   await page.goto(`/studio/${SLUG}/settings/gallery`)
-  await page.getByTestId('design-card').filter({ hasText: title }).getByRole('link', { name: 'Edit', exact: true }).click()
+  const edits = page.getByTestId('design-card').filter({ hasText: title }).getByRole('link', { name: 'Edit', exact: true })
+  const after = await edits.evaluateAll((links) => links.map((a) => a.getAttribute('href')))
+  const copy = after.find((href) => !before.includes(href)) ?? ''
+  expect(copy).toBeTruthy()
+  await page.goto(copy)
   page.once('dialog', (d) => d.accept())
   await page.getByRole('button', { name: 'Delete this design' }).click()
   await expect(page).toHaveURL(new RegExp(`/studio/${SLUG}/settings/gallery$`))
-  await expect(page.getByTestId('design-card').filter({ hasText: title })).toHaveCount(0)
+  await expect(page.locator(`a[href="${copy}"]`)).toHaveCount(0)
+  await expect(edits).toHaveCount(before.length)
 })
 
 test('platform admin adds a look to the library', async ({ page, context }) => {
