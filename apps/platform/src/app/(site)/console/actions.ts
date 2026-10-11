@@ -424,3 +424,79 @@ export async function saveSubscription(slug: string, _prev: FormState, f: FormDa
     return fail(err)
   }
 }
+
+// ---------------------------------------------------------------------------
+// Design library (shared looks salons copy into their gallery)
+// ---------------------------------------------------------------------------
+
+const csvList = (v: FormDataEntryValue | null) =>
+  String(v ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+
+export async function saveLibraryDesign(_prev: FormState, f: FormData): Promise<FormState> {
+  try {
+    await requirePlatformAdmin()
+    const payload = await getPayloadClient()
+    const id = String(f.get('id') ?? '')
+    const title = String(f.get('title') ?? '').trim()
+    if (!title) return { ok: false, error: 'Give the look a name' }
+    const images: ID[] = []
+    for (const file of f
+      .getAll('images')
+      .filter((x): x is File => x instanceof File && x.size > 0)
+      .slice(0, 6)) {
+      if (!file.type.startsWith('image/')) return { ok: false, error: 'Photos must be images' }
+      const media = (await payload.create({
+        collection: 'library-media',
+        overrideAccess: true,
+        data: { alt: title } as never,
+        file: { data: Buffer.from(await file.arrayBuffer()), mimetype: file.type, name: file.name || 'look.jpg', size: file.size },
+      })) as unknown as { id: ID }
+      images.push(media.id)
+    }
+    const data: Record<string, unknown> = {
+      title,
+      description: String(f.get('description') ?? '').trim() || null,
+      styleNames: csvList(f.get('styleNames')),
+      occasions: f.getAll('occasions').map(String),
+      seasons: csvList(f.get('seasons')).map((s) => s.toLowerCase()),
+      colors: csvList(f.get('colors')).map((s) => s.toLowerCase()),
+      shape: String(f.get('shape') ?? '') || null,
+      length: String(f.get('length') ?? '') || null,
+      suggestedService: String(f.get('suggestedService') ?? '').trim() || null,
+      credit: String(f.get('credit') ?? '').trim() || null,
+      published: f.get('published') === 'on',
+    }
+    if (id) {
+      const current = (await payload.findByID({ collection: 'library-designs', id: asId(id), overrideAccess: true, depth: 0 })) as unknown as { images?: ID[] }
+      data.images = [...(current.images ?? []), ...images]
+      await payload.update({ collection: 'library-designs', id: asId(id), overrideAccess: true, data: data as never })
+    } else {
+      if (!images.length) return { ok: false, error: 'Add at least one photo you have the rights to use' }
+      if (!data.credit) return { ok: false, error: 'Say where the photo is from (your own, or its licence)' }
+      await payload.create({ collection: 'library-designs', overrideAccess: true, data: { ...data, images } as never })
+    }
+    await audit(id ? 'library.updated' : 'library.created', { title })
+    revalidatePath('/console/library')
+    return { ok: true, message: id ? 'Saved' : 'Added to the library' }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export async function setLibraryDesign(id: ID, action: 'publish' | 'unpublish' | 'delete'): Promise<Result> {
+  try {
+    await requirePlatformAdmin()
+    const payload = await getPayloadClient()
+    // Salons keep their copies: deleting from the library never touches a salon's gallery.
+    if (action === 'delete') await payload.delete({ collection: 'library-designs', id: asId(id), overrideAccess: true })
+    else await payload.update({ collection: 'library-designs', id: asId(id), overrideAccess: true, data: { published: action === 'publish' } as never })
+    await audit(`library.${action}`, { id })
+    revalidatePath('/console/library')
+    return { ok: true }
+  } catch (err) {
+    return fail(err)
+  }
+}

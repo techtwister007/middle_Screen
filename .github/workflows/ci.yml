@@ -32,6 +32,10 @@ jobs:
       PAYMENTS_PROVIDER: fake
       IMAGE_AI_PROVIDER: fake
       OTP_FIXED_CODE: '123456'
+      # The e2e run starts a production build on localhost: allow the test login code there only,
+      # and skip the production config check (no real secrets, storage or providers in CI).
+      ALLOW_FIXED_OTP_ON_LOCALHOST: '1'
+      SKIP_ENV_CHECK: '1'
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +57,7 @@ jobs:
         run: pnpm -r --filter './packages/*' --filter @salon/platform exec tsc --noEmit
       - name: Unit tests
         run: pnpm --filter @salon/core --filter @salon/modules --filter @salon/themes test
-      - name: Integration tests (tenant isolation, customer journey)
+      - name: Integration tests (tenant isolation, journeys, automations, library)
         run: pnpm --filter @salon/platform test
       - name: Migrate and seed
         working-directory: apps/platform
@@ -68,6 +72,7 @@ jobs:
           (pnpm start > next.log 2>&1 &)
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/s/glamnails && break; sleep 2; done
           E2E_BASE_URL=http://localhost:3000 npx playwright test
+          node scripts/crawl.mjs http://localhost:3000
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

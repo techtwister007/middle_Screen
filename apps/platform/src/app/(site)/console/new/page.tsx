@@ -1,5 +1,8 @@
 import { NewSalonForm } from '@/components/console/NewSalonForm'
 
+// Building a demo salon or copying photos can take a minute.
+export const maxDuration = 300
+
 export const metadata = { title: 'New salon' }
 
 export default async function NewSalonPage({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {

@@ -11,6 +11,14 @@ const hash = (code: string, phone: string) =>
     .update(`${process.env.CUSTOMER_SESSION_SECRET ?? 'dev'}:${phone}:${code}`)
     .digest('hex')
 
+/**
+ * A fixed login code is only for development and automated tests. In a production build it is honoured
+ * solely when the app is explicitly running on localhost for CI (never on a real domain).
+ */
+export const fixedOtpAllowed = () =>
+  process.env.NODE_ENV !== 'production' ||
+  (process.env.ALLOW_FIXED_OTP_ON_LOCALHOST === '1' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(process.env.PUBLIC_URL ?? ''))
+
 export class OtpError extends Error {
   constructor(
     public code: 'invalid-phone' | 'rate-limited' | 'expired' | 'wrong-code' | 'too-many-attempts',
@@ -28,8 +36,7 @@ export const createOtp = async (payload: Payload, tenant: ID, rawPhone: string, 
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
   const recent = await repo.count('otp-codes', { and: [{ phone: { equals: phone } }, { createdAt: { greater_than: hourAgo } }] })
   if (recent >= MAX_SENDS_PER_HOUR) throw new OtpError('rate-limited', 'Too many codes requested. Try again in a while.')
-  const code =
-    process.env.OTP_FIXED_CODE && process.env.NODE_ENV !== 'production' ? process.env.OTP_FIXED_CODE : String(randomInt(0, 1_000_000)).padStart(6, '0')
+  const code = fixedOtpAllowed() && process.env.OTP_FIXED_CODE ? process.env.OTP_FIXED_CODE : String(randomInt(0, 1_000_000)).padStart(6, '0')
   await repo.create('otp-codes', {
     phone,
     purpose,

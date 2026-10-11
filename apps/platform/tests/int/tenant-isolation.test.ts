@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { payloadForTests } from '../helpers'
 
 /** Collections that are intentionally shared across salons (no tenant field). */
-const SHARED = new Set(['salons', 'users', 'audit-log', 'campaign-packs', 'articles', 'city-listings'])
+const SHARED = new Set(['salons', 'users', 'audit-log', 'campaign-packs', 'articles', 'city-listings', 'library-designs', 'library-media'])
 
 let payload: Payload
 let salonA: { id: number | string }

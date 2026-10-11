@@ -26,7 +26,7 @@ export const forTenant = (payload: Payload, tenant: ID) => {
 
   return {
     tenant,
-    async find<T = AnyDoc>(collection: string, args: { where?: Where; sort?: string; limit?: number; page?: number; depth?: number } = {}) {
+    async find<T = AnyDoc>(collection: string, args: { where?: Where; sort?: string | string[]; limit?: number; page?: number; depth?: number } = {}) {
       const res = await payload.find({
         collection: collection as never,
         overrideAccess: true,

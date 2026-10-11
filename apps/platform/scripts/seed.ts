@@ -2,6 +2,7 @@
  * Seeds the platform admin, festival packs, articles and three demo salons.
  *   pnpm seed                 # all demo salons
  *   pnpm seed -- glamnails    # one salon
+ *   pnpm seed -- --platform-only   # admin, festival packs, articles, design library; no demo salons (production)
  * Passwords come from SEED_ADMIN_PASSWORD / SEED_OWNER_PASSWORD (defaults are for local dev only).
  */
 import { getPayload } from 'payload'
@@ -15,13 +16,14 @@ const main = async () => {
   const ownerPassword = process.env.SEED_OWNER_PASSWORD ?? 'owner-demo-123'
   console.log('Seeding platform…')
   await seedPlatform(payload, adminPassword)
-  for (const def of DEMO_SALONS) {
+  const platformOnly = process.argv.includes('--platform-only')
+  for (const def of platformOnly ? [] : DEMO_SALONS) {
     if (only.length && !only.includes(def.slug)) continue
     await seedSalon(payload, def, { ownerPassword, log: console.log })
   }
   console.log('Done.')
   console.log(`Platform admin: admin@platform.test / ${adminPassword}`)
-  console.log(`Salon owners:   owner@glamnails.test, owner@aura.test, owner@riddhi.test / ${ownerPassword}`)
+  if (!platformOnly) console.log(`Salon owners:   owner@glamnails.test, owner@aura.test, owner@riddhi.test / ${ownerPassword}`)
   process.exit(0)
 }
 

@@ -1,0 +1,140 @@
+{
+  "design-classic-red": {
+    "file": "design-classic-red.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997386/",
+    "license": "Pexels License"
+  },
+  "design-red-short": {
+    "file": "design-red-short.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997388/",
+    "license": "Pexels License"
+  },
+  "design-red-glossy": {
+    "file": "design-red-glossy.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997382/",
+    "license": "Pexels License"
+  },
+  "design-green-leaf": {
+    "file": "design-green-leaf.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/704815/",
+    "license": "Pexels License"
+  },
+  "design-lilac-matte": {
+    "file": "design-lilac-matte.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/704813/",
+    "license": "Pexels License"
+  },
+  "design-love-red": {
+    "file": "design-love-red.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1519014816548-bf5fe059798b",
+    "license": "Unsplash License"
+  },
+  "design-abstract-pop": {
+    "file": "design-abstract-pop.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1571290274554-6a2eaa771e5f",
+    "license": "Unsplash License"
+  },
+  "design-nude-accent": {
+    "file": "design-nude-accent.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1587729927069-ef3b7a5ab9b4",
+    "license": "Unsplash License"
+  },
+  "design-noir-tortoise": {
+    "file": "design-noir-tortoise.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1604654894610-df63bc536371",
+    "license": "Unsplash License"
+  },
+  "design-pink-almond": {
+    "file": "design-pink-almond.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1604902396830-aca29e19b067",
+    "license": "Unsplash License"
+  },
+  "design-pastel-mix": {
+    "file": "design-pastel-mix.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1607779097040-26e80aa78e66",
+    "license": "Unsplash License"
+  },
+  "design-natural-nude": {
+    "file": "design-natural-nude.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1610992015732-2449b76344bc",
+    "license": "Unsplash License"
+  },
+  "studio-swatches": {
+    "file": "studio-swatches.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/7755241/",
+    "license": "Pexels License"
+  },
+  "studio-artist-mask": {
+    "file": "studio-artist-mask.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/7755254/",
+    "license": "Pexels License"
+  },
+  "studio-chat": {
+    "file": "studio-chat.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/7755245/",
+    "license": "Pexels License"
+  },
+  "studio-interior-bw": {
+    "file": "studio-interior-bw.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1560066984-138dadb4c035",
+    "license": "Unsplash License"
+  },
+  "process-painting": {
+    "file": "process-painting.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997389/",
+    "license": "Pexels License"
+  },
+  "process-gloves": {
+    "file": "process-gloves.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997390/",
+    "license": "Pexels License"
+  },
+  "process-uv-lamp": {
+    "file": "process-uv-lamp.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997387/",
+    "license": "Pexels License"
+  },
+  "process-detail": {
+    "file": "process-detail.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1457972729786-0411a3b2b626",
+    "license": "Unsplash License"
+  },
+  "process-filing": {
+    "file": "process-filing.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1632345031435-8727f6897d53",
+    "license": "Unsplash License"
+  },
+  "process-hands": {
+    "file": "process-hands.jpg",
+    "source": "unsplash",
+    "page": "https://unsplash.com/photos/1599206676335-193c82b13c9e",
+    "license": "Unsplash License"
+  },
+  "process-swatch-fan": {
+    "file": "process-swatch-fan.jpg",
+    "source": "pexels",
+    "page": "https://www.pexels.com/photo/3997383/",
+    "license": "Pexels License"
+  }
+}

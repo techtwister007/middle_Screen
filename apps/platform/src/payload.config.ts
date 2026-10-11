@@ -30,7 +30,7 @@ const plugins: Plugin[] = [
 if (process.env.S3_BUCKET) {
   plugins.push(
     s3Storage({
-      collections: { media: true },
+      collections: { media: true, 'library-media': true },
       bucket: process.env.S3_BUCKET,
       config: {
         endpoint: process.env.S3_ENDPOINT,

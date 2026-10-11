@@ -1,7 +1,8 @@
 'use server'
 
 import { randomBytes } from 'node:crypto'
-import { asId, forTenant, type ID, normalizePhone, rupees } from '@salon/core'
+import { asId, forTenant, type ID, normalizePhone, rupees, slugify } from '@salon/core'
+import { copyLibraryDesign, salonStyles } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { parseMenuText } from '@/lib/menuText'
 import { getPayloadClient } from '@/lib/payload'
@@ -263,6 +264,7 @@ export async function addDesign(slug: string, _prev: FormState, f: FormData): Pr
             .map((s) => s.trim().toLowerCase())
             .filter(Boolean)
         : [],
+      styles: f.getAll('styles').map((v) => asId(String(v))),
       artist: user.role === 'artist' ? user.id : undefined,
       source: 'staff',
       featured: bool(f, 'featured'),
@@ -387,6 +389,146 @@ export async function saveHours(slug: string, _prev: FormState, f: FormData): Pr
     if (existing) await repo.update('availability', existing.id, { weekly, timeOff })
     else await repo.create('availability', { staff: staffId, weekly, timeOff })
     return done(slug, from ? 'Hours and time off saved. Customers can no longer book those days.' : 'Hours saved')
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+// ── Design editor ─────────────────────────────────────────────────────────────
+
+const list = (f: FormData, k: string) =>
+  f
+    .getAll(k)
+    .map((v) => String(v).trim())
+    .filter(Boolean)
+const csv = (f: FormData, k: string) =>
+  str(f, k)
+    .split(',')
+    .map((x) => x.trim().toLowerCase())
+    .filter(Boolean)
+
+export async function saveDesign(slug: string, _prev: FormState, f: FormData): Promise<FormState> {
+  try {
+    const { salon, payload, repo } = await ctx(slug)
+    const id = asId(str(f, 'id'))
+    const design = await repo.findByID<{ id: ID; images?: (ID | { id: ID })[] }>('designs', id)
+    if (!design) return { ok: false, error: 'Design not found' }
+    const title = str(f, 'title')
+    if (!title) return { ok: false, error: 'Give the design a name' }
+    // Photos: keep the ones still ticked, in the chosen order (cover first), then add new uploads.
+    const keep = list(f, 'keepImage')
+    const cover = str(f, 'coverImage')
+    const ordered = cover && keep.includes(cover) ? [cover, ...keep.filter((k) => k !== cover)] : keep
+    const added: ID[] = []
+    for (const file of f
+      .getAll('newImages')
+      .filter((x): x is File => x instanceof File && x.size > 0)
+      .slice(0, 6)) {
+      const mid = await uploadImage(payload, salon.id, file, 'design', title)
+      if (mid) added.push(mid)
+    }
+    const images = [...ordered.map(asId), ...added]
+    if (!images.length) return { ok: false, error: 'A design needs at least one photo' }
+    const price = num(f, 'priceFrom')
+    const service = str(f, 'service')
+    await repo.update('designs', id, {
+      title,
+      description: optStr(f, 'description'),
+      images,
+      styles: list(f, 'styles').map(asId),
+      service: service ? asId(service) : null,
+      addOns: list(f, 'addOns').map(asId),
+      priceFrom: price === undefined ? null : rupees(price),
+      durationMinutes: num(f, 'durationMinutes') ?? null,
+      shape: optStr(f, 'shape'),
+      length: optStr(f, 'length'),
+      occasions: list(f, 'occasions'),
+      seasons: csv(f, 'seasons'),
+      colors: csv(f, 'colors'),
+      artist: str(f, 'artist') ? asId(str(f, 'artist')) : null,
+      featured: bool(f, 'featured'),
+      published: bool(f, 'published'),
+    })
+    return done(slug, 'Design saved')
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+/** Moves a design one place up or down in the gallery order. */
+export async function moveDesign(slug: string, id: ID, direction: 'up' | 'down'): Promise<FormState> {
+  try {
+    const { repo } = await ctx(slug)
+    const all = (await repo.find<{ id: ID; order?: number | null }>('designs', { where: { published: { equals: true } }, sort: 'order', limit: 500, depth: 0 }))
+      .docs
+    const i = all.findIndex((d) => String(d.id) === String(id))
+    const j = direction === 'up' ? i - 1 : i + 1
+    if (i < 0 || j < 0 || j >= all.length) return { ok: true }
+    const next = [...all]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    // Renumber everything so orders stay unique and gaps don't accumulate.
+    for (const [k, d] of next.entries()) if ((d.order ?? null) !== k * 10) await repo.update('designs', d.id, { order: k * 10 })
+    return done(slug, 'Order saved')
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+
+export async function saveStyle(slug: string, _prev: FormState, f: FormData): Promise<FormState> {
+  try {
+    const { salon, payload, repo } = await ctx(slug)
+    const name = str(f, 'name')
+    if (!name) return { ok: false, error: 'Name the style' }
+    if (name.length > 30) return { ok: false, error: 'Keep it short (30 letters max)' }
+    const id = str(f, 'id')
+    const existing = await salonStyles(payload, salon.id, { includeHidden: true })
+    if (existing.some((s) => s.name.toLowerCase() === name.toLowerCase() && String(s.id) !== id)) return { ok: false, error: 'You already have that style' }
+    if (id) await repo.update('styles', asId(id), { name, slug: slugify(name) })
+    else await repo.create('styles', { name, slug: slugify(name), order: (existing.at(-1)?.order ?? 0) + 10, active: true })
+    return done(slug, id ? 'Renamed' : 'Style added')
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export async function updateStyle(slug: string, id: ID, action: 'up' | 'down' | 'hide' | 'show' | 'delete'): Promise<FormState> {
+  try {
+    const { salon, payload, repo } = await ctx(slug)
+    if (action === 'delete') {
+      // Designs keep working: the style is simply removed from them.
+      const using = (await repo.find<{ id: ID; styles?: (ID | { id: ID })[] }>('designs', { where: { styles: { in: [asId(id)] } }, limit: 1000, depth: 0 }))
+        .docs
+      for (const d of using)
+        await repo.update('designs', d.id, { styles: (d.styles ?? []).map((x) => (typeof x === 'object' ? x.id : x)).filter((x) => String(x) !== String(id)) })
+      await repo.delete('styles', asId(id))
+      return done(slug, 'Style deleted')
+    }
+    if (action === 'hide' || action === 'show') {
+      await repo.update('styles', asId(id), { active: action === 'show' })
+      return done(slug, action === 'hide' ? 'Hidden from customers' : 'Visible to customers')
+    }
+    const all = await salonStyles(payload, salon.id, { includeHidden: true })
+    const i = all.findIndex((s) => String(s.id) === String(id))
+    const j = action === 'up' ? i - 1 : i + 1
+    if (i < 0 || j < 0 || j >= all.length) return { ok: true }
+    const next = [...all]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    for (const [k, s] of next.entries()) if ((s.order ?? null) !== k * 10) await repo.update('styles', s.id, { order: k * 10 })
+    return done(slug, 'Order saved')
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+// ── Design library ────────────────────────────────────────────────────────────
+
+export async function copyFromLibrary(slug: string, libraryId: ID): Promise<FormState> {
+  try {
+    const { salon, payload } = await ctx(slug)
+    const r = await copyLibraryDesign(payload, salon.id, asId(libraryId))
+    return done(slug, r.created ? 'Added to your gallery' : 'Already in your gallery')
   } catch (err) {
     return fail(err)
   }

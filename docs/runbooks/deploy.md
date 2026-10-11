@@ -9,7 +9,10 @@
    - `EVENTS_MODE=queue`
    - `MESSAGING_PROVIDER=live` + `WHATSAPP_API_URL`, `WHATSAPP_API_KEY`, `WHATSAPP_WEBHOOK_SECRET` once the BSP is approved (until then keep `fake`)
    - `PAYMENTS_PROVIDER=live` + `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
-   - Do **not** set `OTP_FIXED_CODE` in production (it is ignored when `NODE_ENV=production` anyway).
+   - `SMS_PROVIDER=msg91`, `SMS_API_KEY`, `SMS_TEMPLATE_ID` for the login-code fallback (needs a DLT template)
+   - Do **not** set `OTP_FIXED_CODE` or `ALLOW_FIXED_OTP_ON_LOCALHOST` in production (the app refuses to start with the latter).
 4. **Domain**: add `<domain>` and `*.<domain>` to Vercel (wildcard needs Vercel nameservers) so `salon.<domain>` works.
 5. **Webhooks**: Razorpay → `https://<domain>/api/webhooks/razorpay` (event `payment_link.paid`). WhatsApp BSP → `/api/webhooks/whatsapp` with header `x-webhook-secret`.
-6. **First admin**: run `pnpm seed` once against production only if you want the demo salons; otherwise create the platform admin in `/admin` on first visit.
+6. **First data**: from your machine with the production `DATABASE_URL` and `S3_*` set, run `cd apps/platform && SEED_ADMIN_PASSWORD='<strong password>' pnpm seed -- --platform-only`. This creates the platform admin, festival packs, care articles and the design library, without demo salons. Change the admin email in `/admin` afterwards.
+7. **Checks after deploy**: `https://<domain>/healthz` returns `{"ok":true}` (point an uptime monitor at it). The server refuses to start in production if secrets are weak or required settings are missing; the Vercel function log lists exactly which (`[config] …`).
+8. **Plan**: jobs run every 5 minutes and building a demo salon takes up to a minute; both need Vercel Pro (Hobby only allows daily crons). On Hobby, reminders still run but only once a day.

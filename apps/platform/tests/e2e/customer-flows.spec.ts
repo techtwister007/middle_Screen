@@ -107,7 +107,8 @@ test('reschedule moves the same appointment instead of creating a new one', asyn
   const before = await page.getByTestId('appt-date').textContent()
   await page.getByRole('link', { name: /reschedule/i }).click()
   await expect(page).toHaveURL(new RegExp(`/book\\?reschedule=${id}`))
-  await pickSlot(page, 3)
+  // Well past the first free day the booking landed on, so the date really changes.
+  await pickSlot(page, 7)
   await page.getByRole('button', { name: /move my appointment/i }).click()
   await page.waitForURL(new RegExp(`/appointments/${id}\\?moved=1`))
   await expect(page.getByTestId('moved')).toBeVisible()

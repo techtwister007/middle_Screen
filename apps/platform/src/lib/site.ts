@@ -96,7 +96,8 @@ export const services = cache(async (salon: SalonRecord) => {
 
 export const designs = cache(async (salon: SalonRecord, limit = 120) => {
   const repo = await repoFor(salon)
-  return (await repo.find<DesignRecord>('designs', { where: { published: { equals: true } }, sort: '-createdAt', limit, depth: 1 })).docs
+  // The owner's chosen order (Studio → Gallery), newest first within the same position.
+  return (await repo.find<DesignRecord>('designs', { where: { published: { equals: true } }, sort: ['order', '-createdAt'], limit, depth: 1 })).docs
 })
 
 export const artists = cache(async (salon: SalonRecord) => {

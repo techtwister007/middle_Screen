@@ -76,8 +76,11 @@ export interface Config {
     'audit-log': AuditLog;
     services: Service;
     packages: Package;
+    styles: Style;
     designs: Design;
     moodboards: Moodboard;
+    'library-media': LibraryMedia;
+    'library-designs': LibraryDesign;
     customers: Customer;
     'otp-codes': OtpCode;
     availability: Availability;
@@ -123,8 +126,11 @@ export interface Config {
     'audit-log': AuditLogSelect<false> | AuditLogSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
     packages: PackagesSelect<false> | PackagesSelect<true>;
+    styles: StylesSelect<false> | StylesSelect<true>;
     designs: DesignsSelect<false> | DesignsSelect<true>;
     moodboards: MoodboardsSelect<false> | MoodboardsSelect<true>;
+    'library-media': LibraryMediaSelect<false> | LibraryMediaSelect<true>;
+    'library-designs': LibraryDesignsSelect<false> | LibraryDesignsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     'otp-codes': OtpCodesSelect<false> | OtpCodesSelect<true>;
     availability: AvailabilitySelect<false> | AvailabilitySelect<true>;
@@ -421,7 +427,7 @@ export interface Media {
   id: number;
   tenant?: (number | null) | Salon;
   alt?: string | null;
-  kind?: ('general' | 'design' | 'visit' | 'inspiration' | 'share-kit' | 'try-on' | 'brand') | null;
+  kind?: ('general' | 'design' | 'visit' | 'inspiration' | 'share-kit' | 'try-on' | 'brand' | 'library') | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -674,6 +680,20 @@ export interface Package {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "styles".
+ */
+export interface Style {
+  id: number;
+  tenant?: (number | null) | Salon;
+  name: string;
+  slug?: string | null;
+  order?: number | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "designs".
  */
 export interface Design {
@@ -686,6 +706,7 @@ export interface Design {
     ('nail-art' | 'french' | 'chrome' | 'cat-eye' | 'ombre' | 'minimal' | 'bridal' | 'glitter' | 'solid' | '3d') | null;
   shape?: ('almond' | 'coffin' | 'square' | 'oval' | 'stiletto' | 'round' | 'squoval') | null;
   length?: ('short' | 'medium' | 'long' | 'extra-long') | null;
+  styles?: (number | Style)[] | null;
   occasions?: ('everyday' | 'office' | 'party' | 'wedding' | 'garba' | 'festive' | 'vacation' | 'date-night')[] | null;
   /**
    * e.g. navratri, diwali, wedding, summer
@@ -709,6 +730,11 @@ export interface Design {
   featured?: boolean | null;
   published?: boolean | null;
   likes?: number | null;
+  /**
+   * Lower shows first
+   */
+  order?: number | null;
+  libraryDesign?: (number | null) | LibraryDesign;
   updatedAt: string;
   createdAt: string;
 }
@@ -780,6 +806,74 @@ export interface Customer {
     | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "library-designs".
+ */
+export interface LibraryDesign {
+  id: number;
+  title: string;
+  description?: string | null;
+  images: (number | LibraryMedia)[];
+  /**
+   * Matched to the salon’s styles by name when copied
+   */
+  styleNames?: string[] | null;
+  shape?: ('almond' | 'coffin' | 'square' | 'oval' | 'stiletto' | 'round' | 'squoval') | null;
+  length?: ('short' | 'medium' | 'long' | 'extra-long') | null;
+  occasions?: ('everyday' | 'office' | 'party' | 'wedding' | 'garba' | 'festive' | 'vacation' | 'date-night')[] | null;
+  seasons?: string[] | null;
+  colors?: string[] | null;
+  /**
+   * Service name to link, e.g. "Gel polish"
+   */
+  suggestedService?: string | null;
+  /**
+   * Photo source / licence
+   */
+  credit?: string | null;
+  published?: boolean | null;
+  timesCopied?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "library-media".
+ */
+export interface LibraryMedia {
+  id: number;
+  alt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumb?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1646,12 +1740,24 @@ export interface PayloadLockedDocument {
         value: number | Package;
       } | null)
     | ({
+        relationTo: 'styles';
+        value: number | Style;
+      } | null)
+    | ({
         relationTo: 'designs';
         value: number | Design;
       } | null)
     | ({
         relationTo: 'moodboards';
         value: number | Moodboard;
+      } | null)
+    | ({
+        relationTo: 'library-media';
+        value: number | LibraryMedia;
+      } | null)
+    | ({
+        relationTo: 'library-designs';
+        value: number | LibraryDesign;
       } | null)
     | ({
         relationTo: 'customers';
@@ -2113,6 +2219,19 @@ export interface PackagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "styles_select".
+ */
+export interface StylesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  order?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "designs_select".
  */
 export interface DesignsSelect<T extends boolean = true> {
@@ -2123,6 +2242,7 @@ export interface DesignsSelect<T extends boolean = true> {
   category?: T;
   shape?: T;
   length?: T;
+  styles?: T;
   occasions?: T;
   seasons?: T;
   colors?: T;
@@ -2137,6 +2257,8 @@ export interface DesignsSelect<T extends boolean = true> {
   featured?: T;
   published?: T;
   likes?: T;
+  order?: T;
+  libraryDesign?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2148,6 +2270,69 @@ export interface MoodboardsSelect<T extends boolean = true> {
   tenant?: T;
   customer?: T;
   designs?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "library-media_select".
+ */
+export interface LibraryMediaSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumb?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "library-designs_select".
+ */
+export interface LibraryDesignsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  images?: T;
+  styleNames?: T;
+  shape?: T;
+  length?: T;
+  occasions?: T;
+  seasons?: T;
+  colors?: T;
+  suggestedService?: T;
+  credit?: T;
+  published?: T;
+  timesCopied?: T;
   updatedAt?: T;
   createdAt?: T;
 }

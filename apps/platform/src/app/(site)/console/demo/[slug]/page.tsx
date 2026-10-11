@@ -6,6 +6,9 @@ import QRCode from 'qrcode'
 import { Presenter } from '@/components/console/Presenter'
 import { getSalonBySlug } from '@/lib/salon'
 
+// Building a demo salon or copying photos can take a minute.
+export const maxDuration = 300
+
 export const metadata = { title: 'Presenter' }
 
 export default async function PresenterPage({ params }: { params: Promise<{ slug: string }> }) {

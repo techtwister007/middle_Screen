@@ -1,7 +1,23 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { addDays, DAY_MS, forTenant, type ID, rupees, shortCode, zonedDateTime } from '@salon/core'
-import { recomputeSegments } from '@salon/modules'
+import { recomputeSegments, styleIdsByName, styleNameForCategory } from '@salon/modules'
 import type { Payload } from 'payload'
-import { ARTICLES, CAMPAIGN_PACKS, DESIGNS, FIRST_NAMES, LASH_SERVICES, LAST_NAMES, NAIL_SERVICES, REVIEWS, type ServiceSeed } from './content'
+import sharp from 'sharp'
+import {
+  ARTICLES,
+  CAMPAIGN_PACKS,
+  DESIGNS,
+  type DesignSeed,
+  FIRST_NAMES,
+  LASH_SERVICES,
+  LAST_NAMES,
+  NAIL_SERVICES,
+  PHOTO_DESIGNS,
+  REVIEWS,
+  SALON_PHOTOS,
+  type ServiceSeed,
+} from './content'
 import { renderAvatar, renderLogo, renderNailSet } from './nailArt'
 
 /** Deterministic random so every demo looks the same. */
@@ -14,6 +30,29 @@ export const rng = (seed: number) => {
 }
 
 const pick = <T>(r: () => number, list: T[]) => list[Math.floor(r() * list.length)]
+
+/** Real demo photos ship with the app (src/seed/photos, see credits.json). Resized for the web on upload. */
+const PHOTO_DIR = path.join(process.cwd(), 'src/seed/photos')
+export const readDemoPhoto = async (name: string, width = 1400) => {
+  try {
+    return await sharp(await readFile(path.join(PHOTO_DIR, `${name}.jpg`)))
+      .rotate()
+      .resize({ width, withoutEnlargement: true })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toBuffer()
+  } catch {
+    return null
+  }
+}
+
+/** Each salon shows the photo designs in its own order so demos don't look identical. */
+const designsFor = (seed: number, count: number): DesignSeed[] => {
+  const offset = seed % PHOTO_DESIGNS.length
+  const rotated = [...PHOTO_DESIGNS.slice(offset), ...PHOTO_DESIGNS.slice(0, offset)]
+  // Keep featured designs first so the home page leads with the best work.
+  return [...rotated.filter((d) => d.featured), ...rotated.filter((d) => !d.featured)].slice(0, count)
+}
+const allDesignSeeds = [...PHOTO_DESIGNS, ...DESIGNS]
 
 const upload = async (payload: Payload, tenant: ID | null, data: Buffer, name: string, mimetype: string, kind: string, alt: string) =>
   (await payload.create({
@@ -34,6 +73,41 @@ export const seedPlatform = async (payload: Payload, adminPassword: string) => {
   for (const pack of CAMPAIGN_PACKS) {
     const found = await payload.find({ collection: 'campaign-packs', overrideAccess: true, where: { festival: { equals: pack.festival } }, limit: 1 })
     if (!found.docs.length) await payload.create({ collection: 'campaign-packs', overrideAccess: true, data: pack as never })
+  }
+  // Platform design library: real, licensed photos salons can copy into their gallery.
+  const credits = JSON.parse(await readFile(path.join(PHOTO_DIR, 'credits.json'), 'utf8').catch(() => '{}')) as Record<
+    string,
+    { page: string; license: string }
+  >
+  for (const d of PHOTO_DESIGNS) {
+    const found = await payload.find({ collection: 'library-designs', overrideAccess: true, where: { title: { equals: d.title } }, limit: 1 })
+    if (found.docs.length || !d.photo) continue
+    const photo = await readDemoPhoto(d.photo)
+    if (!photo) continue
+    const img = (await payload.create({
+      collection: 'library-media',
+      overrideAccess: true,
+      data: { alt: d.title } as never,
+      file: { data: photo, mimetype: 'image/jpeg', name: `library-${d.photo}.jpg`, size: photo.length },
+    })) as unknown as { id: ID }
+    await payload.create({
+      collection: 'library-designs',
+      overrideAccess: true,
+      data: {
+        title: d.title,
+        description: d.description,
+        images: [img.id],
+        styleNames: [styleNameForCategory(d.category) ?? 'Nail art'],
+        shape: d.shape,
+        length: d.length,
+        occasions: d.occasions,
+        seasons: d.seasons ?? [],
+        colors: d.colors,
+        suggestedService: d.service,
+        credit: credits[d.photo] ? `${credits[d.photo].license}: ${credits[d.photo].page}` : undefined,
+        published: true,
+      } as never,
+    })
   }
   for (const a of ARTICLES) {
     const found = await payload.find({ collection: 'articles', overrideAccess: true, where: { slug: { equals: a.slug } }, limit: 1 })
@@ -313,15 +387,18 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     })
 
   // Gallery
-  const designIds: { id: ID; title: string; service?: ID; price: number; minutes: number }[] = []
-  for (const [i, d] of DESIGNS.slice(0, Math.max(def.designCount, opts.designImages?.length ?? 0)).entries()) {
+  const designIds: { id: ID; title: string; service?: ID; price: number; minutes: number; image: ID }[] = []
+  const ownCount = opts.designImages?.length ?? 0
+  const designSeeds = ownCount ? DESIGNS.slice(0, ownCount) : designsFor(def.seed, Math.min(def.designCount, PHOTO_DESIGNS.length))
+  for (const [i, d] of designSeeds.entries()) {
     const own = opts.designImages?.[i]
+    const photo = !own && d.photo ? await readDemoPhoto(d.photo) : null
     const img = own
       ? await upload(payload, tenant, own.buffer, `${def.slug}-design-${i}.jpg`, own.mimetype ?? 'image/jpeg', 'design', own.title ?? d.title)
       : await upload(
           payload,
           tenant,
-          await renderNailSet(d.spec, def.seed * 100 + i, 1000),
+          photo ?? (await renderNailSet(d.spec ?? DESIGNS[i % DESIGNS.length].spec!, def.seed * 100 + i, 1000)),
           `${def.slug}-${d.title.toLowerCase().replace(/\W+/g, '-')}.jpg`,
           'image/jpeg',
           'design',
@@ -331,9 +408,13 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     const addOns = (d.addOns ?? []).map((a) => serviceIds.get(a)).filter(Boolean) as { id: ID; price: number; minutes: number }[]
     const price = (service?.price ?? 0) + addOns.reduce((n, a) => n + a.price, 0)
     const minutes = (service?.minutes ?? 0) + addOns.reduce((n, a) => n + a.minutes, 0)
+    const styleName = styleNameForCategory(d.category)
     const doc = await repo.create<{ id: ID }>('designs', {
-      title: d.title,
+      title: own?.title ?? d.title,
+      description: d.description,
       images: [img.id],
+      styles: styleName ? await styleIdsByName(payload, tenant, [styleName]) : [],
+      order: i * 10,
       category: d.category,
       shape: d.shape,
       length: d.length,
@@ -348,18 +429,17 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
       featured: Boolean(d.featured),
       published: true,
       likes: Math.floor(r() * 40),
-      createdAt: new Date(now.getTime() - (def.designCount - i) * 4 * DAY_MS).toISOString(),
+      createdAt: new Date(now.getTime() - (designSeeds.length - i) * 4 * DAY_MS).toISOString(),
     })
-    designIds.push({ id: doc.id, title: d.title, service: service?.id, price, minutes })
+    designIds.push({ id: doc.id, title: own?.title ?? d.title, service: service?.id, price, minutes, image: img.id })
   }
 
-  // Use the best design as the hero cover: real work sells better than a gradient.
-  const heroDesign = designIds.find((d) => DESIGNS.find((x) => x.title === d.title)?.featured) ?? designIds[0]
-  if (heroDesign) {
-    const doc = await repo.findByID<{ images: ID[] }>('designs', heroDesign.id)
-    if (doc?.images?.[0])
-      await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { logo: logo.id, cover: doc.images[0] } } as never })
-  }
+  // Cover: a real photo of the salon at work (or their best design when they gave us their own photos).
+  const coverPhoto = ownCount ? null : await readDemoPhoto(SALON_PHOTOS.covers[def.seed % SALON_PHOTOS.covers.length], 1800)
+  const cover = coverPhoto
+    ? (await upload(payload, tenant, coverPhoto, `${def.slug}-cover.jpg`, 'image/jpeg', 'brand', `${def.name} at work`)).id
+    : designIds[0]?.image
+  if (cover) await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { logo: logo.id, cover } } as never })
 
   // Customers with 90 days of history
   const count = opts.customers ?? def.customers
@@ -434,7 +514,7 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
         lines: [
           {
             service: design?.service ?? svc.id,
-            name: design ? (DESIGNS.find((x) => x.title === design.title)?.service ?? svcName) : svcName,
+            name: design ? (allDesignSeeds.find((x) => x.title === design.title)?.service ?? svcName) : svcName,
             price,
             quantity: 1,
           },
@@ -455,6 +535,8 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
           customer: c.id,
           staff: artist.id,
           designName: design?.title ?? svcName,
+          // The set they had done: the design's photo stands in for the photo-corner shot.
+          photos: design ? [design.image] : [],
           status: r() < 0.5 ? 'verified' : r() < 0.5 ? 'shared' : 'sent',
           sharedTo: ['whatsapp-status'],
           createdAt: start.toISOString(),

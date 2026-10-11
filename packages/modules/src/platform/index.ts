@@ -281,7 +281,12 @@ export const Media: CollectionConfig = {
   },
   fields: [
     { name: 'alt', type: 'text' },
-    { name: 'kind', type: 'select', defaultValue: 'general', options: ['general', 'design', 'visit', 'inspiration', 'share-kit', 'try-on', 'brand'] },
+    {
+      name: 'kind',
+      type: 'select',
+      defaultValue: 'general',
+      options: ['general', 'design', 'visit', 'inspiration', 'share-kit', 'try-on', 'brand', 'library'],
+    },
   ],
 }
 

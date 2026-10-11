@@ -1,4 +1,4 @@
-import { savedDesignIds } from '@salon/modules'
+import { salonStyles, savedDesignIds } from '@salon/modules'
 import { GalleryBrowser, type GalleryItem } from '@/components/site/GalleryBrowser'
 import { translator } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
@@ -17,7 +17,7 @@ export default async function DesignsPage({
   searchParams,
 }: {
   params: Promise<{ salon: string }>
-  searchParams: Promise<{ occasion?: string; new?: string; save?: string }>
+  searchParams: Promise<{ occasion?: string; new?: string; save?: string; style?: string }>
 }) {
   const { salon: slug } = await params
   const sp = await searchParams
@@ -25,9 +25,11 @@ export default async function DesignsPage({
   const customer = await currentCustomer(salon)
   const lang = await getLang(customer?.language)
   const tr = translator(lang)
-  const [list, saved] = await Promise.all([
+  const payload = await getPayloadClient()
+  const [list, saved, styles] = await Promise.all([
     designs(salon, 300),
-    customer ? savedDesignIds(await getPayloadClient(), salon.id, customer.id) : Promise.resolve([]),
+    customer ? savedDesignIds(payload, salon.id, customer.id) : Promise.resolve([]),
+    salonStyles(payload, salon.id),
   ])
   const items: GalleryItem[] = list.map((d) => ({
     id: d.id,
@@ -39,6 +41,7 @@ export default async function DesignsPage({
     occasions: d.occasions,
     seasons: d.seasons,
     category: d.category,
+    styleIds: ((d as { styles?: (string | number | { id: string | number })[] | null }).styles ?? []).map((x) => String(typeof x === 'object' ? x.id : x)),
     colors: d.colors,
     featured: d.featured,
     likes: d.likes,
@@ -62,6 +65,17 @@ export default async function DesignsPage({
           savedIds={saved}
           showNewOnly={sp.new === '1'}
           slug={slug}
+          styles={styles
+            // Only offer styles that have at least one design.
+            .filter((st) =>
+              list.some((d) =>
+                ((d as { styles?: unknown[] | null }).styles ?? []).some(
+                  (x) => String(typeof x === 'object' && x ? (x as { id: unknown }).id : x) === String(st.id),
+                ),
+              ),
+            )
+            .map((st) => ({ id: String(st.id), name: st.name }))}
+          initialStyle={sp.style}
         />
       </div>
     </div>

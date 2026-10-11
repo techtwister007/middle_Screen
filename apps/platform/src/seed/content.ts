@@ -60,8 +60,165 @@ export interface DesignSeed {
   colors: string[]
   shape?: string
   length?: string
-  spec: NailSpec
+  /** Generated illustration (fallback when no photo) */
+  spec?: NailSpec
+  /** Real photo in src/seed/photos (licensed, see credits.json) */
+  photo?: string
+  description?: string
   featured?: boolean
+}
+
+/** Demo designs backed by real, freely licensed photos (Unsplash / Pexels). */
+export const PHOTO_DESIGNS: DesignSeed[] = [
+  {
+    title: 'Garba Colour Pop',
+    photo: 'design-abstract-pop',
+    description: 'Hand-painted colour swirls that dance as much as you do. Our Navratri favourite.',
+    category: 'nail-art',
+    service: 'Gel extensions with nail art',
+    occasions: ['garba', 'festive', 'party'],
+    seasons: ['navratri'],
+    colors: ['multicolour', 'yellow', 'red'],
+    shape: 'squoval',
+    length: 'medium',
+    featured: true,
+  },
+  {
+    title: 'Classic Red Gel',
+    photo: 'design-classic-red',
+    description: 'The red that goes with every outfit. Chip-free for three weeks.',
+    category: 'solid',
+    service: 'Gel polish (hands)',
+    occasions: ['everyday', 'festive', 'party'],
+    seasons: ['diwali', 'wedding'],
+    colors: ['red'],
+    shape: 'oval',
+    length: 'short',
+    featured: true,
+  },
+  {
+    title: 'Emerald Leaf Accent',
+    photo: 'design-green-leaf',
+    description: 'Deep emerald gel with a hand-painted leaf on the ring finger.',
+    category: 'nail-art',
+    service: 'Gel polish (hands)',
+    addOns: ['Art on 2 nails'],
+    occasions: ['everyday', 'vacation'],
+    colors: ['green', 'gold'],
+    shape: 'oval',
+    length: 'short',
+    featured: true,
+  },
+  {
+    title: 'Noir & Tortoise',
+    photo: 'design-noir-tortoise',
+    description: 'Glossy black with tortoiseshell and a minimal gold line. Evenings sorted.',
+    category: 'nail-art',
+    service: 'Gel extensions with nail art',
+    occasions: ['party', 'date-night'],
+    colors: ['black', 'brown', 'gold'],
+    shape: 'squoval',
+    length: 'medium',
+    featured: true,
+  },
+  {
+    title: 'Blush Almond',
+    photo: 'design-pink-almond',
+    description: 'Soft dusty pink on a graceful almond shape. Bridesmaid approved.',
+    category: 'solid',
+    service: 'Acrylic extensions',
+    occasions: ['wedding', 'everyday'],
+    seasons: ['wedding'],
+    colors: ['pink'],
+    shape: 'almond',
+    length: 'medium',
+  },
+  {
+    title: 'Love Letters',
+    photo: 'design-love-red',
+    description: 'Red French tips with a hand-lettered "love" across two nails.',
+    category: 'french',
+    service: 'Gel extensions with nail art',
+    occasions: ['date-night', 'party'],
+    seasons: ['valentine'],
+    colors: ['red', 'nude', 'white'],
+    shape: 'almond',
+    length: 'long',
+  },
+  {
+    title: 'Nude with Gold Accent',
+    photo: 'design-nude-accent',
+    description: 'Barely-there nude with one jewelled accent nail. Office to sangeet.',
+    category: 'minimal',
+    service: 'Gel polish (hands)',
+    addOns: ['Stones & charms'],
+    occasions: ['office', 'wedding'],
+    colors: ['nude', 'gold'],
+    shape: 'oval',
+    length: 'medium',
+  },
+  {
+    title: 'Pastel Mix & Shimmer',
+    photo: 'design-pastel-mix',
+    description: 'Lilac, grey and white with one shimmer nail. Mismatched on purpose.',
+    category: 'glitter',
+    service: 'Gel polish (hands)',
+    addOns: ['Chrome / cat-eye'],
+    occasions: ['vacation', 'party', 'everyday'],
+    colors: ['lilac', 'grey', 'white', 'silver'],
+    shape: 'squoval',
+    length: 'short',
+  },
+  {
+    title: 'Red Carpet Gloss',
+    photo: 'design-red-glossy',
+    description: 'High-shine cherry red, cured to a mirror finish.',
+    category: 'solid',
+    service: 'Gel polish (hands)',
+    occasions: ['date-night', 'festive'],
+    colors: ['red'],
+    shape: 'round',
+    length: 'short',
+  },
+  {
+    title: 'Lilac Haze',
+    photo: 'design-lilac-matte',
+    description: 'Cool lilac with a soft satin finish. Quietly pretty.',
+    category: 'minimal',
+    service: 'Gel polish (hands)',
+    occasions: ['office', 'everyday'],
+    colors: ['lilac'],
+    shape: 'round',
+    length: 'short',
+  },
+  {
+    title: 'Natural Nude Gloss',
+    photo: 'design-natural-nude',
+    description: 'Healthy, shaped and glossy: the "your nails but better" set.',
+    category: 'minimal',
+    service: 'Classic manicure',
+    occasions: ['office', 'everyday', 'wedding'],
+    colors: ['nude'],
+    shape: 'oval',
+    length: 'short',
+  },
+  {
+    title: 'Cherry Short Square',
+    photo: 'design-red-short',
+    description: 'Short, square and practical in a bright cherry gel.',
+    category: 'solid',
+    service: 'Gel polish (hands)',
+    occasions: ['office', 'everyday'],
+    colors: ['red'],
+    shape: 'square',
+    length: 'short',
+  },
+]
+
+/** Salon photos for covers and the photo corner. */
+export const SALON_PHOTOS = {
+  covers: ['studio-chat', 'studio-interior-bw', 'studio-swatches', 'studio-artist-mask'],
+  process: ['process-painting', 'process-gloves', 'process-uv-lamp', 'process-detail', 'process-filing', 'process-hands', 'process-swatch-fan'],
 }
 
 export const DESIGNS: DesignSeed[] = [

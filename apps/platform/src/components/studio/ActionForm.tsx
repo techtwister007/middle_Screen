@@ -10,18 +10,37 @@ export const ActionForm = ({
   submit = 'Save',
   className,
   resetOnSuccess,
+  compact,
 }: {
   action: (prev: FormState, f: FormData) => Promise<FormState>
   children: ReactNode
   submit?: string
   className?: string
   resetOnSuccess?: boolean
+  /** One-line form: small button, result as a tooltip-sized note */
+  compact?: boolean
 }) => {
   const [state, formAction, pending] = useActionState(action, null)
   return (
     <form action={formAction} className={cn('space-y-4', className)} key={resetOnSuccess && state?.ok ? String(Math.random()) : 'form'}>
       {children}
-      <div className='flex flex-wrap items-center gap-3'>
+      {compact ? (
+        <>
+          <Button disabled={pending} size='sm' type='submit' variant='secondary'>
+            {pending ? '…' : submit}
+          </Button>
+          {state?.error ? (
+            <span className='text-xs text-red-700' role='alert'>
+              {state.error}
+            </span>
+          ) : state?.ok ? (
+            <span className='text-xs text-green-700' role='status'>
+              ✓
+            </span>
+          ) : null}
+        </>
+      ) : null}
+      <div className={cn('flex flex-wrap items-center gap-3', compact && 'hidden')}>
         <Button disabled={pending} type='submit'>
           {pending ? 'Saving…' : submit}
         </Button>

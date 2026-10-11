@@ -18,6 +18,7 @@ export interface GalleryItem extends DesignLike {
   occasions?: string[] | null
   seasons?: string[] | null
   category?: string | null
+  styleIds?: string[]
   colors?: string[] | null
   source?: string | null
   createdAt: string
@@ -33,6 +34,8 @@ export const GalleryBrowser = ({
   loggedIn,
   savedIds,
   autoSaveId,
+  styles = [],
+  initialStyle,
 }: {
   items: GalleryItem[]
   base: string
@@ -44,11 +47,15 @@ export const GalleryBrowser = ({
   savedIds: (string | number)[]
   /** Design to save right away (coming back from login after tapping its heart) */
   autoSaveId?: string
+  /** The salon's styles (filter chips), in the owner's order */
+  styles?: { id: string; name: string }[]
+  initialStyle?: string
 }) => {
   const tr = translator(lang)
   const saved = useMemo(() => new Set(savedIds.map(String)), [savedIds])
   const saveLabels = { save: tr('save'), saved: tr('saved'), unsave: tr('unsaveDesign') }
   const [occasion, setOccasion] = useState<string | null>(initialOccasion ?? null)
+  const [style, setStyle] = useState<string | null>(initialStyle ?? null)
   const [budget, setBudget] = useState<number | null>(null)
   const [taste, setTaste] = useState<{ liked: DesignLike[]; skipped: DesignLike[] }>({ liked: [], skipped: [] })
   const [mode, setMode] = useState<'browse' | 'taste'>('browse')
@@ -75,11 +82,12 @@ export const GalleryBrowser = ({
   const visible = useMemo(() => {
     let list = items
     if (showNewOnly) list = list.filter((d) => Date.now() - new Date(d.createdAt).getTime() < 45 * 86_400_000)
+    if (style) list = list.filter((d) => d.styleIds?.includes(style))
     if (occasion) list = list.filter((d) => d.occasions?.includes(occasion) || d.seasons?.includes(occasion))
     if (budget) list = surpriseMe(list, budget)
     if (taste.liked.length || taste.skipped.length) list = rankByTaste(list, taste)
     return list
-  }, [items, occasion, budget, taste, showNewOnly])
+  }, [items, style, occasion, budget, taste, showNewOnly])
 
   if (mode === 'taste') {
     const current = items[tasteIndex]
@@ -142,7 +150,19 @@ export const GalleryBrowser = ({
 
   return (
     <div>
-      <div className='no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 pt-2'>
+      {styles.length ? (
+        <div className='no-scrollbar flex gap-2 overflow-x-auto px-4 pt-2' role='group' aria-label={tr('styleFilter')}>
+          <Pill active={!style} onClick={() => setStyle(null)}>
+            {tr('allStyles')}
+          </Pill>
+          {styles.map((st) => (
+            <Pill active={style === st.id} key={st.id} onClick={() => setStyle(style === st.id ? null : st.id)}>
+              {st.name}
+            </Pill>
+          ))}
+        </div>
+      ) : null}
+      <div className='no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 pt-2' role='group' aria-label={tr('occasionFilter')}>
         <Pill active={!occasion} onClick={() => setOccasion(null)}>
           {tr('all')}
         </Pill>

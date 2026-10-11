@@ -19,6 +19,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
           <nav className='flex gap-5 text-sm'>
             <Link href='/console'>Salons</Link>
             <Link href='/console/new'>New salon / demo</Link>
+            <Link href='/console/library'>Design library</Link>
             <Link href='/admin'>Admin</Link>
           </nav>
         </div>

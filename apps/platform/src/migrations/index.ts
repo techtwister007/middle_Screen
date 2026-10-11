@@ -2,6 +2,7 @@ import * as migration_20261011_020010_initial from './20261011_020010_initial';
 import * as migration_20261011_024428_salon_extras from './20261011_024428_salon_extras';
 import * as migration_20261011_041047_change_cutoff from './20261011_041047_change_cutoff';
 import * as migration_20261011_042500_refunds from './20261011_042500_refunds';
+import * as migration_20261011_044647_design_styles_library from './20261011_044647_design_styles_library';
 
 export const migrations = [
   {
@@ -22,6 +23,11 @@ export const migrations = [
   {
     up: migration_20261011_042500_refunds.up,
     down: migration_20261011_042500_refunds.down,
-    name: '20261011_042500_refunds'
+    name: '20261011_042500_refunds',
+  },
+  {
+    up: migration_20261011_044647_design_styles_library.up,
+    down: migration_20261011_044647_design_styles_library.down,
+    name: '20261011_044647_design_styles_library'
   },
 ];
