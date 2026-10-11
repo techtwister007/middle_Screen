@@ -44,10 +44,12 @@ Everything below runs locally against Postgres with fake WhatsApp, SMS, payments
 - Loyalty, referrals, reviews routing (no gating, no review rewards), segments, birthdays
 - Deposits refunded automatically (salon cancels, or customer cancels before the refund window)
 
-**Quality**
-- Unit: core 11, modules 28, themes 4, app 2. Integration (real Postgres): 26, including tenant isolation over every salon collection.
-- Browser (Playwright): 17 across customer, studio, settings and console.
-- Smoke crawler over every reachable page for four roles; Biome; type checks; module-boundary checks; GitHub Actions CI; production build.
+**Quality** (2026-10-11, on a production build)
+- Unit: core 11, modules 28, themes 4, app 5. Integration (real Postgres): 37, including tenant isolation over every salon collection,
+  onboarding rollback, demo builder, deposit refunds, owner automations, gallery styles and library.
+- Browser (Playwright, phone viewport): 31 across customer, studio, settings, gallery, console and demo, all passing against `next start`.
+- Crawler: visitor, customer, owner and admin roles, 122 pages, 0 problems. Biome, type checks, module boundaries, GitHub Actions CI.
+- Ergonomics: three role-play audits (customer, salon staff, platform admin and sales demo) at 360–1366px; every finding fixed.
 
 ## Needs real accounts before going live
 
