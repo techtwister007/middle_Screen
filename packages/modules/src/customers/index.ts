@@ -48,6 +48,11 @@ export const Customers: CollectionConfig = {
     },
     { name: 'preferredArtist', type: 'relationship', relationTo: 'users' },
     { name: 'notes', type: 'textarea', admin: { description: 'Staff notes, e.g. sensitive cuticles' } },
+    {
+      name: 'allergies',
+      type: 'text',
+      admin: { description: 'Allergies or patch-test results staff must see before every service, e.g. "acrylic monomer – patch test failed"' },
+    },
     { name: 'tags', type: 'text', hasMany: true },
     // Stats maintained by the system
     { name: 'segment', type: 'select', defaultValue: 'lead', index: true, options: [...SEGMENTS], admin: { readOnly: true } },

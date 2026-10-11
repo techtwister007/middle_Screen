@@ -19,7 +19,7 @@ fi
 DB_URL=$(grep '^DATABASE_URL=' "$APP/.env" | cut -d= -f2-)
 SERVER_URL="${DB_URL%/*}/postgres"
 for db in salon_dev salon_test; do
-  if [ "$db" = salon_dev ] && [ "${1:-}" = "--fresh" ]; then psql "$SERVER_URL" -qc "drop database if exists $db"; fi
+  if [ "$db" = salon_dev ] && [ "${1:-}" = "--fresh" ]; then psql "$SERVER_URL" -qc "drop database if exists $db with (force)"; fi
   psql "$SERVER_URL" -tAc "select 1 from pg_database where datname='$db'" | grep -q 1 || psql "$SERVER_URL" -qc "create database $db"
 done
 

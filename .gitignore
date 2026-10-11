@@ -14,3 +14,6 @@ __pycache__
 next-env.d.ts
 apps/platform/.test-media
 apps/platform/scripts/_*.mjs
+apps/platform/scripts/_*/
+apps/platform/state_*.json
+apps/platform/*.png

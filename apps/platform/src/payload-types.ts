@@ -788,6 +788,10 @@ export interface Customer {
    * Staff notes, e.g. sensitive cuticles
    */
   notes?: string | null;
+  /**
+   * Allergies or patch-test results staff must see before every service, e.g. "acrylic monomer – patch test failed"
+   */
+  allergies?: string | null;
   tags?: string[] | null;
   segment?: ('lead' | 'new' | 'regular' | 'due' | 'at-risk' | 'lapsed') | null;
   isVip?: boolean | null;
@@ -1060,6 +1064,24 @@ export interface Visit {
    * Amount actually paid / due (paise)
    */
   total?: number | null;
+  /**
+   * Tip for the artist, on top of the bill (paise)
+   */
+  tip?: number | null;
+  /**
+   * When the customer paid with more than one mode
+   */
+  paymentSplit?:
+    | {
+        mode: 'upi' | 'cash' | 'card' | 'payment-link' | 'wallet';
+        /**
+         * Amount in paise (₹1 = 100)
+         */
+        amount?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  receiptSentAt?: string | null;
   paymentMode?: ('upi' | 'cash' | 'card' | 'payment-link' | 'wallet' | 'package' | 'mixed') | null;
   payment?: (number | null) | Payment;
   paidStatus?: ('paid' | 'pending') | null;
@@ -1463,6 +1485,7 @@ export interface MessageTemplate {
     | 'booking_received'
     | 'booking_confirmed'
     | 'booking_reminder'
+    | 'receipt'
     | 'running_late'
     | 'booking_cancelled'
     | 'waitlist_offer'
@@ -2369,6 +2392,7 @@ export interface CustomersSelect<T extends boolean = true> {
       };
   preferredArtist?: T;
   notes?: T;
+  allergies?: T;
   tags?: T;
   segment?: T;
   isVip?: T;
@@ -2513,6 +2537,15 @@ export interface VisitsSelect<T extends boolean = true> {
   customerPackage?: T;
   packageCovered?: T;
   total?: T;
+  tip?: T;
+  paymentSplit?:
+    | T
+    | {
+        mode?: T;
+        amount?: T;
+        id?: T;
+      };
+  receiptSentAt?: T;
   paymentMode?: T;
   payment?: T;
   paidStatus?: T;

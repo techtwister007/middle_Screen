@@ -21,7 +21,7 @@ test('owner adds a style, edits a design into it and customers can filter by it'
   await expect(page.getByLabel(`Name of style ${style}`)).toBeVisible()
 
   await page.getByRole('link', { name: 'Live' }).click()
-  await page.getByTestId('design-card').first().getByRole('link', { name: 'Edit' }).click()
+  await page.getByTestId('design-card').first().getByRole('link', { name: 'Edit', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible()
   const title = `Marble Dream ${tag()}`
   await page.getByLabel('Name', { exact: true }).fill(title)
@@ -50,7 +50,7 @@ test('owner copies a look from the design library and can delete it again', asyn
   await expect(page.getByText(title).first()).toBeVisible()
 
   await page.goto(`/studio/${SLUG}/settings/gallery`)
-  await page.getByTestId('design-card').filter({ hasText: title }).getByRole('link', { name: 'Edit' }).click()
+  await page.getByTestId('design-card').filter({ hasText: title }).getByRole('link', { name: 'Edit', exact: true }).click()
   page.once('dialog', (d) => d.accept())
   await page.getByRole('button', { name: 'Delete this design' }).click()
   await expect(page).toHaveURL(new RegExp(`/studio/${SLUG}/settings/gallery$`))

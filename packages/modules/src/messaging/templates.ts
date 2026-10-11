@@ -53,6 +53,15 @@ export const TEMPLATES = {
       gu: 'યાદ અપાવીએ: {{salon}} માં તમારી એપોઇન્ટમેન્ટ {{date}} ના {{time}} વાગ્યે છે. બદલવી છે? {{link}}',
     },
   },
+  receipt: {
+    category: 'utility',
+    audience: 'customer',
+    text: {
+      en: 'Thank you for visiting {{salon}}, {{name}}! Paid {{amount}} for {{design}}. Your bill and aftercare tips: {{link}}',
+      hi: '{{salon}} आने के लिए धन्यवाद, {{name}}! {{design}} के लिए {{amount}} का भुगतान हुआ। बिल और देखभाल टिप्स: {{link}}',
+      gu: '{{salon}} ની મુલાકાત બદલ આભાર, {{name}}! {{design}} માટે {{amount}} ચૂકવ્યા. બિલ અને કાળજીની ટિપ્સ: {{link}}',
+    },
+  },
   running_late: {
     category: 'utility',
     audience: 'customer',
