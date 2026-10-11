@@ -15,9 +15,7 @@ export const StudioShell = ({ header, banner, hasBanner, children }: { header: R
     <>
       {header}
       {banner}
-      <main className={`mx-auto max-w-4xl px-4 pb-36 md:pl-64 md:pr-8 md:pb-28 print:max-w-none print:p-0 ${hasBanner ? 'pt-32 sm:pt-28' : 'pt-20'}`}>
-        {children}
-      </main>
+      <main className={`mx-auto max-w-4xl px-4 pb-36 md:pl-64 md:pr-8 md:pb-28 print:max-w-none print:p-0 ${hasBanner ? 'pt-32' : 'pt-20'}`}>{children}</main>
     </>
   )
 }

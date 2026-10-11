@@ -27,14 +27,16 @@ export default async function StudioLayout({ children, params }: { children: Rea
       <StudioShell
         banner={
           showBanner ? (
-            <div className='fixed inset-x-0 top-14 z-20 flex min-h-11 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-ink px-4 py-1 text-center text-xs text-bg print:hidden md:justify-between md:pl-60'>
-              <span>
-                {salon.status === 'demo' ? `Demo salon with sample data${demoEnds ? ` · ends ${demoEnds}` : ''}` : ''}
+            // One line at every width: its height must match the space StudioShell reserves, or it covers the page title.
+            <div className='fixed inset-x-0 top-14 z-20 flex h-11 items-center justify-between gap-3 bg-ink px-4 text-xs text-bg print:hidden md:pl-64'>
+              <span className='min-w-0 truncate'>
+                {salon.status === 'demo' ? `Demo · sample data${demoEnds ? ` · ends ${demoEnds}` : ''}` : ''}
                 {salon.status === 'demo' && admin ? ' · ' : ''}
-                {admin ? 'You are viewing as platform support' : ''}
+                {admin ? <span className='hidden sm:inline'>Viewing as platform support</span> : null}
+                {admin ? <span className='sm:hidden'>Support view</span> : null}
               </span>
               {admin ? (
-                <Link className='inline-flex min-h-9 items-center rounded-btn bg-bg px-3 font-medium text-ink' href={`/console/salons/${slug}`}>
+                <Link className='inline-flex min-h-8 shrink-0 items-center rounded-btn bg-bg px-3 font-medium text-ink' href={`/console/salons/${slug}`}>
                   Exit to console
                 </Link>
               ) : null}
