@@ -152,6 +152,8 @@ const weighted = (r: () => number, items: [string, number][]) => {
 
 export interface SeedSalonOptions {
   ownerPassword: string
+  /** Real photos (e.g. a prospect's own Instagram shots) to use instead of generated nail art */
+  designImages?: { buffer: Buffer; title?: string; mimetype?: string }[]
   /** Defaults to the seed's own customer count */
   customers?: number
   now?: Date
@@ -285,8 +287,11 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
 
   // Gallery
   const designIds: { id: ID; title: string; service?: ID; price: number; minutes: number }[] = []
-  for (const [i, d] of DESIGNS.slice(0, def.designCount).entries()) {
-    const img = await upload(payload, tenant, await renderNailSet(d.spec, def.seed * 100 + i, 1000), `${def.slug}-${d.title.toLowerCase().replace(/\W+/g, '-')}.jpg`, 'image/jpeg', 'design', d.title)
+  for (const [i, d] of DESIGNS.slice(0, Math.max(def.designCount, opts.designImages?.length ?? 0)).entries()) {
+    const own = opts.designImages?.[i]
+    const img = own
+      ? await upload(payload, tenant, own.buffer, `${def.slug}-design-${i}.jpg`, own.mimetype ?? 'image/jpeg', 'design', own.title ?? d.title)
+      : await upload(payload, tenant, await renderNailSet(d.spec, def.seed * 100 + i, 1000), `${def.slug}-${d.title.toLowerCase().replace(/\W+/g, '-')}.jpg`, 'image/jpeg', 'design', d.title)
     const service = serviceIds.get(d.service) ?? mains[0]?.[1]
     const addOns = (d.addOns ?? []).map((a) => serviceIds.get(a)).filter(Boolean) as { id: ID; price: number; minutes: number }[]
     const price = (service?.price ?? 0) + addOns.reduce((n, a) => n + a.price, 0)

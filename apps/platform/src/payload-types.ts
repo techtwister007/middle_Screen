@@ -178,6 +178,7 @@ export interface Config {
     tasks: {
       'dispatch-event': TaskDispatchEvent;
       'module-step': TaskModuleStep;
+      'platform-expire-demos': TaskPlatformExpireDemos;
       'customers-nightly-segments': TaskCustomersNightlySegments;
       'loyalty-birthdays-and-expiry': TaskLoyaltyBirthdaysAndExpiry;
       'campaigns-end-offers': TaskCampaignsEndOffers;
@@ -388,6 +389,16 @@ export interface Salon {
     dailySummaryHour?: number | null;
     aiTryOnCredits?: number | null;
     aiTryOnPerCustomer?: number | null;
+    wifiName?: string | null;
+    wifiPassword?: string | null;
+    /**
+     * Sales demo only: the prospect’s phone
+     */
+    demoPhone?: string | null;
+    /**
+     * Do not expire this demo after 7 days
+     */
+    keepDemo?: boolean | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -1503,6 +1514,7 @@ export interface PayloadJob {
           | 'inline'
           | 'dispatch-event'
           | 'module-step'
+          | 'platform-expire-demos'
           | 'customers-nightly-segments'
           | 'loyalty-birthdays-and-expiry'
           | 'campaigns-end-offers'
@@ -1545,6 +1557,7 @@ export interface PayloadJob {
         | 'inline'
         | 'dispatch-event'
         | 'module-step'
+        | 'platform-expire-demos'
         | 'customers-nightly-segments'
         | 'loyalty-birthdays-and-expiry'
         | 'campaigns-end-offers'
@@ -1873,6 +1886,10 @@ export interface SalonsSelect<T extends boolean = true> {
         dailySummaryHour?: T;
         aiTryOnCredits?: T;
         aiTryOnPerCustomer?: T;
+        wifiName?: T;
+        wifiPassword?: T;
+        demoPhone?: T;
+        keepDemo?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2828,6 +2845,14 @@ export interface TaskModuleStep {
       | boolean
       | null;
   };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskPlatform-expire-demos".
+ */
+export interface TaskPlatformExpireDemos {
+  input?: unknown;
   output?: unknown;
 }
 /**

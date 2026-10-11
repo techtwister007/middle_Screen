@@ -183,6 +183,10 @@ export const Salons: CollectionConfig = {
                 { name: 'dailySummaryHour', type: 'number', defaultValue: 9 },
                 { name: 'aiTryOnCredits', type: 'number', defaultValue: 0 },
                 { name: 'aiTryOnPerCustomer', type: 'number', defaultValue: 3 },
+                { name: 'wifiName', type: 'text' },
+                { name: 'wifiPassword', type: 'text' },
+                { name: 'demoPhone', type: 'text', admin: { description: 'Sales demo only: the prospect’s phone' } },
+                { name: 'keepDemo', type: 'checkbox', defaultValue: false, admin: { description: 'Do not expire this demo after 7 days' } },
               ],
             },
           ],
@@ -198,6 +202,8 @@ export const Users: CollectionConfig = {
   admin: { useAsTitle: 'name', defaultColumns: ['name', 'email', 'role'] },
   auth: { tokenExpiration: 60 * 60 * 24 * 30 },
   access: {
+    // Artists use the studio app; the full admin is for owners, managers and our team.
+    admin: ({ req }) => ['platform-admin', 'owner', 'manager'].includes((req.user as { role?: string } | null)?.role ?? ''),
     read: staffOnly,
     create: managersOnly,
     update: ({ req, id }) => {
@@ -315,4 +321,23 @@ export const platformModule = defineModule({
   key: 'platform',
   collections: [Salons, Users, Media, Events, CostLedger, Subscriptions, AuditLog],
   tenantCollections: ['media', 'events', 'cost-ledger', 'subscriptions'],
+  recurring: [
+    {
+      // Sales demos expire 7 days after they are built (DEMO.md section 4.1).
+      slug: 'platform-expire-demos',
+      cron: '0 * * * *',
+      handler: async ({ payload }) => {
+        const cutoff = new Date(Date.now() - 7 * 86_400_000).toISOString()
+        const old = await payload.find({
+          collection: 'salons' as never,
+          overrideAccess: true,
+          depth: 0,
+          limit: 200,
+          where: { and: [{ status: { equals: 'demo' } }, { createdAt: { less_than: cutoff } }, { 'settings.keepDemo': { not_equals: true } }] },
+        })
+        for (const s of old.docs as { id: string | number }[])
+          await payload.update({ collection: 'salons' as never, id: s.id, overrideAccess: true, data: { status: 'suspended' } as never })
+      },
+    },
+  ],
 })

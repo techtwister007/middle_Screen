@@ -31,7 +31,6 @@ import {
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { getPayloadClient } from '@/lib/payload'
 import { getSalonBySlug, salonFeatures } from '@/lib/salon'
 import { clearCustomerSession, createCustomerSession, getAttribution, getCustomerSession } from '@/lib/session'
@@ -98,8 +97,8 @@ export async function verifyCode(
 }
 
 export async function logout(slug: string) {
+  // No redirect here: a redirect after changing cookies in a server action can drop the change.
   await clearCustomerSession(slug)
-  redirect(`/s/${slug}`)
 }
 
 export async function setLanguage(slug: string, lang: 'en' | 'hi' | 'gu') {

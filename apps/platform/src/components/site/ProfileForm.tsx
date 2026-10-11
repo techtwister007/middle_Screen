@@ -96,7 +96,7 @@ export const ProfileForm = ({
         {saved ? 'Saved ✓' : pending ? 'Saving…' : 'Save'}
       </Button>
       <div className="flex items-center justify-between pt-2 text-sm">
-        <button className="text-muted underline" onClick={() => start(() => logout(slug))} type="button">
+        <button className="text-muted underline" onClick={() => start(async () => { await logout(slug); window.location.href = `/s/${slug}` })} type="button">
           Log out
         </button>
         {confirmDelete ? (

@@ -1,4 +1,5 @@
 import { BottomNav } from '@/components/site/BottomNav'
+import { PLATFORM_NAME } from '@/lib/brand'
 import { t } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
@@ -73,7 +74,7 @@ export default async function SalonLayout({ children, params }: { children: Reac
       />
       <footer className="mx-auto max-w-lg px-4 pb-32 pt-6 text-center text-[11px] text-muted/80">
         <a href="/" rel="noopener">
-          Powered by Glow
+          Powered by {PLATFORM_NAME}
         </a>
       </footer>
     </div>

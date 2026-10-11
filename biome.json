@@ -1,0 +1,32 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/payload-types.ts",
+      "!**/migrations/*.json",
+      "!**/importMap.js",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!templates",
+      "!app.py",
+      "!**/*.md"
+    ]
+  },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 160 },
+  "javascript": { "formatter": { "quoteStyle": "single", "jsxQuoteStyle": "single", "semicolons": "asNeeded", "trailingCommas": "all" } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": { "useSemanticElements": "off", "noSvgWithoutTitle": "off", "useKeyWithClickEvents": "off" },
+      "suspicious": { "noExplicitAny": "warn", "noArrayIndexKey": "off" },
+      "style": { "noNonNullAssertion": "off" },
+      "correctness": { "useExhaustiveDependencies": "off" },
+      "performance": { "noImgElement": "off" }
+    }
+  }
+}

@@ -11,7 +11,7 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
-    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create && node scripts/fix-migrations.mjs",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation tsx scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "test": "cross-env NODE_OPTIONS=--no-deprecation vitest run",
