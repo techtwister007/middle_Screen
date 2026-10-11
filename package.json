@@ -1,0 +1,25 @@
+{
+  "name": "salon-platform",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=20.9.0" },
+  "scripts": {
+    "dev": "pnpm --filter @salon/platform dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "boundaries": "depcruise packages apps/platform/src --config .dependency-cruiser.cjs",
+    "seed": "pnpm --filter @salon/platform seed"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "dependency-cruiser": "^16.10.4",
+    "turbo": "^2.5.8",
+    "typescript": "5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp", "esbuild", "unrs-resolver"]
+  }
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+.turbo
+dist
+coverage
+*.log
+.env
+.env.local
+apps/platform/media
+apps/platform/test-results
+apps/platform/playwright-report
+__pycache__
+*.tsbuildinfo
+next-env.d.ts

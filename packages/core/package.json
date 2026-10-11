@@ -1,0 +1,25 @@
+{
+  "name": "@salon/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./*": "./src/*" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "date-fns": "4.4.0",
+    "date-fns-tz": "3.2.0",
+    "libphonenumber-js": "1.13.15",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "payload": "3.90.2"
+  },
+  "devDependencies": {
+    "payload": "3.90.2",
+    "vitest": "4.0.18",
+    "@types/node": "22.19.9"
+  }
+}

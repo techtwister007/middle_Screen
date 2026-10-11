@@ -1,0 +1,35 @@
+{
+  "name": "@salon/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "clsx": "2.1.1",
+    "tailwind-merge": "3.7.0",
+    "motion": "14.1.0",
+    "vaul": "1.1.2",
+    "embla-carousel-react": "8.6.0",
+    "lucide-react": "1.55.0"
+  },
+  "peerDependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "vitest": "4.0.18",
+    "@types/node": "22.19.9",
+    "typescript": "5.7.3",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
+  }
+}
