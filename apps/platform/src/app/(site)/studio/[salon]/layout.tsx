@@ -10,6 +10,13 @@ export default async function StudioLayout({ children, params }: { children: Rea
   const { salon: slug } = await params
   const { salon, user } = await requireStaff(slug)
   const base = `/studio/${slug}`
+  const admin = user.role === 'platform-admin'
+  const showBanner = salon.status === 'demo' || admin
+  const demoSettings = (salon.settings ?? {}) as { keepDemo?: boolean | null; demoExpiresAt?: string | null }
+  const demoEnds =
+    salon.status === 'demo' && !demoSettings.keepDemo && demoSettings.demoExpiresAt
+      ? new Date(demoSettings.demoExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: salon.timezone ?? 'Asia/Kolkata' })
+      : null
   return (
     <div className='min-h-dvh bg-bg'>
       <link
@@ -19,20 +26,22 @@ export default async function StudioLayout({ children, params }: { children: Rea
       />
       <StudioShell
         banner={
-          salon.status === 'demo' || user.role === 'platform-admin' ? (
-            <div className='fixed inset-x-0 top-14 z-20 flex justify-center gap-2 bg-ink px-4 py-1 text-center text-xs text-bg print:hidden'>
-              {salon.status === 'demo' ? (
-                <span>
-                  Demo salon with sample data
-                  {salon.settings?.keepDemo
-                    ? ''
-                    : ` · ends ${new Date(new Date(salon.createdAt).getTime() + 7 * 86_400_000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}`}
-                </span>
+          showBanner ? (
+            <div className='fixed inset-x-0 top-14 z-20 flex min-h-11 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-ink px-4 py-1 text-center text-xs text-bg print:hidden md:justify-between md:pl-60'>
+              <span>
+                {salon.status === 'demo' ? `Demo salon with sample data${demoEnds ? ` · ends ${demoEnds}` : ''}` : ''}
+                {salon.status === 'demo' && admin ? ' · ' : ''}
+                {admin ? 'You are viewing as platform support' : ''}
+              </span>
+              {admin ? (
+                <Link className='inline-flex min-h-9 items-center rounded-btn bg-bg px-3 font-medium text-ink' href={`/console/salons/${slug}`}>
+                  Exit to console
+                </Link>
               ) : null}
-              {user.role === 'platform-admin' ? <span>{salon.status === 'demo' ? '·' : ''} Viewing as platform support</span> : null}
             </div>
           ) : null
         }
+        hasBanner={showBanner}
         header={
           <header className='fixed inset-x-0 top-0 z-20 print:hidden border-b border-line bg-surface/95 backdrop-blur'>
             <div className='flex h-14 items-center justify-between px-4 md:px-6'>
@@ -51,7 +60,7 @@ export default async function StudioLayout({ children, params }: { children: Rea
       >
         {children}
       </StudioShell>
-      <StudioNav base={base} features={[...salonFeatures(salon)]} manager={canManage(user)} />
+      <StudioNav banner={showBanner} base={base} features={[...salonFeatures(salon)]} manager={canManage(user)} />
       <Toaster />
     </div>
   )

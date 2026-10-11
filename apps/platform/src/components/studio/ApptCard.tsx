@@ -57,7 +57,7 @@ export const ApptCard = ({
   const designImg = mediaUrl(a.design?.images?.[0], 'thumb')
   const notes = [a.notes, c?.notes].filter(Boolean)
   return (
-    <article className='rounded-card border border-line bg-surface p-3' data-testid='appt-card'>
+    <article className='rounded-card border border-line bg-surface p-3' data-appt={String(a.id)} data-testid='appt-card'>
       <div className='flex gap-3'>
         <div className='w-14 shrink-0 text-center'>
           {showDate ? <p className='text-[11px] font-medium text-muted'>{formatIST(a.start, 'EEE d MMM', timezone)}</p> : null}

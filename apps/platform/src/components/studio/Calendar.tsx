@@ -293,9 +293,9 @@ export const Calendar = ({
             {!cols.length ? <p className='p-6 text-sm text-muted'>No bookable artists yet. Add them in More → Team.</p> : null}
           </Grid>
         ) : (
-          <Grid minWidth={48 + 7 * 110}>
+          <Grid minWidth={48 + 7 * 78}>
             {days.map((d) => (
-              <div className='min-w-[110px] flex-1 border-r border-line last:border-r-0' key={d}>
+              <div className='min-w-[78px] flex-1 border-r border-line last:border-r-0' key={d}>
                 <button
                   className={cn('flex h-10 w-full items-center justify-center gap-1 border-b border-line text-sm', d === today && 'font-semibold text-brand')}
                   onClick={() => {

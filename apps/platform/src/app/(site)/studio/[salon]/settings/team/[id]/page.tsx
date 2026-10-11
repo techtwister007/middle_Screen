@@ -51,7 +51,7 @@ export default async function HoursPage({ params }: { params: Promise<{ salon: s
       <p className='mt-1 text-sm text-muted'>Customers can only book times inside these hours.</p>
       <ActionForm action={saveHours.bind(null, slug)} className='mt-6' sticky submit='Save hours'>
         <input name='staff' type='hidden' value={String(member.id)} />
-        <section className='space-y-3 rounded-card border border-line bg-surface p-4'>
+        <section className='space-y-3 rounded-card border border-line bg-surface p-2.5 sm:p-4'>
           <input name='hours_v2' type='hidden' value='1' />
           {DAYS.map(([day, label]) => {
             const w = weekly.get(day)
@@ -86,7 +86,7 @@ export default async function HoursPage({ params }: { params: Promise<{ salon: s
           ) : (
             <p className='text-sm text-muted'>No time off planned.</p>
           )}
-          <div className='grid grid-cols-2 gap-3'>
+          <div className='grid gap-3 sm:grid-cols-2'>
             <Field label='Add time off from'>
               <input className={inputClass} min={today} name='offFrom' type='date' />
             </Field>

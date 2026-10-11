@@ -51,7 +51,7 @@ test("the phone's back button walks back through the booking steps", async ({ pa
 test('a cancelled appointment says what happens to the deposit and offers Book again', async ({ page }) => {
   await login(page)
   await page.goto(`${base}/designs`)
-  await page.locator(`a[href*="${base}/designs/"]`).first().click()
+  await page.locator(`a[href*="${base}/designs/"]`).filter({ hasText: /from ₹/ }).first().click()
   await page
     .getByTestId('design-book-bar')
     .getByRole('link', { name: /book this look/i })

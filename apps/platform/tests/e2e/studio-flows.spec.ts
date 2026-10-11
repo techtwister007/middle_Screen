@@ -75,10 +75,12 @@ test('walk-in checkout with artist, tip, split payment, first-visit gift and Wha
 
 test('today: confirm with undo, and decline with a reason', async ({ page }) => {
   await page.goto(`/studio/${SLUG}/today`)
-  const requests = page.locator('#requests [data-testid=appt-card]')
-  const n = await requests.count()
-  test.skip(n < 2, 'needs two booking requests in the seed')
-  const first = requests.first()
+  await page.waitForLoadState('networkidle')
+  // Cards still waiting for a decision (just-confirmed ones stay listed, without a Confirm button).
+  const open = page.locator('#requests [data-testid=appt-card]').filter({ has: page.getByRole('button', { name: 'Confirm' }) })
+  test.skip((await open.count()) < 2, 'needs two booking requests in the seed')
+  const id = await open.first().getAttribute('data-appt')
+  const first = page.locator(`[data-appt="${id}"]`)
   await first.getByRole('button', { name: 'Confirm' }).click()
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(page.getByText('Not confirmed')).toBeVisible()

@@ -23,6 +23,9 @@ interface VisitRow {
   createdAt: string
 }
 
+/** Voided bills (entered by mistake) never count as visits. */
+const NOT_VOID = { voidedAt: { exists: false } }
+
 const all = async <T>(payload: Payload, tenant: ID, collection: string, where: Record<string, unknown>, depth = 0) => {
   const repo = forTenant(payload, tenant)
   const out: T[] = []
@@ -42,7 +45,7 @@ export const pct = (num: number, den: number) => (den ? Math.round((num / den) *
 
 /** Business insights for a period. Every figure is computed from recorded rows. */
 export const insights = async (payload: Payload, tenant: ID, range: Range) => {
-  const visits = await all<VisitRow>(payload, tenant, 'visits', inRange(range), 1)
+  const visits = await all<VisitRow>(payload, tenant, 'visits', { and: [inRange(range), NOT_VOID] }, 1)
   const appointments = await all<{ id: ID; source?: string; status: string; start: string }>(payload, tenant, 'appointments', inRange(range))
   const revenue = visits.reduce((n, v) => n + (v.total ?? 0), 0)
   const byService = new Map<string, Paise>()
@@ -117,7 +120,7 @@ export type Insights = Awaited<ReturnType<typeof insights>>
 /** The monthly ROI story: what the platform brought in versus what it cost. */
 export const roiStory = async (payload: Payload, tenant: ID, range: Range, planPrice: Paise) => {
   const repo = forTenant(payload, tenant)
-  const visits = await all<VisitRow>(payload, tenant, 'visits', inRange(range))
+  const visits = await all<VisitRow>(payload, tenant, 'visits', { and: [inRange(range), NOT_VOID] })
   const apptIds = visits.map((v) => idOf(v.appointment)).filter((x): x is ID => x != null)
   const appts = apptIds.length ? (await repo.find<{ id: ID; source?: string }>('appointments', { where: { id: { in: apptIds } }, limit: 5000 })).docs : []
   const sourceOf = new Map(appts.map((a) => [String(a.id), a.source ?? 'app']))
@@ -337,7 +340,7 @@ export const salonHealth = async (payload: Payload, salon: { id: ID; createdAt: 
   const activationDeadline = new Date(new Date(salon.createdAt).getTime() + 14 * DAY_MS)
   const customersBy14 = await repo.count('customers', { createdAt: { less_than: activationDeadline.toISOString() } })
   const bookingsThisMonth = await repo.count('appointments', { createdAt: { greater_than_equal: monthStart.toISOString() } })
-  const visitsThisMonth = await repo.count('visits', { createdAt: { greater_than_equal: monthStart.toISOString() } })
+  const visitsThisMonth = await repo.count('visits', { and: [{ createdAt: { greater_than_equal: monthStart.toISOString() } }, NOT_VOID] })
   const costs = await all<{ total: number }>(payload, salon.id, 'cost-ledger', { period: { equals: monthStart.toISOString().slice(0, 7) } })
   const failedMessages = await repo.count('messages', { and: [{ status: { equals: 'failed' } }, { createdAt: { greater_than_equal: monthStart.toISOString() } }] })
   const subscription = await repo.findOne<{ status?: string }>('subscriptions', {})

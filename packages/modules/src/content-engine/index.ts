@@ -24,7 +24,7 @@ export const PhotoTasks: CollectionConfig = {
       type: 'select',
       defaultValue: 'pending',
       index: true,
-      options: ['pending', 'sent', 'shared', 'verified'],
+      options: ['pending', 'sent', 'shared', 'verified', 'skipped'],
     },
     { name: 'sharedTo', type: 'select', hasMany: true, options: ['instagram', 'whatsapp-status', 'whatsapp', 'other'] },
     { name: 'galleryConsent', type: 'checkbox', defaultValue: false },

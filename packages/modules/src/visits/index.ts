@@ -42,6 +42,7 @@ export const Visits: CollectionConfig = {
       fields: [{ name: 'mode', type: 'select', required: true, options: ['upi', 'cash', 'card', 'payment-link', 'wallet'] }, moneyField('amount')],
     },
     { name: 'receiptSentAt', type: 'date' },
+    { name: 'voidedAt', type: 'date', index: true, admin: { description: 'Bill voided by a manager (amounts zeroed, original kept in notes)' } },
     { name: 'paymentMode', type: 'select', options: [...PAYMENT_MODES], defaultValue: 'upi' },
     { name: 'payment', type: 'relationship', relationTo: 'payments' },
     { name: 'paidStatus', type: 'select', defaultValue: 'paid', options: ['paid', 'pending'], index: true },

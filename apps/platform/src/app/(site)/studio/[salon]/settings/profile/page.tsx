@@ -167,7 +167,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ salon:
           </Field>
         </section>
 
-        <section className='space-y-3 rounded-card border border-line bg-surface p-4'>
+        <section className='space-y-3 rounded-card border border-line bg-surface p-2.5 sm:p-4'>
           <h2 className='font-heading text-xl'>Opening hours</h2>
           <input name='hours_v2' type='hidden' value='1' />
           {DAYS.map(([day, label]) => {

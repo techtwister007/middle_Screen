@@ -39,7 +39,7 @@ export default async function InsightsPage({ params, searchParams }: { params: P
   const insightLines = [
     i.firstToSecondCohort ? `${i.firstToSecondRate}% of first-time customers came back for a second visit.` : null,
     i.repeatRate ? `${i.repeatRate}% of visits were from returning customers.` : null,
-    roi.repeatFromReminders ? `${roi.repeatFromReminders} visits followed a reminder message.` : null,
+    roi.repeatFromReminders ? `${roi.repeatFromReminders} customers came back within 3 weeks of a reminder.` : null,
     i.noShowRate > 5 ? `No-shows are at ${i.noShowRate}%. Deposits on long services can bring this down.` : null,
   ].filter(Boolean)
   return (
@@ -49,7 +49,7 @@ export default async function InsightsPage({ params, searchParams }: { params: P
         <div className='flex gap-1 rounded-full border border-line bg-surface p-1'>
           {[7, 30, 90].map((d) => (
             <Link
-              className={cn('rounded-full px-3 py-1 text-sm', d === days ? 'bg-brand text-on-brand' : 'text-muted')}
+              className={cn('inline-flex min-h-10 items-center rounded-full px-3 text-sm', d === days ? 'bg-brand text-on-brand' : 'text-muted')}
               href={`${base}/insights?days=${d}`}
               key={d}
             >
@@ -60,23 +60,31 @@ export default async function InsightsPage({ params, searchParams }: { params: P
       </div>
 
       <section className='mt-6 rounded-card bg-brand p-6 text-on-brand'>
-        <p className='text-xs font-semibold uppercase tracking-widest opacity-80'>What the app brought in</p>
+        <div className='flex flex-wrap items-center justify-between gap-2'>
+          <p className='text-xs font-semibold uppercase tracking-widest opacity-80'>Visits we can count</p>
+          {salon.status === 'demo' ? (
+            <span className='rounded-full bg-on-brand px-3 py-1 text-xs font-semibold text-brand' data-testid='sample-data'>
+              Sample data
+            </span>
+          ) : null}
+        </div>
         <p className='mt-2 font-heading text-5xl tabular-nums'>{formatINR(roi.revenueInfluenced)}</p>
         <p className='mt-1 text-sm opacity-85'>
-          in the last {days} days{roi.multiple ? `, about ${roi.multiple}× what it cost` : ''}
+          from customers who came back after a reminder, came via a friend or booked from an offer in the last {days} days
+          {roi.multiple ? `: about ${roi.multiple}× what the platform and messages cost` : ''}.
         </p>
         <div className='mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4'>
           <div>
             <p className='font-heading text-2xl'>{roi.bookingsViaApp}</p>
-            <p className='opacity-80'>bookings via your app</p>
+            <p className='opacity-80'>visits booked online</p>
           </div>
           <div>
             <p className='font-heading text-2xl'>{roi.repeatFromReminders}</p>
-            <p className='opacity-80'>repeat visits from reminders</p>
+            <p className='opacity-80'>came back after a reminder</p>
           </div>
           <div>
             <p className='font-heading text-2xl'>{roi.newFromReferrals}</p>
-            <p className='opacity-80'>new customers from friends</p>
+            <p className='opacity-80'>came via a friend</p>
           </div>
           <div>
             <p className='font-heading text-2xl'>{roi.taggedPosts}</p>

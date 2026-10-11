@@ -1094,6 +1094,10 @@ export interface Visit {
       }[]
     | null;
   receiptSentAt?: string | null;
+  /**
+   * Bill voided by a manager (amounts zeroed, original kept in notes)
+   */
+  voidedAt?: string | null;
   paymentMode?: ('upi' | 'cash' | 'card' | 'payment-link' | 'wallet' | 'package' | 'mixed') | null;
   payment?: (number | null) | Payment;
   paidStatus?: ('paid' | 'pending') | null;
@@ -1457,7 +1461,7 @@ export interface PhotoTask {
   story?: (number | null) | Media;
   statusImage?: (number | null) | Media;
   square?: (number | null) | Media;
-  status?: ('pending' | 'sent' | 'shared' | 'verified') | null;
+  status?: ('pending' | 'sent' | 'shared' | 'verified' | 'skipped') | null;
   sharedTo?: ('instagram' | 'whatsapp-status' | 'whatsapp' | 'other')[] | null;
   galleryConsent?: boolean | null;
   galleryDesign?: (number | null) | Design;
@@ -2561,6 +2565,7 @@ export interface VisitsSelect<T extends boolean = true> {
         id?: T;
       };
   receiptSentAt?: T;
+  voidedAt?: T;
   paymentMode?: T;
   payment?: T;
   paidStatus?: T;

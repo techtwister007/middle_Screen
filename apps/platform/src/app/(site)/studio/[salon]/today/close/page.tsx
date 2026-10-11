@@ -48,7 +48,7 @@ export default async function ClosePage({ params, searchParams }: { params: Prom
     teamOf(payload, salon.id),
   ])
   const name = new Map(team.map((t) => [String(t.id), t.name.split(' ')[0]]))
-  const live = visits.docs.filter((v) => !v.notes?.includes('VOID:'))
+  const live = visits.docs.filter((v) => !((v as { voidedAt?: string | null }).voidedAt || v.notes?.includes('VOID:')))
   const voided = visits.docs.length - live.length
   const byMode = new Map<string, number>()
   const pending: VisitRow[] = []

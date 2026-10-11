@@ -157,7 +157,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
         <h2 className='mb-2 font-heading text-xl'>History</h2>
         <div className='space-y-2'>
           {visits.docs.map((v) => {
-            const voided = Boolean(v.notes?.includes('VOID:'))
+            const voided = Boolean((v as { voidedAt?: string | null }).voidedAt || v.notes?.includes('VOID:'))
             return (
               <div className='rounded-card border border-line bg-surface p-3' key={v.id}>
                 <div className='flex items-center gap-3'>

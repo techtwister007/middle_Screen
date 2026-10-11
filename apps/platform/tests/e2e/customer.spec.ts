@@ -10,7 +10,7 @@ const phone = () => `9${Math.floor(100000000 + Math.random() * 899999999)}`
 
 test('browse a design, log in with a phone code and book it', async ({ page }) => {
   await page.goto(`/s/${SLUG}/designs`)
-  await page.locator('a[href*="/designs/"]').first().click()
+  await page.locator('a[href*="/designs/"]').filter({ hasText: /from ₹/ }).first().click()
   await expect(page.getByText('Total', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: /book this look/i }).click()
 

@@ -5,6 +5,7 @@ import * as migration_20261011_042500_refunds from './20261011_042500_refunds';
 import * as migration_20261011_044647_design_styles_library from './20261011_044647_design_styles_library';
 import * as migration_20261011_045743_allergies_tips_receipts from './20261011_045743_allergies_tips_receipts';
 import * as migration_20261011_052902_demo_lifecycle from './20261011_052902_demo_lifecycle';
+import * as migration_20261011_060342_skipped_and_void from './20261011_060342_skipped_and_void';
 
 export const migrations = [
   {
@@ -40,6 +41,11 @@ export const migrations = [
   {
     up: migration_20261011_052902_demo_lifecycle.up,
     down: migration_20261011_052902_demo_lifecycle.down,
-    name: '20261011_052902_demo_lifecycle'
+    name: '20261011_052902_demo_lifecycle',
+  },
+  {
+    up: migration_20261011_060342_skipped_and_void.up,
+    down: migration_20261011_060342_skipped_and_void.down,
+    name: '20261011_060342_skipped_and_void'
   },
 ];

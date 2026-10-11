@@ -23,5 +23,5 @@ export const teamOf = async (payload: Payload, salonId: ID, opts: { bookableOnly
       and: [{ 'tenants.tenant': { equals: salonId } }, { active: { not_equals: false } }, ...(opts.bookableOnly ? [{ bookable: { equals: true } }] : [])],
     },
   })
-  return (res.docs as unknown as TeamMember[]).map((m) => ({ id: m.id, name: m.name, role: m.role, phone: m.phone ?? null }))
+  return (res.docs as unknown as TeamMember[]).map((m) => ({ id: m.id, name: m.name, role: m.role, phone: m.phone ?? null, bookable: m.bookable ?? null }))
 }

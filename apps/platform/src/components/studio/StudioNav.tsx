@@ -19,7 +19,7 @@ const ITEMS: Item[] = [
   { href: 'settings', label: 'More', icon: Settings },
 ]
 
-export const StudioNav = ({ base, manager, features }: { base: string; manager: boolean; features: string[] }) => {
+export const StudioNav = ({ base, manager, features, banner }: { base: string; manager: boolean; features: string[]; banner?: boolean }) => {
   const path = usePathname()
   const items = ITEMS.filter((i) => (manager || !i.manager) && (!i.feature || features.includes(i.feature)))
   if (path?.endsWith('/display') || path?.endsWith('/kiosk')) return null
@@ -44,7 +44,7 @@ export const StudioNav = ({ base, manager, features }: { base: string; manager: 
             })}
         </div>
       </nav>
-      <aside className='fixed inset-y-0 left-0 hidden w-56 print:hidden border-r border-line bg-surface px-3 pt-20 md:block'>
+      <aside className={cn('fixed inset-y-0 left-0 hidden w-56 print:hidden border-r border-line bg-surface px-3 md:block', banner ? 'pt-28' : 'pt-20')}>
         {items.map((i) => {
           const active = path?.startsWith(`${base}/${i.href}`)
           return (

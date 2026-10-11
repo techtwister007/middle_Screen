@@ -64,18 +64,20 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
     }),
     manager ? actionFeed(payload, salon.id, base, now) : Promise.resolve([]),
     manager ? ownerSummaryText(payload, salon.id, now) : Promise.resolve(''),
-    teamOf(payload, salon.id, { bookableOnly: true }),
+    teamOf(payload, salon.id),
   ])
   const done = todayAppts.docs.filter((a) => a.status === 'completed').length
   const expected = todayAppts.docs.reduce((n, a) => n + (a.quotedTotal ?? 0), 0)
   const hour = Number(formatIST(now, 'H', tz))
-  const teamChips = team.map((t) => ({ id: t.id, name: t.name }))
+  const teamChips = team.filter((t) => t.bookable === true).map((t) => ({ id: t.id, name: t.name }))
+  // Platform support (and demos) greet as the salon's owner, not as "Platform".
+  const greetName = (user.role === 'platform-admin' ? (team.find((t) => t.role === 'owner')?.name ?? salon.name) : user.name).split(' ')[0]
 
   return (
     <div>
       <p className='text-sm text-muted'>{formatIST(now, 'EEEE d MMMM', tz)}</p>
       <h1 className='font-heading text-3xl'>
-        Good {hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'}, {user.name.split(' ')[0]}
+        Good {hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'}, {greetName}
       </h1>
       {summary ? <p className='mt-1 text-sm text-muted'>{summary}</p> : null}
 

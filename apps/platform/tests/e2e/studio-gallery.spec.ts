@@ -38,6 +38,9 @@ test('owner adds a style, edits a design into it and customers can filter by it'
 
 test('owner copies a look from the design library and can delete it again', async ({ page }) => {
   await page.getByRole('link', { name: 'Design library' }).click()
+  await expect(page).toHaveURL(/show=library/)
+  // Wait for hydration: a click before React attaches handlers is lost in dev mode.
+  await page.waitForLoadState('networkidle')
   const card = page
     .getByTestId('library-card')
     .filter({ has: page.getByRole('button', { name: '+ Add to my gallery' }) })

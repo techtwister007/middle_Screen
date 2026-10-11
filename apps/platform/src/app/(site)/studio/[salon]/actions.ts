@@ -522,7 +522,7 @@ export async function voidVisit(slug: string, visitId: ID, reason: string): Prom
     const visit = await c.repo.findByID<VisitDoc>('visits', asId(visitId))
     if (!visit) return { ok: false, error: 'Visit not found' }
     if (!reason.trim()) return { ok: false, error: 'Add a short reason' }
-    if (visit.notes?.includes('VOID:')) return { ok: false, error: 'This bill is already void' }
+    if ((visit as { voidedAt?: string | null }).voidedAt || visit.notes?.includes('VOID:')) return { ok: false, error: 'This bill is already void' }
     const original = `${visit.lines.map((l) => `${l.name} ${formatINR(l.price)}`).join(', ')}; total ${formatINR(visit.total)}${visit.tip ? `, tip ${formatINR(visit.tip)}` : ''}`
     await c.repo.update('visits', visit.id, {
       lines: visit.lines.map((l) => ({ name: l.name, service: idOf(l.service) ?? undefined, price: 0, quantity: l.quantity ?? 1 })),
@@ -534,6 +534,7 @@ export async function voidVisit(slug: string, visitId: ID, reason: string): Prom
       total: 0,
       tip: 0,
       paymentSplit: [],
+      voidedAt: new Date().toISOString(),
       notes: [visit.notes, AUDIT(c.user, `VOID: ${reason.trim()}. Was: ${original}`)].filter(Boolean).join('\n'),
     })
     const customerId = idOf(visit.customer) as ID
@@ -670,7 +671,8 @@ export async function skipPhotoTask(slug: string, taskId: ID): Promise<Result> {
     const task = await repo.findByID<{ id: ID; status: string }>('photo-tasks', asId(taskId))
     if (!task) return { ok: false, error: 'Photo task not found' }
     if (task.status !== 'pending') return { ok: false, error: 'Photos were already sent for this visit' }
-    await repo.delete('photo-tasks', task.id)
+    // Kept (not deleted) so reports can tell skipped photos from missed ones.
+    await repo.update('photo-tasks', task.id, { status: 'skipped' })
     revalidatePath(`/studio/${slug}/photos`)
     return { ok: true }
   } catch (err) {
