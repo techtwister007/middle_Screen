@@ -37,8 +37,9 @@ test('owner adds a style, edits a design into it and customers can filter by it'
 })
 
 test('owner copies a look from the design library and can delete it again', async ({ page }) => {
-  await page.getByRole('link', { name: 'Design library' }).click()
-  await expect(page).toHaveURL(/show=library/)
+  // Open the tab directly: clicking the tab link can race the soft navigation in dev mode.
+  await page.goto(`/studio/${SLUG}/settings/gallery?show=library`)
+  await expect(page.getByTestId('library-card').first()).toBeVisible()
   // Wait for hydration: a click before React attaches handlers is lost in dev mode.
   await page.waitForLoadState('networkidle')
   const card = page
