@@ -1,4 +1,4 @@
-import { DAY_MS, defineModule, forTenant, type ID, idOf, localDate, type Paise, zonedDateTime } from '@salon/core'
+import { DAY_MS, defineModule, emit, formatINR, forTenant, type ID, idOf, liveSalons, localDate, type Paise, PLAN_PRICES, zonedDateTime } from '@salon/core'
 import type { Payload } from 'payload'
 
 export interface Range {
@@ -221,7 +221,7 @@ export const actionFeed = async (payload: Payload, tenant: ID, studioBase: strin
       key: 'due',
       priority: 90,
       title: `${due} customer${due > 1 ? 's are' : ' is'} due for a refill`,
-      detail: 'Reminders go out automatically. Send a personal note to the ones you know well.',
+      detail: 'Reminders go out on their own. Nudge everyone now in one tap, or send a personal note.',
       count: due,
       action: { label: 'Remind', href: `${studioBase}/customers?segment=due` },
     })
@@ -245,6 +245,17 @@ export const actionFeed = async (payload: Payload, tenant: ID, studioBase: strin
       detail: 'Customers earn points once you confirm their post.',
       count: toVerify,
       action: { label: 'Verify', href: `${studioBase}/photos?tab=verify` },
+    })
+
+  const toApprove = await repo.count('designs', { and: [{ source: { equals: 'customer' } }, { published: { equals: false } }] })
+  if (toApprove)
+    cards.push({
+      key: 'gallery-approval',
+      priority: 58,
+      title: `${toApprove} customer photo${toApprove > 1 ? 's' : ''} to approve for the gallery`,
+      detail: 'They said yes to being featured. Real clients’ nails sell best.',
+      count: toApprove,
+      action: { label: 'Approve', href: `${studioBase}/settings/gallery?show=hidden` },
     })
 
   const pendingPhotos = await repo.count('photo-tasks', { status: { equals: 'pending' } })
@@ -339,7 +350,55 @@ export const salonHealth = async (payload: Payload, salon: { id: ID; createdAt: 
   }
 }
 
+/** One-line WhatsApp version of the ROI story. */
+export const roiSummaryText = (r: RoiStory) => {
+  const parts = [
+    `${r.bookingsViaApp} bookings came through the app`,
+    r.repeatFromReminders ? `${r.repeatFromReminders} customers came back after a reminder` : null,
+    r.newFromReferrals ? `${r.newFromReferrals} new customers came from friends` : null,
+    r.taggedPosts ? `${r.taggedPosts} customers posted your work` : null,
+  ].filter(Boolean)
+  const money = `${formatINR(r.revenueInfluenced)} of business came through the app${r.multiple ? ` (${r.multiple}× what it cost)` : ''}.`
+  return `${parts.join(', ')}. ${money}`
+}
+
+/** Calendar month before `now`, in the salon's time zone. */
+export const previousMonth = (now: Date, tz = 'Asia/Kolkata') => {
+  const [y, m] = localDate(now, tz).split('-').map(Number)
+  const py = m === 1 ? y - 1 : y
+  const pm = m === 1 ? 12 : m - 1
+  const key = `${py}-${String(pm).padStart(2, '0')}`
+  return {
+    key,
+    label: new Date(Date.UTC(py, pm - 1, 15)).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+    from: zonedDateTime(`${key}-01`, '00:00', tz),
+    to: zonedDateTime(`${y}-${String(m).padStart(2, '0')}-01`, '00:00', tz),
+  }
+}
+
+/** Builds last month's ROI story and hands it to messaging (owner WhatsApp). */
+export const sendMonthlyReport = async (payload: Payload, salon: { id: ID; plan: keyof typeof PLAN_PRICES; timezone?: string | null }, now = new Date()) => {
+  const month = previousMonth(now, salon.timezone ?? 'Asia/Kolkata')
+  const already = await forTenant(payload, salon.id).count('events', {
+    and: [{ type: { equals: 'report.monthly' } }, { createdAt: { greater_than_equal: month.to.toISOString() } }],
+  })
+  if (already) return null
+  const story = await roiStory(payload, salon.id, month, PLAN_PRICES[salon.plan] ?? 0)
+  const summary = roiSummaryText(story)
+  await emit(payload, { tenant: salon.id, type: 'report.monthly', payload: { month: month.label, summary } })
+  return { month, story, summary }
+}
+
 export const reportsModule = defineModule({
   key: 'reports',
   feature: 'reports',
+  recurring: [
+    {
+      slug: 'reports-monthly-roi',
+      cron: '30 4 1 * *', // 1st of the month, 10:00 IST
+      handler: async ({ payload }) => {
+        for (const salon of await liveSalons(payload, 'reports')) if (salon.status !== 'demo') await sendMonthlyReport(payload, salon)
+      },
+    },
+  ],
 })

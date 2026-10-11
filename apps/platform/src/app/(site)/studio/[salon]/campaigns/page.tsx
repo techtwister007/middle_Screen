@@ -4,6 +4,7 @@ import { CalendarHeart, Plus, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { OfferRowActions } from '@/components/studio/OfferRowActions'
 import { getPayloadClient } from '@/lib/payload'
+import { requireFeature } from '@/lib/salon'
 import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Campaigns' }
@@ -12,6 +13,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const { salon: slug } = await params
   const sp = await searchParams
   const { salon } = await requireStaff(slug, { manager: true })
+  requireFeature(salon, 'campaigns')
   const payload = await getPayloadClient()
   const repo = forTenant(payload, salon.id)
   const tz = salon.timezone ?? 'Asia/Kolkata'

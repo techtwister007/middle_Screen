@@ -2,11 +2,12 @@ import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { BottomNav } from '@/components/site/BottomNav'
+import { InstallPrompt } from '@/components/site/InstallPrompt'
 import { PLATFORM_NAME } from '@/lib/brand'
 import { t } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
-import { salonTheme } from '@/lib/salon'
+import { salonFeatures, salonTheme } from '@/lib/salon'
 import { currentCustomer, loadSalon } from '@/lib/site'
 
 type Params = Promise<{ salon: string }>
@@ -47,13 +48,14 @@ export default async function SalonLayout({ children, params }: { children: Reac
   const { css, fontsHref, theme } = salonTheme(salon)
   const base = `/s/${salon.slug}`
   const logo = mediaUrl(salon.brand?.logo, 'thumb')
+  const features = salonFeatures(salon)
   return (
     <div className='min-h-dvh bg-bg font-body text-ink' data-theme={theme.key} style={cssVars(css)}>
       <link href={fontsHref} precedence='default' rel='stylesheet' />
       <script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: registers the service worker for install + offline
         dangerouslySetInnerHTML={{
-          __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})})}`,
+          __html: `window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__installPrompt=e;window.dispatchEvent(new Event('installprompt:ready'))});if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})})}`,
         }}
       />
       <header className='sticky top-0 z-20 border-b border-line/60 bg-bg/85 backdrop-blur-md'>
@@ -77,10 +79,25 @@ export default async function SalonLayout({ children, params }: { children: Reac
       <BottomNav
         base={base}
         labels={{ home: t(lang, 'home'), designs: t(lang, 'designs'), book: t(lang, 'book'), myNails: t(lang, 'myNails'), rewards: t(lang, 'rewards') }}
+        showRewards={features.has('loyalty') || features.has('wallet')}
+      />
+      <InstallPrompt
+        labels={{
+          title: t(lang, 'installApp', { salon: salon.name }),
+          body: t(lang, 'installBody'),
+          install: t(lang, 'install'),
+          notNow: t(lang, 'notNow'),
+          iosHint: t(lang, 'iosHint'),
+          genericHint: t(lang, 'genericHint'),
+          installed: t(lang, 'alreadyInstalled'),
+          close: t(lang, 'close'),
+        }}
+        logo={logo}
+        slug={salon.slug}
       />
       <footer className='mx-auto max-w-lg px-4 pb-32 pt-6 text-center text-[11px] text-muted/80'>
         <a href='/' rel='noopener'>
-          Powered by {PLATFORM_NAME}
+          {t(lang, 'poweredBy', { name: PLATFORM_NAME })}
         </a>
       </footer>
     </div>

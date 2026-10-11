@@ -11,8 +11,10 @@ import {
   createGroupBooking,
   createOtp,
   createPayment,
+  customerCanChange,
   enterContest,
   featureInGallery,
+  findGroupBooking,
   findOrCreateCustomer,
   getAvailableSlots,
   joinWaitlist,
@@ -24,6 +26,7 @@ import {
   rescheduleBooking,
   revealScratchCard,
   sendOtp,
+  setDesignSaved,
   submitRating,
   TryOnError,
   VoteError,
@@ -31,18 +34,53 @@ import {
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
+import { type DictKey, t } from '@/lib/i18n'
+import { getLang } from '@/lib/lang'
 import { getPayloadClient } from '@/lib/payload'
 import { getSalonBySlug, salonFeatures } from '@/lib/salon'
 import { clearCustomerSession, createCustomerSession, getAttribution, getCustomerSession } from '@/lib/session'
 
-type Result<T = unknown> = { ok: true; data?: T } | { ok: false; error: string }
+type Result<T = unknown> = { ok: true; data?: T } | { ok: false; error: string; code?: string }
 
-const fail = (err: unknown): { ok: false; error: string } => {
-  if (err instanceof BookingError || err instanceof OtpError || err instanceof TryOnError || err instanceof VoteError) return { ok: false, error: err.message }
+/** Known module/action messages mapped to translated strings. Anything else becomes a generic, translated error. */
+const ERROR_KEYS: Record<string, DictKey> = {
+  'Please log in first': 'err_login',
+  'Sorry, that time was just taken. Please pick another slot.': 'err_slotTaken',
+  'That time is not available.': 'err_timeNA',
+  'Please choose a time in the future.': 'err_future',
+  'Some selected services are not available': 'err_services',
+  'Appointment not found': 'err_apptNotFound',
+  'Please enter a valid mobile number': 'err_phone',
+  'Too many codes requested. Try again in a while.': 'err_rateLimited',
+  'This code has expired. Request a new one.': 'err_codeExpired',
+  'Too many wrong attempts. Request a new code.': 'err_attempts',
+  'That code is not right. Please check and try again.': 'err_wrongCode',
+  'AI try-on is not available at this salon yet': 'err_aiOff',
+  'AI try-on is taking a break. Try the free preview instead.': 'err_aiBreak',
+  'You have used all your AI try-ons. Your artist can show you more in the salon!': 'err_aiCap',
+  'Design not found': 'err_designNotFound',
+  'Voting has closed': 'err_votingClosed',
+  'Entry not found': 'err_entryNotFound',
+  'You have already voted in this contest': 'err_alreadyVoted',
+  'This gift card is not valid': 'err_giftInvalid',
+  'This gift card has expired': 'err_giftExpired',
+  'This offer is no longer available': 'err_offerGone',
+  'This offer has ended': 'err_offerEnded',
+  'Not your visit': 'err_notYourVisit',
+}
+
+const errorIn = async (key: DictKey) => t(await getLang(), key)
+
+const fail = async (err: unknown): Promise<{ ok: false; error: string; code?: string }> => {
+  const lang = await getLang()
+  const code = (err as { code?: string })?.code
+  if (err instanceof Error && ERROR_KEYS[err.message]) return { ok: false, error: t(lang, ERROR_KEYS[err.message]), code }
+  if (err instanceof BookingError || err instanceof OtpError || err instanceof TryOnError || err instanceof VoteError)
+    return { ok: false, error: err.message, code }
   if (err instanceof Error && /not valid|expired|no longer|already|Insufficient|Not your/i.test(err.message)) return { ok: false, error: err.message }
   const details = (err as { data?: { errors?: unknown } })?.data?.errors
   console.error(err instanceof Error ? err.message : err, details ? JSON.stringify(details) : '')
-  return { ok: false, error: 'Something went wrong. Please try again.' }
+  return { ok: false, error: t(lang, 'err_generic') }
 }
 
 const ctx = async (slug: string) => {
@@ -133,8 +171,8 @@ export async function uploadInspiration(slug: string, form: FormData): Promise<R
   try {
     const { salon, payload } = await ctx(slug)
     const file = form.get('file')
-    if (!(file instanceof File) || !file.type.startsWith('image/')) return { ok: false, error: 'Please choose a photo' }
-    if (file.size > 8 * 1024 * 1024) return { ok: false, error: 'That photo is too large (max 8 MB)' }
+    if (!(file instanceof File) || !file.type.startsWith('image/')) return { ok: false, error: await errorIn('err_choosePhoto') }
+    if (file.size > 8 * 1024 * 1024) return { ok: false, error: await errorIn('err_photoLarge') }
     const kind = String(form.get('kind') ?? 'inspiration')
     const media = (await payload.create({
       collection: 'media',
@@ -165,9 +203,9 @@ export async function book(
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const attribution = await getAttribution(slug)
     let groupId: ID | undefined
-    if (input.groupCode) {
-      const group = await repo.findOne<{ id: ID; size: number; status: string }>('group-bookings', { code: { equals: input.groupCode.toUpperCase() } })
-      if (group && group.status === 'open') groupId = group.id
+    if (input.groupCode && salonFeatures(salon).has('groupBooking')) {
+      const group = await findGroupBooking(payload, salon.id, input.groupCode)
+      if (group) groupId = group.id
     }
     const { appointment, quote } = await requestBooking(payload, salon.id, {
       customerId,
@@ -206,8 +244,9 @@ export async function cancelAppointment(slug: string, rawId: ID, reason?: string
   const appointmentId = asId(rawId)
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
-    const appt = await repo.findByID<{ customer: ID | { id: ID } }>('appointments', appointmentId)
-    if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: 'Appointment not found' }
+    const appt = await repo.findByID<{ customer: ID | { id: ID }; start: string; status: string }>('appointments', appointmentId)
+    if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: await errorIn('err_apptNotFound') }
+    if (!customerCanChange(appt)) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
     await cancelBooking(payload, salon.id, appointmentId, reason, 'customer')
     revalidatePath(`/s/${slug}`)
     return { ok: true }
@@ -220,10 +259,16 @@ export async function rescheduleAppointment(slug: string, rawId: ID, start: stri
   const appointmentId = asId(rawId)
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
-    const appt = await repo.findByID<{ customer: ID | { id: ID } }>('appointments', appointmentId)
-    if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: 'Appointment not found' }
-    await rescheduleBooking(payload, salon.id, appointmentId, start)
-    revalidatePath(`/s/${slug}`)
+    const appt = await repo.findByID<{ customer: ID | { id: ID }; start: string; status: string }>('appointments', appointmentId)
+    if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: await errorIn('err_apptNotFound') }
+    // Same rules as cancelling: only upcoming, active appointments can be moved by the customer.
+    if (!customerCanChange(appt)) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
+    const when = new Date(start)
+    if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) return { ok: false, error: await errorIn('err_future') }
+    const horizon = Number((salon.settings as { bookingHorizonDays?: number } | null)?.bookingHorizonDays ?? 30)
+    if (when.getTime() > Date.now() + (horizon + 1) * 86_400_000) return { ok: false, error: await errorIn('err_timeNA') }
+    await rescheduleBooking(payload, salon.id, appointmentId, when.toISOString())
+    revalidatePath(`/s/${slug}`, 'layout')
     return { ok: true }
   } catch (err) {
     return fail(err)
@@ -244,8 +289,31 @@ export async function addToWaitlist(slug: string, raw: { serviceIds: ID[]; date:
 export async function startGroup(slug: string, input: { start: string; size: number; occasion?: string }): Promise<Result<{ code: string }>> {
   try {
     const { salon, payload, customerId } = await sessionCustomer(slug)
-    const group = await createGroupBooking(payload, salon.id, { organiserId: customerId, ...input })
+    if (!salonFeatures(salon).has('groupBooking')) return { ok: false, error: await errorIn('err_groupOff') }
+    const when = new Date(input.start)
+    if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) return { ok: false, error: await errorIn('err_future') }
+    const size = Math.min(20, Math.max(2, Math.round(Number(input.size) || 2)))
+    const occasion = input.occasion?.trim().slice(0, 80) || undefined
+    const group = await createGroupBooking(payload, salon.id, { organiserId: customerId, start: when.toISOString(), size, occasion })
     return { ok: true, data: { code: group.code } }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Moodboard
+// ---------------------------------------------------------------------------
+
+export async function saveDesign(slug: string, rawId: ID, save: boolean): Promise<Result<{ saved: boolean }>> {
+  const designId = asId(rawId)
+  try {
+    const { salon, payload, repo, customerId } = await sessionCustomer(slug)
+    const design = await repo.findByID<{ published?: boolean }>('designs', designId)
+    if (!design?.published) return { ok: false, error: await errorIn('err_designNotFound') }
+    const saved = await setDesignSaved(payload, salon.id, customerId, designId, save)
+    revalidatePath(`/s/${slug}/me`)
+    return { ok: true, data: { saved } }
   } catch (err) {
     return fail(err)
   }
@@ -260,7 +328,7 @@ export async function scratch(slug: string, rawId: ID): Promise<Result<{ title: 
   try {
     const { salon, payload, customerId } = await sessionCustomer(slug)
     const reward = await revealScratchCard(payload, salon.id, rewardId, customerId)
-    if (!reward) return { ok: false, error: 'Card not found' }
+    if (!reward) return { ok: false, error: await errorIn('err_cardNotFound') }
     revalidatePath(`/s/${slug}`)
     return { ok: true, data: { title: reward.title, validTo: reward.validTo } }
   } catch (err) {
@@ -285,8 +353,8 @@ export async function buyGiftCard(
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const recipient = normalizePhone(input.recipientPhone)
-    if (!recipient) return { ok: false, error: 'Please enter a valid phone number' }
-    if (input.amount < 50000 || input.amount > 2000000) return { ok: false, error: 'Choose an amount between ₹500 and ₹20,000' }
+    if (!recipient) return { ok: false, error: await errorIn('err_validPhone') }
+    if (input.amount < 50000 || input.amount > 2000000) return { ok: false, error: await errorIn('err_giftAmount') }
     const card = await createGiftCard(payload, salon.id, {
       buyerId: customerId,
       value: input.amount,
@@ -339,7 +407,7 @@ export async function buyPackage(slug: string, rawId: ID): Promise<Result<{ payU
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const pkg = await repo.findByID<{ id: ID; name: string; price: number; active: boolean }>('packages', packageId)
-    if (!pkg?.active) return { ok: false, error: 'This package is not available' }
+    if (!pkg?.active) return { ok: false, error: await errorIn('err_packageNA') }
     const buyer = await repo.findByID<{ name?: string; phone: string }>('customers', customerId)
     const { link } = await createPayment(payload, salon.id, {
       kind: 'package',
@@ -402,7 +470,7 @@ export async function enterMyNails(slug: string, raw: { contestId: ID; taskId: I
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const task = await repo.findByID<{ customer: ID | { id: ID }; photos?: ID[]; designName?: string; visit: ID | { id: ID } }>('photo-tasks', input.taskId)
-    if (!task || String(idOf(task.customer)) !== String(customerId) || !task.photos?.length) return { ok: false, error: 'Photo not found' }
+    if (!task || String(idOf(task.customer)) !== String(customerId) || !task.photos?.length) return { ok: false, error: await errorIn('err_photoNotFound') }
     await enterContest(payload, salon.id, {
       contestId: input.contestId,
       customerId,
@@ -424,7 +492,7 @@ export async function vote(slug: string, raw: { contestId: ID; entryId: ID }): P
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const voter = await repo.findByID<{ phone: string }>('customers', customerId)
-    if (!voter) return { ok: false, error: 'Please log in to vote' }
+    if (!voter) return { ok: false, error: await errorIn('err_loginToVote') }
     await castVote(payload, salon.id, { contestId: input.contestId, entryId: input.entryId, voterPhone: voter.phone, voterCustomerId: customerId })
     revalidatePath(`/s/${slug}/contest`)
     return { ok: true }

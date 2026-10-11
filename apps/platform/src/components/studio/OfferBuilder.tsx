@@ -32,7 +32,7 @@ export const OfferBuilder = ({
     valueType: initial.valueType ?? 'percent',
     value: initial.value ?? 20,
     freebie: initial.freebie,
-    audience: initial.audience ?? (initial.kind === 'slot-filler' ? ['due', 'at-risk'] : ['due', 'at-risk', 'regular']),
+    audience: initial.audience ?? (initial.kind === 'slot-filler' ? ['due'] : ['due', 'at-risk', 'regular']),
     endsAt: initial.endsAt ?? new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10),
     slot: initial.slot,
     packId: initial.packId ?? null,
@@ -44,7 +44,10 @@ export const OfferBuilder = ({
   useEffect(() => {
     audienceSize(slug, v.audience).then(setCount)
   }, [slug, v.audience])
-  const preview = `Priya, ${v.title || 'your offer'} at ${salonName}. Book: ${typeof window !== 'undefined' ? window.location.host : ''}/s/${slug}/offers/…`
+  // Read the host after mount so server and client render the same text.
+  const [host, setHost] = useState('')
+  useEffect(() => setHost(window.location.host), [])
+  const preview = `Priya, ${v.title || 'your offer'} at ${salonName}. Book: ${host}/s/${slug}/offers/…`
   return (
     <div className='grid gap-8 md:grid-cols-2'>
       <div className='space-y-4'>

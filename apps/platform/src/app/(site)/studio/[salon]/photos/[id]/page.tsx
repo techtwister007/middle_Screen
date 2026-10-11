@@ -2,6 +2,7 @@ import { forTenant } from '@salon/core'
 import { notFound } from 'next/navigation'
 import { PhotoCorner } from '@/components/studio/PhotoCorner'
 import { getPayloadClient } from '@/lib/payload'
+import { requireFeature } from '@/lib/salon'
 import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Photo corner' }
@@ -9,6 +10,7 @@ export const metadata = { title: 'Photo corner' }
 export default async function PhotoTaskPage({ params }: { params: Promise<{ salon: string; id: string }> }) {
   const { salon: slug, id } = await params
   const { salon } = await requireStaff(slug)
+  requireFeature(salon, 'contentEngine')
   const task = await forTenant(await getPayloadClient(), salon.id).findByID<{ id: string; designName?: string; customer: { name?: string; phone: string } }>(
     'photo-tasks',
     id,

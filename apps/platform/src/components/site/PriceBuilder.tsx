@@ -4,6 +4,7 @@ import { buttonClass, cn } from '@salon/ui'
 import { Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { formatDurationIn, type Lang } from '@/lib/i18n'
 
 export interface BuilderService {
   id: string | number
@@ -12,8 +13,6 @@ export interface BuilderService {
   durationMinutes: number
 }
 
-const fmt = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}` : `${m} min`)
-
 export const PriceBuilder = ({
   base,
   designId,
@@ -21,6 +20,8 @@ export const PriceBuilder = ({
   addOns,
   included,
   bookLabel,
+  labels,
+  lang,
 }: {
   base: string
   designId: string | number
@@ -28,6 +29,8 @@ export const PriceBuilder = ({
   addOns: BuilderService[]
   included: (string | number)[]
   bookLabel: string
+  labels: { addOns: string; total: string }
+  lang: Lang
 }) => {
   const [selected, setSelected] = useState<Set<string>>(new Set(included.map(String)))
   const chosen = addOns.filter((a) => selected.has(String(a.id)))
@@ -44,7 +47,7 @@ export const PriceBuilder = ({
       ) : null}
       {addOns.length ? (
         <div className='mt-3 space-y-2'>
-          <p className='text-xs font-semibold uppercase tracking-wider text-muted'>Add-ons</p>
+          <p className='text-xs font-semibold uppercase tracking-wider text-muted'>{labels.addOns}</p>
           {addOns.map((a) => {
             const on = selected.has(String(a.id))
             return (
@@ -80,10 +83,10 @@ export const PriceBuilder = ({
       ) : null}
       <div className='mt-4 flex items-end justify-between border-t border-line pt-4'>
         <div>
-          <p className='text-xs text-muted'>Total</p>
+          <p className='text-xs text-muted'>{labels.total}</p>
           <p className='font-heading text-3xl tabular-nums'>{formatINR(total)}</p>
           <p className='flex items-center gap-1 text-xs text-muted'>
-            <Clock size={12} /> {fmt(minutes)}
+            <Clock size={12} /> {formatDurationIn(lang, minutes)}
           </p>
         </div>
         <Link className={buttonClass('primary', 'lg')} href={`${base}/book?design=${designId}&services=${ids}`}>

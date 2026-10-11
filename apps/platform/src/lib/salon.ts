@@ -1,6 +1,7 @@
 import 'server-only'
 import { enabledFeatures, type FeatureKey, formatIST, type ID, localWeekday } from '@salon/core'
 import { fontsHref, getTheme, resolveTokens, tokensToCss } from '@salon/themes'
+import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { mediaUrl } from './media'
 import { getPayloadClient } from './payload'
@@ -115,3 +116,8 @@ export const DEFAULT_SECTIONS = ['hero', 'nextVisit', 'offers', 'newDesigns', 's
 
 export const homeSectionOrder = (salon: SalonRecord) =>
   salon.homeSections?.length ? salon.homeSections.filter((s) => s.visible !== false).map((s) => s.section) : DEFAULT_SECTIONS
+
+/** 404s a page whose feature is switched off for this salon (plan or override). */
+export const requireFeature = (salon: SalonRecord, feature: FeatureKey) => {
+  if (!salonFeatures(salon).has(feature)) notFound()
+}

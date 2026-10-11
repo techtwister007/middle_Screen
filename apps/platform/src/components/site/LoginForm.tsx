@@ -3,9 +3,11 @@ import { Button, Input, Label } from '@salon/ui'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { requestCode, verifyCode } from '@/app/(site)/s/[salon]/actions'
+import { type Lang, translator } from '@/lib/i18n'
 
-export const LoginForm = ({ slug, salonName, next, onDone }: { slug: string; salonName: string; next?: string; onDone?: () => void }) => {
+export const LoginForm = ({ slug, salonName, next, onDone, lang }: { slug: string; salonName: string; next?: string; onDone?: () => void; lang: Lang }) => {
   const router = useRouter()
+  const tr = translator(lang)
   const [step, setStep] = useState<'phone' | 'code'>('phone')
   const [phone, setPhone] = useState('')
   const [normalised, setNormalised] = useState('')
@@ -45,7 +47,7 @@ export const LoginForm = ({ slug, salonName, next, onDone }: { slug: string; sal
           }}
         >
           <div>
-            <Label htmlFor='phone'>Mobile number</Label>
+            <Label htmlFor='phone'>{tr('mobileNumber')}</Label>
             <div className='flex gap-2'>
               <span className='flex h-12 items-center rounded-btn border border-line bg-tint px-3 text-sm text-muted'>+91</span>
               <Input
@@ -59,10 +61,10 @@ export const LoginForm = ({ slug, salonName, next, onDone }: { slug: string; sal
                 value={phone}
               />
             </div>
-            <p className='mt-2 text-xs text-muted'>We'll send a 6-digit code on WhatsApp. No password needed.</p>
+            <p className='mt-2 text-xs text-muted'>{tr('codeOnWhatsapp')}</p>
           </div>
           <Button className='w-full' disabled={pending || phone.replace(/\D/g, '').length < 10} size='lg' type='submit'>
-            {pending ? 'Sending…' : 'Send code'}
+            {pending ? tr('sending') : tr('sendCode')}
           </Button>
         </form>
       ) : (
@@ -74,7 +76,7 @@ export const LoginForm = ({ slug, salonName, next, onDone }: { slug: string; sal
           }}
         >
           <div>
-            <Label htmlFor='code'>Enter the code sent to {normalised}</Label>
+            <Label htmlFor='code'>{tr('enterCodeSentTo', { phone: normalised })}</Label>
             <Input
               autoComplete='one-time-code'
               autoFocus
@@ -89,18 +91,18 @@ export const LoginForm = ({ slug, salonName, next, onDone }: { slug: string; sal
             />
           </div>
           <div>
-            <Label htmlFor='name'>Your name (optional)</Label>
-            <Input autoComplete='given-name' id='name' onChange={(e) => setName(e.target.value)} placeholder='So we can greet you' value={name} />
+            <Label htmlFor='name'>{tr('yourNameOptional')}</Label>
+            <Input autoComplete='given-name' id='name' onChange={(e) => setName(e.target.value)} placeholder={tr('soWeCanGreet')} value={name} />
           </div>
           <label className='flex items-start gap-3 text-sm text-muted'>
             <input checked={consent} className='mt-1 h-4 w-4 accent-[var(--t-primary)]' onChange={(e) => setConsent(e.target.checked)} type='checkbox' />
-            <span>Send me offers and new designs from {salonName} on WhatsApp (at most one a week). You can stop anytime.</span>
+            <span>{tr('consentLogin', { salon: salonName })}</span>
           </label>
           <Button className='w-full' disabled={pending || code.length !== 6} size='lg' type='submit'>
-            {pending ? 'Checking…' : 'Continue'}
+            {pending ? tr('checking') : tr('continue')}
           </Button>
           <button className='w-full text-sm text-brand' onClick={() => setStep('phone')} type='button'>
-            Use a different number
+            {tr('differentNumber')}
           </button>
         </form>
       )}

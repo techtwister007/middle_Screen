@@ -2,8 +2,9 @@
 import { Button } from '@salon/ui'
 import { useState, useTransition } from 'react'
 import { buyPackage, claim } from '@/app/(site)/s/[salon]/actions'
+import { type Lang, translator } from '@/lib/i18n'
 
-export const BuyPackageButton = ({ slug, packageId, label }: { slug: string; packageId: string | number; label: string }) => {
+export const BuyPackageButton = ({ slug, packageId, label, lang }: { slug: string; packageId: string | number; label: string; lang: Lang }) => {
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   return (
@@ -20,21 +21,34 @@ export const BuyPackageButton = ({ slug, packageId, label }: { slug: string; pac
         size='sm'
         variant='secondary'
       >
-        {pending ? 'Opening…' : label}
+        {pending ? translator(lang)('opening') : label}
       </Button>
       {error ? <p className='mt-2 text-xs'>{error}</p> : null}
     </div>
   )
 }
 
-export const ClaimOfferButton = ({ slug, offerId, loggedIn, loginHref }: { slug: string; offerId: string | number; loggedIn: boolean; loginHref: string }) => {
+export const ClaimOfferButton = ({
+  slug,
+  offerId,
+  loggedIn,
+  loginHref,
+  lang,
+}: {
+  slug: string
+  offerId: string | number
+  loggedIn: boolean
+  loginHref: string
+  lang: Lang
+}) => {
+  const tr = translator(lang)
   const [pending, start] = useTransition()
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   if (!loggedIn)
     return (
       <a className='inline-flex h-14 w-full items-center justify-center rounded-btn bg-brand font-medium text-on-brand' href={loginHref}>
-        Log in to claim
+        {tr('loginToClaim')}
       </a>
     )
   return (
@@ -51,7 +65,7 @@ export const ClaimOfferButton = ({ slug, offerId, loggedIn, loginHref }: { slug:
         }
         size='lg'
       >
-        {done ? 'Added to your rewards ✓' : pending ? 'Claiming…' : 'Claim this offer'}
+        {done ? tr('addedToRewards') : pending ? tr('claiming') : tr('claimOffer')}
       </Button>
       {error ? <p className='mt-2 text-sm text-red-700'>{error}</p> : null}
     </div>

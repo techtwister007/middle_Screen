@@ -2,22 +2,31 @@ import { formatIST } from '@salon/core'
 import { EmptyState } from '@salon/ui'
 import { Share2, Trophy } from 'lucide-react'
 import { VoteButton } from '@/components/site/ContestVote'
+import { translator } from '@/lib/i18n'
+import { getLang, salonLang } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { contestNow, currentCustomer, loadSalon, repoFor } from '@/lib/site'
+import { requireFeature } from '../_lib/gate'
 
-export const metadata = { title: 'Nail of the Month' }
+export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
+  const { salon: slug } = await params
+  return { title: translator(await salonLang(await loadSalon(slug)))('contestTitle') }
+}
 
 export default async function ContestPage({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
+  requireFeature(salon, 'contests')
+  const customer = await currentCustomer(salon)
+  const lang = await getLang(customer?.language)
+  const tr = translator(lang)
   const contest = await contestNow(salon)
   if (!contest)
     return (
       <div className='px-4 pt-10'>
-        <EmptyState icon={<Trophy />} title='No contest right now' body='Nail of the Month starts again soon. Your next set could win!' />
+        <EmptyState body={tr('noContestBody')} icon={<Trophy />} title={tr('noContest')} />
       </div>
     )
-  const customer = await currentCustomer(salon)
   const repo = await repoFor(salon)
   const entries = (
     await repo.find<{ id: string; photo: unknown; designName?: string; votes: number; customer: { name?: string } }>('contest-entries', {
@@ -36,38 +45,39 @@ export default async function ContestPage({ params }: { params: Promise<{ salon:
   const url = `${process.env.PUBLIC_URL ?? ''}/s/${slug}/contest`
   return (
     <div className='px-4 pt-5'>
-      <p className='text-xs font-semibold uppercase tracking-widest text-brand'>{contest.theme ?? 'This month'}</p>
+      <p className='text-xs font-semibold uppercase tracking-widest text-brand'>{contest.theme ?? tr('thisMonth')}</p>
       <h1 className='font-heading text-3xl'>{contest.title}</h1>
       <p className='mt-1 text-sm text-muted'>
-        Vote for your favourite. Prize: {contest.prize}. Voting closes {formatIST(contest.endsAt, 'd MMM', salon.timezone ?? 'Asia/Kolkata')}.
+        {tr('contestIntro', { prize: contest.prize, date: formatIST(contest.endsAt, 'd MMM', salon.timezone ?? 'Asia/Kolkata') })}
       </p>
       <a
         className='mt-3 inline-flex items-center gap-2 text-sm font-medium text-brand'
-        href={`https://wa.me/?text=${encodeURIComponent(`Vote for my nails at ${salon.name}! 💅 ${url}`)}`}
+        href={`https://wa.me/?text=${encodeURIComponent(tr('voteText', { salon: salon.name, url }))}`}
         rel='noopener'
         target='_blank'
       >
-        <Share2 size={14} /> Ask friends to vote
+        <Share2 size={14} /> {tr('askFriendsVote')}
       </a>
       <div className='mt-5 grid grid-cols-2 gap-3'>
         {entries.map((e, i) => (
           <div className='rounded-card border border-line bg-surface p-2' key={e.id}>
             <div className='relative'>
               <img
-                alt={e.designName ?? 'Entry'}
+                alt={e.designName ?? tr('untitled')}
                 className='aspect-square w-full rounded-[calc(var(--t-radius)-6px)] object-cover'
                 loading='lazy'
                 src={mediaUrl(e.photo, 'card') ?? ''}
               />
               {i === 0 && e.votes > 0 ? (
-                <span className='absolute left-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-ink'>Leading</span>
+                <span className='absolute left-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-ink'>{tr('leading')}</span>
               ) : null}
             </div>
-            <p className='mt-2 truncate px-1 text-sm font-medium'>{e.designName ?? 'Untitled'}</p>
-            <p className='px-1 text-xs text-muted'>{e.customer?.name?.split(' ')[0] ?? 'A client'}</p>
+            <p className='mt-2 truncate px-1 text-sm font-medium'>{e.designName ?? tr('untitled')}</p>
+            <p className='px-1 text-xs text-muted'>{e.customer?.name?.split(' ')[0] ?? tr('aClient')}</p>
             <VoteButton
               contestId={contest.id}
               entryId={e.id}
+              lang={lang}
               loggedIn={Boolean(customer)}
               salonName={salon.name}
               slug={slug}

@@ -2,9 +2,11 @@ import { formatIST, forTenant } from '@salon/core'
 import { Badge, cn, EmptyState } from '@salon/ui'
 import { Camera } from 'lucide-react'
 import Link from 'next/link'
+import { CollageButton } from '@/components/studio/CollageButton'
 import { VerifyButton } from '@/components/studio/VerifyButton'
 import { mediaUrl } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
+import { requireFeature } from '@/lib/salon'
 import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Photo corner' }
@@ -13,7 +15,9 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
   const { salon: slug } = await params
   const { tab = 'pending' } = await searchParams
   const { salon } = await requireStaff(slug)
-  const repo = forTenant(await getPayloadClient(), salon.id)
+  requireFeature(salon, 'contentEngine')
+  const payload = await getPayloadClient()
+  const repo = forTenant(payload, salon.id)
   const tz = salon.timezone ?? 'Asia/Kolkata'
   const status = tab === 'verify' ? 'shared' : 'pending'
   const tasks = (
@@ -32,24 +36,45 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
       limit: 50,
     })
   ).docs
+  const collages =
+    tab === 'collage'
+      ? (
+          await repo.find<{ id: string; url?: string; createdAt: string }>('media', {
+            where: { alt: { equals: 'Weekly collage' } },
+            sort: '-createdAt',
+            limit: 12,
+          })
+        ).docs
+      : []
   const base = `/studio/${slug}`
+  if (tab === 'collage')
+    return (
+      <div>
+        <h1 className='font-heading text-3xl'>Photo corner</h1>
+        <Tabs base={base} tab={tab} />
+        <p className='mt-5 text-sm text-muted'>Every Monday the best sets of the week become one Instagram-ready collage. Download it and post.</p>
+        <div className='mt-4'>
+          <CollageButton slug={slug} />
+        </div>
+        <div className='mt-5 grid gap-4 sm:grid-cols-2'>
+          {collages.map((c) => (
+            <figure className='overflow-hidden rounded-card border border-line bg-surface' key={c.id}>
+              <img alt='Weekly collage' className='w-full' src={mediaUrl(c, 'large') ?? c.url ?? ''} />
+              <figcaption className='flex items-center justify-between p-3 text-sm'>
+                {formatIST(c.createdAt, 'd MMM', tz)}
+                <a className='text-brand' download href={c.url ?? ''}>
+                  Download
+                </a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    )
   return (
     <div>
       <h1 className='font-heading text-3xl'>Photo corner</h1>
-      <div className='mt-4 flex gap-2'>
-        {[
-          ['pending', 'Waiting for photos'],
-          ['verify', 'Shares to verify'],
-        ].map(([k, label]) => (
-          <Link
-            className={cn('rounded-full border px-4 py-2 text-sm', tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
-            href={`${base}/photos?tab=${k}`}
-            key={k}
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
+      <Tabs base={base} tab={tab} />
       <div className='mt-5 space-y-2'>
         {tasks.length === 0 ? (
           <EmptyState
@@ -88,3 +113,21 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
     </div>
   )
 }
+
+const Tabs = ({ base, tab }: { base: string; tab: string }) => (
+  <div className='no-scrollbar mt-4 flex gap-2 overflow-x-auto'>
+    {[
+      ['pending', 'Waiting for photos'],
+      ['verify', 'Shares to verify'],
+      ['collage', 'Weekly collage'],
+    ].map(([k, label]) => (
+      <Link
+        className={cn('shrink-0 rounded-full border px-4 py-2 text-sm', tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
+        href={`${base}/photos?tab=${k}`}
+        key={k}
+      >
+        {label}
+      </Link>
+    ))}
+  </div>
+)

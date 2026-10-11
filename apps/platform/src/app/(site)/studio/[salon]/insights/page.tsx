@@ -1,14 +1,14 @@
-import { DAY_MS, formatINR } from '@salon/core'
+import { DAY_MS, formatINR, PLAN_PRICES } from '@salon/core'
 import { insights, roiStory } from '@salon/modules'
 import { cn, Stat } from '@salon/ui'
 import Link from 'next/link'
 import { BarList } from '@/components/studio/BarList'
 import { getPayloadClient } from '@/lib/payload'
+import { requireFeature } from '@/lib/salon'
 import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Insights' }
 
-const PLAN_PRICE: Record<string, number> = { starter: 49900, studio: 99900, growth: 249900 }
 const SOURCE_LABEL: Record<string, string> = {
   instagram: 'Instagram',
   qr: 'QR codes',
@@ -27,12 +27,13 @@ export default async function InsightsPage({ params, searchParams }: { params: P
   const { salon: slug } = await params
   const sp = await searchParams
   const { salon } = await requireStaff(slug, { manager: true })
+  requireFeature(salon, 'reports')
   const days = [7, 30, 90].includes(Number(sp.days)) ? Number(sp.days) : 30
   const payload = await getPayloadClient()
   const range = { from: new Date(Date.now() - days * DAY_MS), to: new Date() }
   const [i, roi] = await Promise.all([
     insights(payload, salon.id, range),
-    roiStory(payload, salon.id, range, Math.round(((PLAN_PRICE[salon.plan] ?? 99900) * days) / 30)),
+    roiStory(payload, salon.id, range, Math.round(((PLAN_PRICES[salon.plan] ?? 99900) * days) / 30)),
   ])
   const base = `/studio/${slug}`
   const insightLines = [

@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: 'node',
-    include: ['tests/int/**/*.test.ts'],
+    include: ['tests/int/**/*.test.ts', 'src/**/*.test.ts'],
     globalSetup: ['./tests/globalSetup.ts'],
     setupFiles: ['./tests/setup.ts'],
     testTimeout: 60_000,

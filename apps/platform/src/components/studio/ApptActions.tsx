@@ -3,6 +3,7 @@ import { Button, buttonClass } from '@salon/ui'
 import Link from 'next/link'
 import { useTransition } from 'react'
 import { confirmAppt, noShow } from '@/app/(site)/studio/[salon]/actions'
+import { LateButton } from './LateButton'
 
 export const ApptActions = ({ slug, id, status, past }: { slug: string; id: string | number; status: string; past: boolean }) => {
   const [pending, start] = useTransition()
@@ -18,6 +19,7 @@ export const ApptActions = ({ slug, id, status, past }: { slug: string; id: stri
           Check out
         </Link>
       ) : null}
+      {!past && status === 'confirmed' ? <LateButton id={id} slug={slug} /> : null}
       {past && status === 'confirmed' ? (
         <Button disabled={pending} onClick={() => start(async () => void (await noShow(slug, id)))} size='sm' variant='ghost'>
           No-show

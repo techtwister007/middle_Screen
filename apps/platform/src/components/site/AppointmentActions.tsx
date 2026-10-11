@@ -1,27 +1,39 @@
 'use client'
-import { Button } from '@salon/ui'
+import { Button, buttonClass } from '@salon/ui'
 import { Sheet } from '@salon/ui/client'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { cancelAppointment } from '@/app/(site)/s/[salon]/actions'
 
-export const AppointmentActions = ({ slug, id, policy, rebookHref }: { slug: string; id: string | number; policy?: string | null; rebookHref: string }) => {
+/** Reschedule moves this same appointment (book?reschedule=<id>); cancel asks first and shows the policy. */
+export const AppointmentActions = ({
+  slug,
+  id,
+  policy,
+  labels,
+}: {
+  slug: string
+  id: string | number
+  policy?: string | null
+  labels: { reschedule: string; cancel: string; cancelTitle: string; cancelling: string; yesCancel: string }
+}) => {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   return (
     <div className='grid grid-cols-2 gap-2'>
-      <Button onClick={() => router.push(rebookHref)} variant='secondary'>
-        Reschedule
-      </Button>
+      <Link className={buttonClass('secondary')} href={`/s/${slug}/book?reschedule=${id}`}>
+        {labels.reschedule}
+      </Link>
       <Sheet
         onOpenChange={setOpen}
         open={open}
-        title='Cancel this appointment?'
+        title={labels.cancelTitle}
         trigger={
-          <Button variant='ghost' className='text-red-700'>
-            Cancel
+          <Button className='text-red-700' variant='ghost'>
+            {labels.cancel}
           </Button>
         }
       >
@@ -39,7 +51,7 @@ export const AppointmentActions = ({ slug, id, policy, rebookHref }: { slug: str
           }
           variant='danger'
         >
-          {pending ? 'Cancelling…' : 'Yes, cancel'}
+          {pending ? labels.cancelling : labels.yesCancel}
         </Button>
         {error ? <p className='mt-3 text-sm text-red-700'>{error}</p> : null}
       </Sheet>

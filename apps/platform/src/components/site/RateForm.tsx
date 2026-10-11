@@ -3,8 +3,10 @@ import { Button, Textarea } from '@salon/ui'
 import { MessageCircle, Star } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { rate } from '@/app/(site)/s/[salon]/actions'
+import { type Lang, translator } from '@/lib/i18n'
 
-export const RateForm = ({ slug, visitId, ownerWhatsapp }: { slug: string; visitId: string | number; ownerWhatsapp?: string | null }) => {
+export const RateForm = ({ slug, visitId, ownerWhatsapp, lang }: { slug: string; visitId: string | number; ownerWhatsapp?: string | null; lang: Lang }) => {
+  const tr = translator(lang)
   const [score, setScore] = useState(0)
   const [comment, setComment] = useState('')
   const [done, setDone] = useState<{ googleUrl: string | null } | null>(null)
@@ -12,10 +14,10 @@ export const RateForm = ({ slug, visitId, ownerWhatsapp }: { slug: string; visit
   if (done)
     return (
       <div className='space-y-4 text-center'>
-        <p className='font-heading text-2xl'>{score >= 4 ? 'Thank you! 💛' : 'Thank you for telling us'}</p>
+        <p className='font-heading text-2xl'>{score >= 4 ? tr('thankYouHeart') : tr('thanksTelling')}</p>
         {score <= 3 ? (
           <div className='rounded-card bg-tint p-4 text-left text-sm'>
-            <p>The owner has been told and will reach out. If anything needs fixing, it's free within 7 days.</p>
+            <p>{tr('ownerTold')}</p>
             {ownerWhatsapp ? (
               <a
                 className='mt-3 inline-flex items-center gap-2 font-medium text-brand'
@@ -23,21 +25,21 @@ export const RateForm = ({ slug, visitId, ownerWhatsapp }: { slug: string; visit
                 rel='noopener'
                 target='_blank'
               >
-                <MessageCircle size={16} /> Message the owner now
+                <MessageCircle size={16} /> {tr('messageOwner')}
               </a>
             ) : null}
           </div>
         ) : null}
         {done.googleUrl ? (
           <div className='rounded-card border border-line bg-surface p-4'>
-            <p className='text-sm'>Would you share your experience on Google? It helps a small business a lot.</p>
+            <p className='text-sm'>{tr('googleAsk')}</p>
             <a
               className='mt-3 inline-flex h-12 w-full items-center justify-center rounded-btn bg-brand font-medium text-on-brand'
               href={done.googleUrl}
               rel='noopener'
               target='_blank'
             >
-              Write a Google review
+              {tr('writeGoogle')}
             </a>
           </div>
         ) : null}
@@ -47,18 +49,13 @@ export const RateForm = ({ slug, visitId, ownerWhatsapp }: { slug: string; visit
     <div className='space-y-5'>
       <div className='flex justify-center gap-2'>
         {[1, 2, 3, 4, 5].map((n) => (
-          <button aria-label={`${n} stars`} className={n <= score ? 'text-accent' : 'text-line'} key={n} onClick={() => setScore(n)} type='button'>
+          <button aria-label={tr('starsN', { n })} className={n <= score ? 'text-accent' : 'text-line'} key={n} onClick={() => setScore(n)} type='button'>
             <Star fill='currentColor' size={42} />
           </button>
         ))}
       </div>
       {score ? (
-        <Textarea
-          onChange={(e) => setComment(e.target.value)}
-          placeholder={score >= 4 ? 'What did you love?' : 'What could we do better?'}
-          rows={3}
-          value={comment}
-        />
+        <Textarea onChange={(e) => setComment(e.target.value)} placeholder={score >= 4 ? tr('whatLoved') : tr('whatBetter')} rows={3} value={comment} />
       ) : null}
       <Button
         className='w-full'
@@ -71,7 +68,7 @@ export const RateForm = ({ slug, visitId, ownerWhatsapp }: { slug: string; visit
         }
         size='lg'
       >
-        {pending ? 'Sending…' : 'Send'}
+        {pending ? tr('sending') : tr('send')}
       </Button>
     </div>
   )

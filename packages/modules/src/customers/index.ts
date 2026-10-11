@@ -150,7 +150,7 @@ export const findOrCreateCustomer = async (payload: Payload, tenant: ID, input: 
   await emit(payload, {
     tenant,
     type: 'customer.registered',
-    payload: { customerId: customer.id, referralCode: referredBy ? input.referralCode : undefined },
+    payload: { customerId: customer.id, referralCode: referredBy ? input.referralCode : undefined, source: input.source },
     actorType: 'customer',
     actorId: customer.id,
   })

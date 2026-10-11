@@ -8,7 +8,7 @@ const id = z.union([z.string(), z.number()])
 
 export const eventSchemas = {
   'link.clicked': z.object({ linkId: id, code: z.string() }),
-  'customer.registered': z.object({ customerId: id, referralCode: z.string().optional() }),
+  'customer.registered': z.object({ customerId: id, referralCode: z.string().optional(), source: z.string().optional() }),
   'booking.requested': z.object({ appointmentId: id, customerId: id }),
   'booking.confirmed': z.object({ appointmentId: id, customerId: id, start: z.string() }),
   'booking.cancelled': z.object({ appointmentId: id, customerId: id, start: z.string(), staffId: id.optional() }),
@@ -29,6 +29,9 @@ export const eventSchemas = {
   'photo.ready': z.object({ photoTaskId: id, customerId: id, visitId: id }),
   'photo.shared': z.object({ photoTaskId: id, customerId: id }),
   'share.verified': z.object({ photoTaskId: id, customerId: id }),
+  'gallery.submitted': z.object({ designId: id, customerId: id }),
+  'collage.ready': z.object({ mediaId: id, count: z.number().int() }),
+  'report.monthly': z.object({ month: z.string(), summary: z.string() }),
   'rating.submitted': z.object({ ratingId: id, customerId: id, score: z.number().int().min(1).max(5) }),
   'referral.sent': z.object({ referralId: id, referrerId: id }),
   'referral.converted': z.object({ referralId: id, referrerId: id, inviteeId: id }),

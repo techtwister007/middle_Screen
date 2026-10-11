@@ -3,6 +3,7 @@ import { Button } from '@salon/ui'
 import { Heart } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { vote } from '@/app/(site)/s/[salon]/actions'
+import { type Lang, translator } from '@/lib/i18n'
 import { LoginForm } from './LoginForm'
 
 export const VoteButton = ({
@@ -13,6 +14,7 @@ export const VoteButton = ({
   loggedIn,
   salonName,
   voted,
+  lang,
 }: {
   slug: string
   contestId: string | number
@@ -21,7 +23,9 @@ export const VoteButton = ({
   loggedIn: boolean
   salonName: string
   voted: boolean
+  lang: Lang
 }) => {
+  const tr = translator(lang)
   const [count, setCount] = useState(votes)
   const [done, setDone] = useState(voted)
   const [needLogin, setNeedLogin] = useState(false)
@@ -37,8 +41,9 @@ export const VoteButton = ({
   if (needLogin)
     return (
       <div className='mt-2 rounded-card border border-line bg-surface p-3 text-left'>
-        <p className='mb-2 text-sm'>Confirm your number to vote (one vote per person).</p>
+        <p className='mb-2 text-sm'>{tr('confirmToVote')}</p>
         <LoginForm
+          lang={lang}
           onDone={() => {
             setNeedLogin(false)
             cast()
@@ -57,7 +62,7 @@ export const VoteButton = ({
         size='sm'
         variant={done ? 'secondary' : 'primary'}
       >
-        <Heart fill={done ? 'currentColor' : 'none'} size={14} /> {done ? 'Voted' : 'Vote'} · {count}
+        <Heart fill={done ? 'currentColor' : 'none'} size={14} /> {done ? tr('voted') : tr('vote')} · {count}
       </Button>
       {error ? <p className='mt-1 text-xs text-red-700'>{error}</p> : null}
     </div>

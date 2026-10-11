@@ -61,6 +61,7 @@ interface SalonDoc {
   id: ID
   name: string
   slug: string
+  status?: string | null
   timezone?: string | null
   contact?: { phone?: string | null; whatsapp?: string | null } | null
   whatsappSender?: string | null
@@ -117,6 +118,17 @@ const recordCost = async (payload: Payload, tenant: ID, category: string, cost: 
   })
 }
 
+/**
+ * Demo salons are full of sample customers with made-up numbers. Only the prospect's own phone
+ * (set in the console presenter) may receive real messages; owner alerts go to that phone too.
+ */
+const demoRecipient = (salon: SalonDoc, to: string, audience: 'customer' | 'owner') => {
+  if (salon.status !== 'demo') return { to, blocked: false }
+  const demoPhone = typeof salon.settings?.demoPhone === 'string' ? salon.settings.demoPhone : null
+  if (audience === 'owner') return demoPhone ? { to: demoPhone, blocked: false } : { to, blocked: true }
+  return { to, blocked: to !== demoPhone }
+}
+
 /** Sends a template to a customer, applying consent and frequency caps. Logs every attempt. */
 export const sendToCustomer = async (payload: Payload, tenant: ID, customerId: ID, input: SendInput) => {
   const repo = forTenant(payload, tenant)
@@ -149,7 +161,9 @@ export const sendToCustomer = async (payload: Payload, tenant: ID, customerId: I
   })
   const vars = { name: firstName(customer.name), salon: salon.name, link: input.link, ...input.vars }
   const body = render(await templateText(payload, tenant, input.template, lang), vars)
-  if (skip) {
+  // Sample customers in a demo salon are logged (so the presenter can show them) but never sent.
+  const demoSkip = !skip && demoRecipient(salon, customer.phone, 'customer').blocked && getMessaging().name !== 'fake'
+  if (skip || demoSkip) {
     return repo.create('messages', {
       customer: customerId,
       to: customer.phone,
@@ -159,7 +173,7 @@ export const sendToCustomer = async (payload: Payload, tenant: ID, customerId: I
       body,
       link: input.link,
       status: 'skipped',
-      skipReason: skip,
+      skipReason: skip ?? 'demo-sample-customer',
       relatedEvent: input.relatedEvent,
     })
   }
@@ -198,12 +212,85 @@ export const sendToCustomer = async (payload: Payload, tenant: ID, customerId: I
   return message
 }
 
+/**
+ * One-tap "remind everyone who is due" from Studio. Skips anyone reminded in the last 7 days
+ * or already booked. Refill reminders are service messages, so they don't need marketing consent.
+ */
+export const remindDueCustomers = async (payload: Payload, tenant: ID, opts: { customerIds?: ID[]; now?: Date } = {}) => {
+  const repo = forTenant(payload, tenant)
+  const now = opts.now ?? new Date()
+  const salon = await getSalon(payload, tenant)
+  const customers = (
+    await repo.find<CustomerDoc>('customers', {
+      where: opts.customerIds?.length ? { id: { in: opts.customerIds } } : { segment: { equals: 'due' } },
+      limit: 2000,
+      depth: 0,
+    })
+  ).docs
+  let sent = 0
+  let skipped = 0
+  for (const c of customers) {
+    const [recent, upcoming, last] = await Promise.all([
+      repo.count('messages', {
+        and: [
+          { customer: { equals: c.id } },
+          { template: { in: ['refill_heads_up', 'refill_due', 'nudge_new_designs', 'winback'] } },
+          { status: { equals: 'sent' } },
+          { createdAt: { greater_than: new Date(now.getTime() - 7 * DAY_MS).toISOString() } },
+        ],
+      }),
+      repo.count('appointments', {
+        and: [{ customer: { equals: c.id } }, { start: { greater_than: now.toISOString() } }, { status: { in: ['requested', 'confirmed'] } }],
+      }),
+      repo.find<{ id: ID }>('visits', { where: { customer: { equals: c.id } }, sort: '-createdAt', limit: 1, depth: 0 }).then((r) => r.docs[0]),
+    ])
+    if (recent || upcoming) {
+      skipped++
+      continue
+    }
+    const msg = (await sendToCustomer(payload, tenant, c.id, {
+      template: 'refill_due',
+      vars: { reward: await activeRewardText(payload, tenant, c.id) },
+      link: salonLink(salon.slug, last ? `/book?repeat=${last.id}` : '/book'),
+    })) as { status?: string } | null
+    if (msg?.status === 'sent') sent++
+    else skipped++
+  }
+  return { sent, skipped, total: customers.length }
+}
+
+/** "Running late" heads-up for one appointment (sent from Today). */
+export const notifyRunningLate = async (payload: Payload, tenant: ID, appointmentId: ID, minutes: number) => {
+  const repo = forTenant(payload, tenant)
+  const [salon, appt] = await Promise.all([getSalon(payload, tenant), repo.findByID<ApptDoc>('appointments', appointmentId)])
+  if (!appt || !['requested', 'confirmed'].includes(appt.status)) return null
+  return sendToCustomer(payload, tenant, idOf(appt.customer) as ID, {
+    template: 'running_late',
+    vars: { count: minutes, time: fmtTime(salon, appt.start) },
+    link: salonLink(salon.slug, `/appointments/${appt.id}`),
+  })
+}
+
 /** Sends a template to the salon owner's WhatsApp. */
 export const sendToOwner = async (payload: Payload, tenant: ID, input: SendInput) => {
   const salon = await getSalon(payload, tenant)
-  const to = salon.contact?.whatsapp ?? salon.contact?.phone
-  if (!to) return null
+  const contact = salon.contact?.whatsapp ?? salon.contact?.phone
+  if (!contact) return null
+  const { to, blocked } = demoRecipient(salon, contact, 'owner')
   const body = render(TEMPLATES[input.template].text.en, { salon: salon.name, link: input.link, ...input.vars })
+  if (blocked && getMessaging().name !== 'fake') {
+    return forTenant(payload, tenant).create('messages', {
+      to,
+      audience: 'owner',
+      template: input.template,
+      category: 'utility',
+      language: 'en',
+      body,
+      link: input.link,
+      status: 'skipped',
+      skipReason: 'demo-no-phone',
+    })
+  }
   const result = await getMessaging().send({
     to,
     template: input.template,
@@ -367,12 +454,57 @@ export const messagingModule = defineModule({
         })
     },
     'booking.cancelled': async ({ payload, event }) => {
-      if (event.actorType === 'customer') return
+      if (event.actorType === 'customer') {
+        // The customer already sees it in the app; the owner needs to know the slot is free.
+        const [salon, customer] = await Promise.all([
+          getSalon(payload, event.tenant),
+          forTenant(payload, event.tenant).findByID<CustomerDoc>('customers', event.payload.customerId),
+        ])
+        const soon = new Date(event.payload.start).getTime() - Date.now() < 2 * DAY_MS
+        await sendToOwner(payload, event.tenant, {
+          template: 'owner_cancellation',
+          vars: {
+            name: customer?.name ?? customer?.phone,
+            date: fmtDate(salon, event.payload.start),
+            time: fmtTime(salon, event.payload.start),
+            summary: soon ? 'The slot is open again; anyone on the waitlist has been offered it.' : 'The slot is open again.',
+          },
+          link: studioLink(salon.slug, '/today'),
+        })
+        return
+      }
       const salon = await getSalon(payload, event.tenant)
       await sendToCustomer(payload, event.tenant, event.payload.customerId, {
         template: 'booking_cancelled',
         vars: { date: fmtDate(salon, event.payload.start) },
         link: salonLink(salon.slug, '/book'),
+      })
+    },
+    'gallery.submitted': async ({ payload, event }) => {
+      const [salon, customer] = await Promise.all([
+        getSalon(payload, event.tenant),
+        forTenant(payload, event.tenant).findByID<CustomerDoc>('customers', event.payload.customerId),
+      ])
+      await sendToOwner(payload, event.tenant, {
+        template: 'owner_photo_approval',
+        vars: { name: firstName(customer?.name) },
+        link: studioLink(salon.slug, '/settings/gallery?show=hidden'),
+      })
+    },
+    'collage.ready': async ({ payload, event }) => {
+      const salon = await getSalon(payload, event.tenant)
+      await sendToOwner(payload, event.tenant, {
+        template: 'owner_collage_ready',
+        vars: { count: event.payload.count },
+        link: studioLink(salon.slug, '/photos?tab=collage'),
+      })
+    },
+    'report.monthly': async ({ payload, event }) => {
+      const salon = await getSalon(payload, event.tenant)
+      await sendToOwner(payload, event.tenant, {
+        template: 'owner_monthly_report',
+        vars: { date: event.payload.month, summary: event.payload.summary },
+        link: studioLink(salon.slug, '/insights?days=30'),
       })
     },
     'waitlist.offered': async ({ payload, event }) => {

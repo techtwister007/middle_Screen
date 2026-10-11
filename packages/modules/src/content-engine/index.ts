@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { defineModule, emit, forTenant, type ID, idOf, publicUrl, salonLink } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf, liveSalons, publicUrl, salonLink } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData, staffOnly } from '../_shared/access'
 import { buildCollage, buildShareKit, type Frame, frameByKey } from './sharekit'
@@ -211,12 +211,14 @@ export const featureInGallery = async (payload: Payload, tenant: ID, taskId: ID,
     source: 'customer',
     customer: customerId,
     customerConsent: true,
-    published: true,
+    // The owner approves customer photos in Studio → Gallery before they go public.
+    published: false,
     artist: idOf(visit?.staff ?? task.staff) ?? undefined,
     service: idOf(visit?.lines?.[0]?.service) ?? undefined,
     priceFrom: visit?.lines?.reduce((n, l) => n + l.price, 0) ?? 0,
   })
   await repo.update('photo-tasks', taskId, { galleryConsent: true, galleryDesign: design.id })
+  await emit(payload, { tenant, type: 'gallery.submitted', actorType: 'customer', actorId: customerId, payload: { designId: design.id, customerId } })
   const customer = await repo.findByID<{ consents?: Record<string, unknown> | null }>('customers', customerId)
   await repo.update('customers', customerId, { consents: { ...(customer?.consents ?? {}), gallery: true } })
   return design.id
@@ -237,7 +239,9 @@ export const weeklyCollage = async (payload: Payload, tenant: ID) => {
   }
   const buffers = await Promise.all(media.slice(0, 4).map(readMedia))
   const collage = await buildCollage(buffers, frameByKey(salon.theme === 'luxe' ? 'noir' : 'classic'), `This week at ${salon.name}`)
-  return saveImage(payload, tenant, collage, `collage-${Date.now()}`, 'share-kit', 'Weekly collage')
+  const saved = await saveImage(payload, tenant, collage, `collage-${Date.now()}`, 'share-kit', 'Weekly collage')
+  if (saved) await emit(payload, { tenant, type: 'collage.ready', payload: { mediaId: saved.id, count: media.length } })
+  return saved
 }
 
 export const contentEngineModule = defineModule({
@@ -250,6 +254,15 @@ export const contentEngineModule = defineModule({
       await photoTaskForVisit(payload, event.tenant, event.payload.visitId)
     },
   },
+  recurring: [
+    {
+      slug: 'content-weekly-collage',
+      cron: '30 4 * * 1', // Monday 10:00 IST
+      handler: async ({ payload }) => {
+        for (const salon of await liveSalons(payload, 'contentEngine')) await weeklyCollage(payload, salon.id)
+      },
+    },
+  ],
 })
 
 export * from './sharekit'

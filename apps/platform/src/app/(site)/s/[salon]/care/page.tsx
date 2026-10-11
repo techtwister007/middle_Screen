@@ -1,15 +1,40 @@
+import { translator } from '@/lib/i18n'
+import { getLang, salonLang } from '@/lib/lang'
 import { getPayloadClient } from '@/lib/payload'
 import { currentCustomer, loadSalon, repoFor } from '@/lib/site'
 
-export const metadata = { title: 'Care & trends' }
+export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
+  const { salon: slug } = await params
+  return { title: translator(await salonLang(await loadSalon(slug)))('careTitle') }
+}
 
 export default async function CarePage({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
+  const lang = await getLang(customer?.language)
+  const tr = translator(lang)
   const payload = await getPayloadClient()
-  const articles = (await payload.find({ collection: 'articles', overrideAccess: true, where: { published: { equals: true } }, limit: 30 }))
-    .docs as unknown as { id: string; title: string; summary?: string; body: string; kind: string; serviceCategories?: string[] }[]
+  // Platform content library (not salon data). Prefer articles in the customer's language, else English.
+  const all = (
+    await payload.find({
+      collection: 'articles',
+      overrideAccess: true,
+      where: { and: [{ published: { equals: true } }, { language: { in: [...new Set([lang, 'en'])] } }] },
+      limit: 60,
+    })
+  ).docs as unknown as {
+    id: string
+    slug?: string
+    title: string
+    summary?: string
+    body: string
+    kind: string
+    language?: string
+    serviceCategories?: string[]
+  }[]
+  const inLang = all.filter((a) => (a.language ?? 'en') === lang)
+  const articles = lang === 'en' ? all : [...inLang, ...all.filter((a) => (a.language ?? 'en') === 'en' && !inLang.some((x) => x.slug && x.slug === a.slug))]
   let myCategories: string[] = []
   if (customer) {
     const repo = await repoFor(salon)
@@ -26,10 +51,8 @@ export default async function CarePage({ params }: { params: Promise<{ salon: st
   )
   return (
     <div className='px-4 pt-5'>
-      <h1 className='font-heading text-3xl'>Care & trends</h1>
-      <p className='text-sm text-muted'>
-        {myCategories.length ? 'Starting with tips for your last set.' : 'Keep your nails looking fresh until your next visit.'}
-      </p>
+      <h1 className='font-heading text-3xl'>{tr('careTitle')}</h1>
+      <p className='text-sm text-muted'>{myCategories.length ? tr('careForLast') : tr('careIntro')}</p>
       <div className='mt-6 space-y-4'>
         {sorted.map((a) => (
           <details
@@ -38,7 +61,7 @@ export default async function CarePage({ params }: { params: Promise<{ salon: st
             open={a.serviceCategories?.some((c) => myCategories.includes(c))}
           >
             <summary className='cursor-pointer list-none'>
-              <p className='text-[11px] font-semibold uppercase tracking-widest text-brand'>{a.kind}</p>
+              <p className='text-[11px] font-semibold uppercase tracking-widest text-brand'>{tr.or(`kind_${a.kind}`, a.kind)}</p>
               <p className='mt-1 font-heading text-xl'>{a.title}</p>
               {a.summary ? <p className='mt-1 text-sm text-muted'>{a.summary}</p> : null}
             </summary>

@@ -2,8 +2,9 @@ import { formatINR, formatIST, forTenant, normalizePhone } from '@salon/core'
 import { Badge, cn, Input } from '@salon/ui'
 import Link from 'next/link'
 import type { Where } from 'payload'
+import { RemindDueButton } from '@/components/studio/RemindDueButton'
 import { getPayloadClient } from '@/lib/payload'
-import { requireStaff } from '@/lib/staff'
+import { canManage, requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Customers' }
 
@@ -35,7 +36,8 @@ export default async function CustomersPage({
 }) {
   const { salon: slug } = await params
   const sp = await searchParams
-  const { salon } = await requireStaff(slug)
+  const { salon, user } = await requireStaff(slug)
+  const manager = canManage(user)
   const payload = await getPayloadClient()
   const repo = forTenant(payload, salon.id)
   const tz = salon.timezone ?? 'Asia/Kolkata'
@@ -71,7 +73,19 @@ export default async function CustomersPage({
   )
   return (
     <div>
-      <h1 className='font-heading text-3xl'>Customers</h1>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <h1 className='font-heading text-3xl'>Customers</h1>
+        {manager ? (
+          <div className='flex gap-3 text-sm'>
+            <Link className='text-brand' href={`${base}/customers/import`}>
+              Import
+            </Link>
+            <a className='text-brand' download href={`${base}/customers/export`}>
+              Export CSV
+            </a>
+          </div>
+        ) : null}
+      </div>
       <form className='mt-4'>
         <Input defaultValue={sp.q} name='q' placeholder='Search by name or phone' />
         {sp.segment ? <input name='segment' type='hidden' value={sp.segment} /> : null}
@@ -91,8 +105,17 @@ export default async function CustomersPage({
           </Link>
         ))}
       </div>
-      {sp.segment === 'due' || sp.segment === 'at-risk' ? (
-        <p className='mt-4 rounded-card bg-tint p-3 text-sm'>Reminders go out automatically. Open a customer to send a personal WhatsApp in one tap.</p>
+      {sp.segment === 'due' ? (
+        <div className='mt-4 space-y-3 rounded-card bg-tint p-3 text-sm'>
+          <p>
+            Reminders go out on their own at the right time. Want to nudge everyone now? Customers who already booked or got a reminder this week are skipped.
+          </p>
+          {manager ? <RemindDueButton count={res.totalDocs} slug={slug} /> : null}
+        </div>
+      ) : sp.segment === 'at-risk' ? (
+        <p className='mt-4 rounded-card bg-tint p-3 text-sm'>
+          Win-back messages go out automatically. Open a customer to send a personal WhatsApp in one tap, or launch an offer from Campaigns.
+        </p>
       ) : null}
       <div className='mt-4 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface'>
         {res.docs.map((c) => (

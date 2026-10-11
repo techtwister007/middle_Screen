@@ -1,4 +1,5 @@
 import type { Payload, Where } from 'payload'
+import { type FeatureKey, type FeatureOverride, isEnabled, type Plan } from './features'
 import type { ID } from './module'
 
 /** The tenant (salon) field name added by the multi-tenant plugin to every salon-scoped collection. */
@@ -90,4 +91,29 @@ export const idOf = (value: unknown): ID | null => {
   if (value == null) return null
   if (typeof value === 'object') return ((value as { id?: ID }).id ?? null) as ID | null
   return value as ID
+}
+
+export interface SalonRow {
+  id: ID
+  name: string
+  slug: string
+  status: string
+  plan: Plan
+  timezone?: string | null
+  featureOverrides?: FeatureOverride[] | null
+  settings?: Record<string, unknown> | null
+}
+
+/** Salons a scheduled job should work on: not suspended and, if given, with the feature switched on. */
+export const liveSalons = async (payload: Payload, feature?: FeatureKey): Promise<SalonRow[]> => {
+  const res = await payload.find({
+    collection: 'salons' as never,
+    where: { status: { not_equals: 'suspended' } },
+    limit: 5000,
+    depth: 0,
+    overrideAccess: true,
+  })
+  const salons = res.docs as unknown as SalonRow[]
+  if (!feature) return salons
+  return salons.filter((s) => isEnabled(s, feature))
 }

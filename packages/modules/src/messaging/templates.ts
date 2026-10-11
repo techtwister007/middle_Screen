@@ -53,6 +53,15 @@ export const TEMPLATES = {
       gu: 'યાદ અપાવીએ: {{salon}} માં તમારી એપોઇન્ટમેન્ટ {{date}} ના {{time}} વાગ્યે છે. બદલવી છે? {{link}}',
     },
   },
+  running_late: {
+    category: 'utility',
+    audience: 'customer',
+    text: {
+      en: 'Hi {{name}}, {{salon}} is running about {{count}} minutes behind today. Your {{time}} slot will start a little late, sorry! Need to change it? {{link}}',
+      hi: 'नमस्ते {{name}}, {{salon}} आज लगभग {{count}} मिनट देर से चल रहा है। आपका {{time}} का स्लॉट थोड़ा देर से शुरू होगा, माफ़ कीजिए! बदलना है? {{link}}',
+      gu: 'નમસ્તે {{name}}, {{salon}} આજે લગભગ {{count}} મિનિટ મોડું ચાલે છે. તમારો {{time}} નો સ્લોટ થોડો મોડો શરૂ થશે, માફ કરશો! બદલવો છે? {{link}}',
+    },
+  },
   booking_cancelled: {
     category: 'utility',
     audience: 'customer',
@@ -213,6 +222,42 @@ export const TEMPLATES = {
       en: 'Good morning! {{summary}} Open today: {{link}}',
       hi: 'सुप्रभात! {{summary}} आज की सूची: {{link}}',
       gu: 'સુપ્રભાત! {{summary}} આજની યાદી: {{link}}',
+    },
+  },
+  owner_monthly_report: {
+    category: 'utility',
+    audience: 'owner',
+    text: {
+      en: '📊 Your {{date}} report for {{salon}}: {{summary}} Full report: {{link}}',
+      hi: '📊 {{salon}} की {{date}} रिपोर्ट: {{summary}} पूरी रिपोर्ट: {{link}}',
+      gu: '📊 {{salon}} નો {{date}} રિપોર્ટ: {{summary}} પૂરો રિપોર્ટ: {{link}}',
+    },
+  },
+  owner_cancellation: {
+    category: 'utility',
+    audience: 'owner',
+    text: {
+      en: '{{name}} cancelled {{date}} at {{time}}. {{summary}} {{link}}',
+      hi: '{{name}} ने {{date}} {{time}} की बुकिंग रद्द की। {{summary}} {{link}}',
+      gu: '{{name}} એ {{date}} {{time}} નું બુકિંગ રદ કર્યું. {{summary}} {{link}}',
+    },
+  },
+  owner_collage_ready: {
+    category: 'utility',
+    audience: 'owner',
+    text: {
+      en: "✨ This week's nail collage is ready ({{count}} sets). Post it to Instagram: {{link}}",
+      hi: '✨ इस हफ़्ते का नेल कोलाज तैयार है ({{count}} सेट)। Instagram पर पोस्ट करें: {{link}}',
+      gu: '✨ આ અઠવાડિયાનો નેઇલ કોલાજ તૈયાર છે ({{count}} સેટ). Instagram પર પોસ્ટ કરો: {{link}}',
+    },
+  },
+  owner_photo_approval: {
+    category: 'utility',
+    audience: 'owner',
+    text: {
+      en: '{{name}} is happy for their nails to be in your gallery. Approve in one tap: {{link}}',
+      hi: '{{name}} चाहती हैं कि उनके नाखून आपकी गैलरी में दिखें। एक टैप में मंज़ूरी दें: {{link}}',
+      gu: '{{name}} ઇચ્છે છે કે તેમના નખ તમારી ગેલેરીમાં દેખાય. એક ટેપમાં મંજૂર કરો: {{link}}',
     },
   },
 } satisfies Record<string, TemplateDef>

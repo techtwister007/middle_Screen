@@ -419,6 +419,27 @@ export const createGroupBooking = async (payload: Payload, tenant: ID, input: { 
     status: 'open',
   })
 
+/**
+ * Whether a customer may still change (reschedule or cancel) this appointment online.
+ * Only upcoming requested/confirmed appointments, and not inside `cutoffHours` before the start.
+ */
+export const customerCanChange = (appt: { start: string; status: string }, now = new Date(), cutoffHours = 0): boolean =>
+  (appt.status === 'requested' || appt.status === 'confirmed') && new Date(appt.start).getTime() - now.getTime() > cutoffHours * 3_600_000
+
+/** An open group booking by its share code, or null. */
+export const findGroupBooking = async (payload: Payload, tenant: ID, code: string) => {
+  const group = await forTenant(payload, tenant).findOne<{
+    id: ID
+    code: string
+    start: string
+    size: number
+    status: string
+    occasion?: string | null
+    organiser: ID | { id: ID; name?: string | null }
+  }>('group-bookings', { code: { equals: code.trim().toUpperCase() } }, 1)
+  return group && group.status === 'open' ? group : null
+}
+
 export const bookingModule = defineModule({
   key: 'booking',
   feature: 'booking',

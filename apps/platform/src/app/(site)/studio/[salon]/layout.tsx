@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { StudioNav } from '@/components/studio/StudioNav'
+import { salonFeatures } from '@/lib/salon'
 import { canManage, requireStaff } from '@/lib/staff'
 
 export default async function StudioLayout({ children, params }: { children: ReactNode; params: Promise<{ salon: string }> }) {
@@ -14,7 +15,7 @@ export default async function StudioLayout({ children, params }: { children: Rea
         precedence='default'
         rel='stylesheet'
       />
-      <header className='fixed inset-x-0 top-0 z-20 border-b border-line bg-surface/95 backdrop-blur'>
+      <header className='fixed inset-x-0 top-0 z-20 print:hidden border-b border-line bg-surface/95 backdrop-blur'>
         <div className='flex h-14 items-center justify-between px-4 md:px-6'>
           <Link className='font-heading text-lg' href={`${base}/today`}>
             {salon.name} <span className='text-xs font-normal text-muted'>Studio</span>
@@ -27,8 +28,8 @@ export default async function StudioLayout({ children, params }: { children: Rea
           </div>
         </div>
       </header>
-      <StudioNav base={base} manager={canManage(user)} />
-      <main className='mx-auto max-w-4xl px-4 pb-28 pt-20 md:pl-64 md:pr-8'>{children}</main>
+      <StudioNav base={base} features={[...salonFeatures(salon)]} manager={canManage(user)} />
+      <main className='mx-auto max-w-4xl px-4 pb-28 pt-20 md:pl-64 md:pr-8 print:max-w-none print:p-0'>{children}</main>
     </div>
   )
 }

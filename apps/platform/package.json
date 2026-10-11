@@ -12,7 +12,7 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
     "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create && node scripts/fix-migrations.mjs",
-    "seed": "cross-env NODE_OPTIONS=--no-deprecation tsx scripts/seed.ts",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation tsx --env-file-if-exists=.env scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "test": "cross-env NODE_OPTIONS=--no-deprecation vitest run",
     "test:e2e": "playwright test"

@@ -1,20 +1,25 @@
+import { formatINR } from '@salon/core'
 import type { SectionKey } from '@salon/themes'
-import { DEFAULT_SECTIONS_MAP, type HomeData } from '@/components/site/sections'
-import { t } from '@/lib/i18n'
+import { DEFAULT_SECTIONS_MAP, type HomeData, QuickLinks, SeasonBanner } from '@/components/site/sections'
+import { translator } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
+import { mediaUrl } from '@/lib/media'
 import { homeSectionOrder, salonFeatures, salonTheme, sectionSalon } from '@/lib/salon'
 import { artists, contestNow, currentCustomer, customerHome, designs, firstName, liveOffers, loadSalon, recentRatings, services } from '@/lib/site'
+import { currentSeason, openStatusIn } from './_lib/gate'
 
 export default async function SalonHome({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
   const lang = await getLang(customer?.language)
+  const tr = translator(lang)
   const features = salonFeatures(salon)
   const { theme } = salonTheme(salon)
   const base = `/s/${salon.slug}`
+  const settings = (salon.settings ?? {}) as { stampsForReward?: number; referralFriendReward?: number }
 
-  const [designList, serviceList, offers, artistList, ratings, contest, me] = await Promise.all([
+  const [designList, serviceList, offers, artistList, ratings, contest, me, season] = await Promise.all([
     designs(salon, 12),
     services(salon),
     features.has('campaigns') ? liveOffers(salon) : Promise.resolve([]),
@@ -22,25 +27,30 @@ export default async function SalonHome({ params }: { params: Promise<{ salon: s
     features.has('reviews') ? recentRatings(salon) : Promise.resolve([]),
     features.has('contests') ? contestNow(salon) : Promise.resolve(null),
     customer ? customerHome(salon, customer) : Promise.resolve(null),
+    currentSeason(salon, tr).catch(() => null),
   ])
 
   const data: HomeData = {
+    lang,
     layout: theme.layout,
+    show: { loyalty: features.has('loyalty'), wallet: features.has('wallet'), tryOn: features.has('tryOn'), referrals: features.has('referrals') },
+    inviteAmount: formatINR(settings.referralFriendReward ?? 20000),
+    season: season ? { festival: season.festival, label: season.label, title: season.title, image: mediaUrl(season.image, 'large') } : null,
     labels: {
-      hello: t(lang, 'hello'),
-      welcome: t(lang, 'welcome'),
-      book: t(lang, 'book'),
-      designs: t(lang, 'designs'),
-      menu: t(lang, 'menu'),
-      offers: t(lang, 'offers'),
-      newThisMonth: t(lang, 'newThisMonth'),
-      nextVisit: t(lang, 'nextVisit'),
-      refillIn: t(lang, 'refillIn'),
-      repeatLast: t(lang, 'repeatLast'),
-      inviteFriend: t(lang, 'inviteFriend'),
-      ourArtists: t(lang, 'ourArtists'),
-      lovedBy: t(lang, 'lovedBy'),
-      visitUs: t(lang, 'visitUs'),
+      hello: tr('hello'),
+      welcome: tr('welcome'),
+      book: tr('book'),
+      designs: tr('designs'),
+      menu: tr('menu'),
+      offers: tr('offers'),
+      newThisMonth: tr('newThisMonth'),
+      nextVisit: tr('nextVisit'),
+      refillIn: tr('refillIn'),
+      repeatLast: tr('repeatLast'),
+      inviteFriend: tr('inviteFriend'),
+      ourArtists: tr('ourArtists'),
+      lovedBy: tr('lovedBy'),
+      visitUs: tr('visitUs'),
     },
     designs: designList,
     services: serviceList,
@@ -52,7 +62,7 @@ export default async function SalonHome({ params }: { params: Promise<{ salon: s
       ? {
           ...me,
           nextDueDate: customer?.nextDueDate,
-          stampsForReward: Number((salon.settings as { stampsForReward?: number } | null)?.stampsForReward ?? 6),
+          stampsForReward: Number(settings.stampsForReward ?? 6),
         }
       : null,
     contact: {
@@ -75,15 +85,36 @@ export default async function SalonHome({ params }: { params: Promise<{ salon: s
   }
 
   const order = homeSectionOrder(salon) as SectionKey[]
-  const sectionProps = { salon: sectionSalon(salon), base, customer: customer ? { firstName: firstName(customer.name) ?? '' } : null, data }
+  const sectionProps = {
+    salon: { ...sectionSalon(salon), openNow: openStatusIn(salon, tr) },
+    base,
+    customer: customer ? { firstName: firstName(customer.name) ?? '' } : null,
+    data,
+  }
 
   return (
     <div>
+      {order.includes('hero') ? null : (
+        <>
+          <SeasonBanner {...sectionProps} />
+          <QuickLinks {...sectionProps} />
+        </>
+      )}
       {order.map((key) => {
         const feature = featureFor[key]
         if (feature && !features.has(feature)) return null
         const Component = theme.components?.[key] ?? DEFAULT_SECTIONS_MAP[key]
-        return Component ? <Component key={key} {...sectionProps} /> : null
+        if (!Component) return null
+        if (key === 'hero')
+          // Season banner and shortcuts sit right under the hero, whatever the salon's section order.
+          return (
+            <div key={key}>
+              <Component {...sectionProps} />
+              <SeasonBanner {...sectionProps} />
+              <QuickLinks {...sectionProps} />
+            </div>
+          )
+        return <Component key={key} {...sectionProps} />
       })}
     </div>
   )

@@ -4,6 +4,7 @@ import { Camera, Loader2, Sparkles, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { tryOnAi, uploadInspiration } from '@/app/(site)/s/[salon]/actions'
+import { type DictKey, type Lang, translator } from '@/lib/i18n'
 
 const COLORS = ['#B3132B', '#F3D9D3', '#7A1E8C', '#1E2A4A', '#C9B8E8', '#E8B7A6', '#0F3B2E', '#FFE066', '#1B1B24', '#F28C5B']
 const SHAPES = { almond: 'almond', square: 'square', oval: 'oval', coffin: 'coffin' } as const
@@ -29,13 +30,16 @@ export const TryOn = ({
   aiRemaining,
   aiEnabled,
   loggedIn,
+  lang,
 }: {
   slug: string
   design?: { id: string | number; title: string; image: string | null } | null
   aiRemaining: number
   aiEnabled: boolean
   loggedIn: boolean
+  lang: Lang
 }) => {
+  const tr = translator(lang)
   const [color, setColor] = useState(COLORS[0])
   const [shape, setShape] = useState<Shape>('almond')
   const [length, setLength] = useState(1)
@@ -80,11 +84,11 @@ export const TryOn = ({
           <div className='grid grid-cols-2 gap-2 text-center text-xs text-muted'>
             <div>
               <Hand c={compare.color} l={compare.length} s={compare.shape} small />
-              Saved look
+              {tr('savedLook')}
             </div>
             <div>
               <Hand c={color} l={length} s={shape} small />
-              Current
+              {tr('currentLook')}
             </div>
           </div>
         ) : (
@@ -92,11 +96,11 @@ export const TryOn = ({
         )}
       </div>
       <div>
-        <p className='mb-2 text-sm font-medium'>Colour</p>
+        <p className='mb-2 text-sm font-medium'>{tr('colour')}</p>
         <div className='flex flex-wrap gap-2'>
-          {COLORS.map((c) => (
+          {COLORS.map((c, i) => (
             <button
-              aria-label={`Colour ${c}`}
+              aria-label={tr('colourN', { n: i + 1 })}
               className={cn('h-9 w-9 rounded-full border-2', color === c ? 'border-ink' : 'border-transparent')}
               key={c}
               onClick={() => setColor(c)}
@@ -105,7 +109,7 @@ export const TryOn = ({
             />
           ))}
           <input
-            aria-label='Custom colour'
+            aria-label={tr('customColour')}
             className='h-9 w-9 cursor-pointer rounded-full border border-line'
             onChange={(e) => setColor(e.target.value)}
             type='color'
@@ -114,17 +118,17 @@ export const TryOn = ({
         </div>
       </div>
       <div>
-        <p className='mb-2 text-sm font-medium'>Shape</p>
+        <p className='mb-2 text-sm font-medium'>{tr('shape')}</p>
         <div className='flex flex-wrap gap-2'>
           {(Object.keys(SHAPES) as Shape[]).map((s) => (
             <Pill active={shape === s} key={s} onClick={() => setShape(s)}>
-              {s}
+              {tr(`shape_${s}` as DictKey)}
             </Pill>
           ))}
         </div>
       </div>
       <div>
-        <p className='mb-2 text-sm font-medium'>Length</p>
+        <p className='mb-2 text-sm font-medium'>{tr('length')}</p>
         <input
           className='w-full accent-[var(--t-primary)]'
           max={1.35}
@@ -136,72 +140,70 @@ export const TryOn = ({
         />
       </div>
       <Button className='w-full' onClick={() => setCompare({ color, shape, length })} variant='secondary'>
-        Save to compare
+        {tr('saveToCompare')}
       </Button>
 
-      {design ? (
+      {design && aiEnabled ? (
         <div className='rounded-card border border-line bg-surface p-4'>
           <div className='flex items-center gap-3'>
             {design.image ? <img alt='' className='h-14 w-14 rounded-xl object-cover' src={design.image} /> : null}
             <div className='flex-1'>
               <p className='flex items-center gap-1 font-medium'>
-                <Wand2 size={15} className='text-brand' /> See "{design.title}" on your own hand
+                <Wand2 className='text-brand' size={15} /> {tr('seeOnHand', { title: design.title })}
               </p>
-              <p className='text-xs text-muted'>{aiEnabled ? `AI preview · ${left} left` : 'Coming soon at this salon'}</p>
+              <p className='text-xs text-muted'>{tr('aiLeft', { n: left })}</p>
             </div>
           </div>
-          {aiEnabled ? (
-            loggedIn ? (
-              <div className='mt-4 space-y-3'>
-                <label className='flex h-12 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-line text-sm'>
-                  <Camera size={16} /> {hand ? 'Change hand photo' : 'Upload a photo of your hand'}
-                  <input
-                    accept='image/*'
-                    capture='environment'
-                    className='hidden'
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (!f) return
-                      const fd = new FormData()
-                      fd.set('file', f)
-                      fd.set('kind', 'hand')
-                      start(async () => {
-                        const res = await uploadInspiration(slug, fd)
-                        if (res.ok && res.data) setHand(res.data)
-                        else if (!res.ok) setError(res.error)
-                      })
-                    }}
-                    type='file'
-                  />
-                </label>
-                {hand ? (
-                  <Button
-                    className='w-full'
-                    disabled={pending || left <= 0}
-                    onClick={() =>
-                      start(async () => {
-                        setError(null)
-                        const res = await tryOnAi(slug, { handMediaId: hand.id, designId: design.id })
-                        if (!res.ok) return setError(res.error)
-                        setAiImage(res.data!.imageUrl)
-                        setLeft(res.data!.remaining)
-                      })
-                    }
-                  >
-                    {pending ? <Loader2 className='animate-spin' size={16} /> : <Sparkles size={16} />} Try it on
-                  </Button>
-                ) : null}
-                {aiImage ? <img alt='AI preview' className='w-full rounded-card' src={aiImage} /> : null}
-              </div>
-            ) : (
-              <Link
-                className='mt-3 block text-sm font-medium text-brand'
-                href={`/s/${slug}/login?next=${encodeURIComponent(`/s/${slug}/try-on?design=${design.id}`)}`}
-              >
-                Log in to try it on →
-              </Link>
-            )
-          ) : null}
+          {loggedIn ? (
+            <div className='mt-4 space-y-3'>
+              <label className='flex h-12 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-line text-sm'>
+                <Camera size={16} /> {hand ? tr('changeHandPhoto') : tr('uploadHandPhoto')}
+                <input
+                  accept='image/*'
+                  capture='environment'
+                  className='hidden'
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (!f) return
+                    const fd = new FormData()
+                    fd.set('file', f)
+                    fd.set('kind', 'hand')
+                    start(async () => {
+                      const res = await uploadInspiration(slug, fd)
+                      if (res.ok && res.data) setHand(res.data)
+                      else if (!res.ok) setError(res.error)
+                    })
+                  }}
+                  type='file'
+                />
+              </label>
+              {hand ? (
+                <Button
+                  className='w-full'
+                  disabled={pending || left <= 0}
+                  onClick={() =>
+                    start(async () => {
+                      setError(null)
+                      const res = await tryOnAi(slug, { handMediaId: hand.id, designId: design.id })
+                      if (!res.ok) return setError(res.error)
+                      setAiImage(res.data!.imageUrl)
+                      setLeft(res.data!.remaining)
+                    })
+                  }
+                >
+                  {pending ? <Loader2 className='animate-spin' size={16} /> : <Sparkles size={16} />} {tr('tryItOn')}
+                </Button>
+              ) : null}
+              {aiImage ? <img alt={tr('aiPreview')} className='w-full rounded-card' src={aiImage} /> : null}
+            </div>
+          ) : (
+            <Link
+              className='mt-3 block text-sm font-medium text-brand'
+              href={`/s/${slug}/login?next=${encodeURIComponent(`/s/${slug}/try-on?design=${design.id}`)}`}
+            >
+              {tr('loginToTry')}
+            </Link>
+          )}
         </div>
       ) : null}
       {error ? <p className='text-sm text-red-700'>{error}</p> : null}

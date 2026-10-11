@@ -1,10 +1,10 @@
 import { formatINR, formatIST } from '@salon/core'
-import { formatDuration } from '@salon/modules/client'
 import type { SectionProps, ThemeLayout } from '@salon/themes'
 import { Badge, buttonClass, cn, Reveal, SectionTitle } from '@salon/ui'
 
-import { ArrowRight, AtSign, CalendarCheck, Clock, Gift, MapPin, Sparkles, Star, Trophy } from 'lucide-react'
+import { ArrowRight, AtSign, CalendarCheck, Clock, Gift, Hand, HeartPulse, MapPin, Sparkles, Star, Trophy, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
+import { type DictKey, formatDurationIn, type Lang, translator } from '@/lib/i18n'
 import { mediaUrl, srcSet } from '@/lib/media'
 import type { DesignRecord, ServiceRecord } from '@/lib/site'
 
@@ -19,7 +19,12 @@ const Wrap = ({ children, className, motion }: { children: React.ReactNode; clas
   motion === 'none' ? <section className={cn('px-4', className)}>{children}</section> : <Reveal className={cn('px-4', className)}>{children}</Reveal>
 
 export interface HomeData {
+  lang: Lang
   layout: ThemeLayout
+  /** Features that change what home shows */
+  show: { loyalty: boolean; wallet: boolean; tryOn: boolean; referrals: boolean }
+  inviteAmount: string
+  season: { festival: string; label: string; title: string; image?: string | null } | null
   labels: Record<string, string>
   designs: DesignRecord[]
   services: ServiceRecord[]
@@ -137,6 +142,7 @@ export const NextVisit = ({ base, data }: P) => {
   const appt = me.upcoming[0]
   const scratch = me.rewards.find((r) => r.scratch && !r.revealed)
   const daysToDue = me.nextDueDate ? Math.ceil((new Date(me.nextDueDate).getTime() - Date.now()) / 86_400_000) : null
+  const tr = translator(data.lang)
   return (
     <Wrap className='mt-6 space-y-3' motion={data.layout.motion}>
       {scratch ? (
@@ -145,8 +151,8 @@ export const NextVisit = ({ base, data }: P) => {
             <Gift size={22} />
           </span>
           <div className='flex-1'>
-            <p className='font-medium'>You have a scratch card!</p>
-            <p className='text-sm text-muted'>Scratch to reveal your next-visit reward</p>
+            <p className='font-medium'>{tr('scratchWaitingHome')}</p>
+            <p className='text-sm text-muted'>{tr('scratchWaitingHomeBody')}</p>
           </div>
           <ArrowRight className='text-brand' size={18} />
         </Link>
@@ -156,41 +162,43 @@ export const NextVisit = ({ base, data }: P) => {
           <p className='text-xs font-semibold uppercase tracking-wider text-brand'>{data.labels.nextVisit}</p>
           <p className='mt-1 font-heading text-xl'>{formatIST(appt.start, 'EEEE d MMM · h:mm a', data.timezone)}</p>
           <p className='text-sm text-muted'>
-            {typeof appt.staff === 'object' && appt.staff?.name ? `with ${appt.staff.name}` : ''}{' '}
-            {appt.status === 'requested' ? '· waiting for confirmation' : ''}
+            {typeof appt.staff === 'object' && appt.staff?.name ? tr('withName', { name: appt.staff.name }) : ''}{' '}
+            {appt.status === 'requested' ? `· ${tr('waitingConfirm')}` : ''}
           </p>
         </Link>
       ) : daysToDue !== null ? (
         <div className={cn('flex items-center gap-4 p-4', cardClass(data.layout))}>
           <div className='flex h-14 w-14 flex-col items-center justify-center rounded-full border-2 border-brand text-brand'>
             <span className='font-heading text-lg leading-none'>{Math.max(daysToDue, 0)}</span>
-            <span className='text-[9px] uppercase'>days</span>
+            <span className='text-[9px] uppercase'>{tr('daysShort')}</span>
           </div>
           <div className='flex-1'>
-            <p className='font-medium'>{daysToDue <= 0 ? 'Your refill is due now' : `${data.labels.refillIn} in ${daysToDue} days`}</p>
+            <p className='font-medium'>{daysToDue <= 0 ? tr('refillDueNowHome') : tr('refillDueInDays', { n: daysToDue })}</p>
             <Link className='text-sm font-medium text-brand' href={`${base}/book?repeat=${me.lastVisit?.id ?? ''}`}>
               {data.labels.repeatLast} →
             </Link>
           </div>
         </div>
       ) : null}
-      <div className='grid grid-cols-3 gap-2'>
-        <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
-          <p className='font-heading text-2xl'>
-            {me.account?.stamps ?? 0}
-            <span className='text-sm text-muted'>/{me.stampsForReward}</span>
-          </p>
-          <p className='text-[11px] text-muted'>stamps</p>
-        </Link>
-        <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
-          <p className='font-heading text-2xl'>{me.account?.points ?? 0}</p>
-          <p className='text-[11px] text-muted'>points</p>
-        </Link>
-        <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
-          <p className='font-heading text-2xl'>{me.wallet ? formatINR(me.wallet) : me.rewards.filter((r) => !r.scratch || r.revealed).length}</p>
-          <p className='text-[11px] text-muted'>{me.wallet ? 'wallet' : 'rewards'}</p>
-        </Link>
-      </div>
+      {data.show.loyalty ? (
+        <div className='grid grid-cols-3 gap-2'>
+          <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
+            <p className='font-heading text-2xl'>
+              {me.account?.stamps ?? 0}
+              <span className='text-sm text-muted'>/{me.stampsForReward}</span>
+            </p>
+            <p className='text-[11px] text-muted'>{tr('stamps')}</p>
+          </Link>
+          <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
+            <p className='font-heading text-2xl'>{me.account?.points ?? 0}</p>
+            <p className='text-[11px] text-muted'>{tr('points')}</p>
+          </Link>
+          <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
+            <p className='font-heading text-2xl'>{me.wallet ? formatINR(me.wallet) : me.rewards.filter((r) => !r.scratch || r.revealed).length}</p>
+            <p className='text-[11px] text-muted'>{me.wallet ? tr('wallet') : tr('rewardsLower')}</p>
+          </Link>
+        </div>
+      ) : null}
     </Wrap>
   )
 }
@@ -210,7 +218,9 @@ export const Offers = ({ base, data }: P) => {
             )}
             <div className='p-4'>
               <p className='font-heading text-lg leading-snug'>{o.title}</p>
-              {o.endsAt ? <p className='mt-1 text-xs text-muted'>Until {formatIST(o.endsAt, 'd MMM', data.timezone)}</p> : null}
+              {o.endsAt ? (
+                <p className='mt-1 text-xs text-muted'>{translator(data.lang)('untilDate', { date: formatIST(o.endsAt, 'd MMM', data.timezone) })}</p>
+              ) : null}
             </div>
           </Link>
         ))}
@@ -219,7 +229,7 @@ export const Offers = ({ base, data }: P) => {
   )
 }
 
-export const DesignTile = ({ design, base, tall }: { design: DesignRecord; base: string; tall?: boolean }) => (
+export const DesignTile = ({ design, base, tall, lang }: { design: DesignRecord; base: string; tall?: boolean; lang: Lang }) => (
   <Link className='group block' href={`${base}/designs/${design.id}`}>
     <div className={cn('relative overflow-hidden rounded-card bg-tint', tall ? 'aspect-[3/4]' : 'aspect-square')}>
       <img
@@ -231,14 +241,16 @@ export const DesignTile = ({ design, base, tall }: { design: DesignRecord; base:
         srcSet={srcSet(design.images?.[0])}
       />
       {design.source === 'customer' ? (
-        <span className='absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] text-white backdrop-blur'>Client photo</span>
+        <span className='absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] text-white backdrop-blur'>
+          {translator(lang)('clientPhoto')}
+        </span>
       ) : null}
     </div>
     <div className='mt-2 px-0.5'>
       <p className='truncate text-[14px] font-medium'>{design.title}</p>
       <p className='text-xs text-muted'>
-        {design.priceFrom ? `from ${formatINR(design.priceFrom)}` : ''}
-        {design.durationMinutes ? ` · ${formatDuration(design.durationMinutes)}` : ''}
+        {design.priceFrom ? translator(lang)('fromPrice', { price: formatINR(design.priceFrom) }) : ''}
+        {design.durationMinutes ? ` · ${formatDurationIn(lang, design.durationMinutes)}` : ''}
       </p>
     </div>
   </Link>
@@ -252,30 +264,30 @@ export const NewDesigns = ({ base, data }: P) => {
       <SectionTitle
         action={
           <Link className='text-sm font-medium text-brand' href={`${base}/designs`}>
-            See all
+            {translator(data.lang)('seeAll')}
           </Link>
         }
         title={data.labels.newThisMonth}
       />
       {data.layout.gallery === 'editorial' ? (
         <div className='space-y-3'>
-          {items[0] ? <DesignTile base={base} design={items[0]} tall /> : null}
+          {items[0] ? <DesignTile base={base} design={items[0]} lang={data.lang} tall /> : null}
           <div className='grid grid-cols-2 gap-3'>
             {items.slice(1).map((d) => (
-              <DesignTile base={base} design={d} key={String(d.id)} />
+              <DesignTile base={base} design={d} key={String(d.id)} lang={data.lang} />
             ))}
           </div>
         </div>
       ) : data.layout.gallery === 'masonry' ? (
         <div className='columns-2 gap-3 [&>*]:mb-4 [&>*]:break-inside-avoid'>
           {items.map((d, i) => (
-            <DesignTile base={base} design={d} key={String(d.id)} tall={i % 3 === 0} />
+            <DesignTile base={base} design={d} key={String(d.id)} lang={data.lang} tall={i % 3 === 0} />
           ))}
         </div>
       ) : (
         <div className='grid grid-cols-2 gap-x-3 gap-y-5'>
           {items.map((d) => (
-            <DesignTile base={base} design={d} key={String(d.id)} />
+            <DesignTile base={base} design={d} key={String(d.id)} lang={data.lang} />
           ))}
         </div>
       )}
@@ -291,7 +303,7 @@ export const Services = ({ base, data }: P) => {
       <SectionTitle
         action={
           <Link className='text-sm font-medium text-brand' href={`${base}/menu`}>
-            Full menu
+            {translator(data.lang)('fullMenu')}
           </Link>
         }
         title={data.labels.menu}
@@ -302,7 +314,7 @@ export const Services = ({ base, data }: P) => {
             <div>
               <p className='font-medium'>{s.name}</p>
               <p className='flex items-center gap-1 text-xs text-muted'>
-                <Clock size={12} /> {formatDuration(s.durationMinutes)}
+                <Clock size={12} /> {formatDurationIn(data.lang, s.durationMinutes)}
               </p>
             </div>
             <span className='font-heading text-lg tabular-nums'>{formatINR(s.price)}</span>
@@ -324,11 +336,11 @@ export const Loyalty = ({ base, data }: P) => {
           ))}
         </div>
         <div className='flex-1'>
-          <p className='font-medium'>Collect stamps, earn a free set</p>
-          <p className='text-sm text-muted'>Digital card. Never lost.</p>
+          <p className='font-medium'>{translator(data.lang)('loyaltyPitch')}</p>
+          <p className='text-sm text-muted'>{translator(data.lang)('loyaltyPitchBody')}</p>
         </div>
         <Link className={buttonClass('outline', 'sm')} href={`${base}/login?next=${encodeURIComponent(`${base}/rewards`)}`}>
-          Join
+          {translator(data.lang)('join')}
         </Link>
       </div>
     </Wrap>
@@ -340,9 +352,9 @@ export const Invite = ({ base, data }: P) => (
     <Link className='relative block overflow-hidden rounded-card bg-brand p-6 text-on-brand' href={`${base}/invite`}>
       <Gift className='absolute -right-4 -top-4 opacity-15' size={120} />
       <p className='font-heading text-2xl leading-tight'>{data.labels.inviteFriend}</p>
-      <p className='mt-1 max-w-[16rem] text-sm opacity-85'>Send ₹200 off their first visit. You get a reward when they come in.</p>
+      <p className='mt-1 max-w-[16rem] text-sm opacity-85'>{translator(data.lang)('invitePitch', { amount: data.inviteAmount })}</p>
       <span className='mt-4 inline-flex items-center gap-1 text-sm font-semibold'>
-        Send a gift <ArrowRight size={16} />
+        {translator(data.lang)('sendAGift')} <ArrowRight size={16} />
       </span>
     </Link>
   </Wrap>
@@ -358,7 +370,7 @@ export const Contest = ({ base, data }: P) => {
         </span>
         <div className='flex-1'>
           <p className='font-medium'>{data.contest.title}</p>
-          <p className='text-sm text-muted'>Vote for your favourite · prize: {data.contest.prize ?? 'a free set'}</p>
+          <p className='text-sm text-muted'>{translator(data.lang)('contestHomeBody', { prize: data.contest.prize ?? translator(data.lang)('aFreeSet') })}</p>
         </div>
         <ArrowRight className='text-brand' size={18} />
       </Link>
@@ -405,7 +417,7 @@ export const Reviews = ({ data }: P) => {
             </div>
             <blockquote className='mt-2 text-[15px] leading-relaxed'>“{r.comment}”</blockquote>
             <figcaption className='mt-2 text-xs text-muted'>
-              {typeof r.customer === 'object' && r.customer?.name ? r.customer.name.split(' ')[0] : 'A client'}
+              {typeof r.customer === 'object' && r.customer?.name ? r.customer.name.split(' ')[0] : translator(data.lang)('aClient')}
             </figcaption>
           </figure>
         ))}
@@ -413,8 +425,6 @@ export const Reviews = ({ data }: P) => {
     </Wrap>
   )
 }
-
-const DAY_LABEL: Record<string, string> = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }
 
 export const Visit = ({ salon, data }: P) => (
   <Wrap className='mt-10' motion={data.layout.motion}>
@@ -435,8 +445,8 @@ export const Visit = ({ salon, data }: P) => (
             const h = data.hours.find((x) => x.day === d)
             return (
               <div className='flex justify-between' key={d}>
-                <span className='text-muted'>{DAY_LABEL[d]}</span>
-                <span className='tabular-nums'>{!h || h.closed ? 'Closed' : `${h.open}–${h.close}`}</span>
+                <span className='text-muted'>{translator(data.lang)(`day_${d}` as DictKey)}</span>
+                <span className='tabular-nums'>{!h || h.closed ? translator(data.lang)('closed') : `${h.open}–${h.close}`}</span>
               </div>
             )
           })}
@@ -445,7 +455,7 @@ export const Visit = ({ salon, data }: P) => (
       <div className='flex flex-wrap gap-2'>
         {data.contact.mapUrl ? (
           <a className={buttonClass('secondary', 'sm')} href={data.contact.mapUrl} rel='noopener' target='_blank'>
-            <MapPin size={14} /> Directions
+            <MapPin size={14} /> {translator(data.lang)('directions')}
           </a>
         ) : null}
         {data.contact.whatsapp ? (
@@ -462,6 +472,53 @@ export const Visit = ({ salon, data }: P) => (
     </div>
   </Wrap>
 )
+
+/** The festival / season banner (e.g. Navratri), linking to the season's designs. */
+export const SeasonBanner = ({ base, data }: P) => {
+  const season = data.season
+  if (!season) return null
+  const tr = translator(data.lang)
+  return (
+    <Wrap className='mt-6' motion={data.layout.motion}>
+      <Link
+        className='relative block overflow-hidden rounded-card bg-gradient-to-br from-brand to-accent p-5 text-on-brand'
+        data-testid='season-banner'
+        href={`${base}/designs?occasion=${encodeURIComponent(season.festival)}`}
+      >
+        {season.image ? <img alt='' className='absolute inset-0 h-full w-full object-cover opacity-30' src={season.image} /> : null}
+        <Sparkles className='absolute -right-3 -top-3 opacity-20' size={96} />
+        <p className='relative text-[11px] font-semibold uppercase tracking-[0.25em] opacity-90'>{season.label}</p>
+        <p className='relative mt-1 font-heading text-2xl leading-tight'>{season.title}</p>
+        <p className='relative mt-1 max-w-[18rem] text-sm opacity-90'>{tr('seasonBody')}</p>
+        <span className='relative mt-3 inline-flex items-center gap-1 text-sm font-semibold'>
+          {tr('seasonCta', { festival: season.label })} <ArrowRight size={16} />
+        </span>
+      </Link>
+    </Wrap>
+  )
+}
+
+/** Small shortcuts: care tips, menu and (when the salon has it) try-on. */
+export const QuickLinks = ({ base, data }: P) => {
+  const tr = translator(data.lang)
+  const links = [
+    { href: `${base}/menu`, label: tr('menuShort'), icon: UtensilsCrossed },
+    { href: `${base}/care`, label: tr('careTips'), icon: HeartPulse },
+    data.show.tryOn ? { href: `${base}/try-on`, label: tr('tryOn'), icon: Hand } : null,
+  ].filter(Boolean) as { href: string; label: string; icon: typeof Hand }[]
+  return (
+    <Wrap className='mt-6' motion={data.layout.motion}>
+      <div className={cn('grid gap-2', links.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+        {links.map((l) => (
+          <Link className={cn('flex flex-col items-center gap-1.5 py-3 text-xs font-medium', cardClass(data.layout))} href={l.href} key={l.href}>
+            <l.icon className='text-brand' size={20} />
+            {l.label}
+          </Link>
+        ))}
+      </div>
+    </Wrap>
+  )
+}
 
 export const Gallery = NewDesigns
 

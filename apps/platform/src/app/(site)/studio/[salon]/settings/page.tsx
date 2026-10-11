@@ -1,95 +1,94 @@
-import { forTenant, publicUrl } from '@salon/core'
 import { buttonClass } from '@salon/ui'
-import { ExternalLink, MonitorPlay, Tablet } from 'lucide-react'
+import {
+  BarChart3,
+  Clock,
+  CreditCard,
+  ExternalLink,
+  Images,
+  ListChecks,
+  Megaphone,
+  MonitorPlay,
+  Palette,
+  QrCode,
+  ScrollText,
+  Tablet,
+  Users,
+} from 'lucide-react'
 import Link from 'next/link'
-import QRCode from 'qrcode'
+import type { ReactNode } from 'react'
 import { SignOut } from '@/components/studio/SignOut'
-import { TrackingLinkForm } from '@/components/studio/TrackingLinkForm'
-import { getPayloadClient } from '@/lib/payload'
+import { salonFeatures } from '@/lib/salon'
 import { canManage, requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'More' }
 
+const Tile = ({ href, icon, title, body, external }: { href: string; icon: ReactNode; title: string; body: string; external?: boolean }) => (
+  <Link
+    className='flex items-start gap-3 rounded-card border border-line bg-surface p-4 transition hover:border-brand'
+    href={href}
+    target={external ? '_blank' : undefined}
+  >
+    <span className='mt-0.5 text-brand'>{icon}</span>
+    <span>
+      <span className='block font-medium'>{title}</span>
+      <span className='block text-sm text-muted'>{body}</span>
+    </span>
+  </Link>
+)
+
 export default async function SettingsPage({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const { salon, user } = await requireStaff(slug)
-  const payload = await getPayloadClient()
-  const repo = forTenant(payload, salon.id)
-  const links = (
-    await repo.find<{ id: string; label: string; code: string; source: string; target: string; clicks: number }>('tracking-links', {
-      sort: '-clicks',
-      limit: 50,
-    })
-  ).docs
-  const qrs = await Promise.all(links.map((l) => QRCode.toDataURL(`${publicUrl()}/s/${slug}/l/${l.code}`, { margin: 1, width: 300 })))
-  const team = (await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 50, where: { 'tenants.tenant': { equals: salon.id } } }))
-    .docs as unknown as { id: string; name: string; role: string; email: string }[]
-  const base = `/studio/${slug}`
+  const manager = canManage(user)
+  const features = salonFeatures(salon)
+  const base = `/studio/${slug}/settings`
   return (
     <div>
       <h1 className='font-heading text-3xl'>More</h1>
-      <div className='mt-5 grid gap-3 sm:grid-cols-3'>
-        <Link className='flex items-center gap-3 rounded-card border border-line bg-surface p-4' href={`${base}/kiosk`}>
-          <Tablet className='text-brand' /> Reception kiosk
-        </Link>
-        <Link className='flex items-center gap-3 rounded-card border border-line bg-surface p-4' href={`${base}/display`}>
-          <MonitorPlay className='text-brand' /> Salon TV display
-        </Link>
-        {canManage(user) ? (
-          <Link className='flex items-center gap-3 rounded-card border border-line bg-surface p-4' href='/admin' target='_blank'>
-            <ExternalLink className='text-brand' /> Full admin (menu, gallery, rules)
-          </Link>
-        ) : null}
-      </div>
 
-      <section className='mt-10'>
-        <h2 className='font-heading text-xl'>QR kit & tracked links</h2>
-        <p className='mb-4 text-sm text-muted'>
-          Print these for the mirror, counter, window and aftercare cards. Every scan is counted so you know what works.
-        </p>
-        <div className='grid gap-3 sm:grid-cols-2'>
-          {links.map((l, i) => (
-            <div className='flex gap-4 rounded-card border border-line bg-surface p-4' key={l.id}>
-              <img alt={`QR for ${l.label}`} className='h-28 w-28 rounded-lg' src={qrs[i]} />
-              <div className='min-w-0'>
-                <p className='font-medium'>{l.label}</p>
-                <p className='text-xs text-muted'>
-                  {l.source} → {l.target}
-                </p>
-                <p className='mt-2 font-heading text-2xl'>{l.clicks}</p>
-                <p className='text-xs text-muted'>scans / clicks</p>
-                <a className='mt-1 block truncate text-xs text-brand' download={`${slug}-${l.code}.png`} href={qrs[i]}>
-                  Download QR
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-        {canManage(user) ? (
-          <div className='mt-4'>
-            <TrackingLinkForm slug={slug} />
+      {manager ? (
+        <>
+          <h2 className='mt-6 mb-3 text-sm font-medium uppercase tracking-wide text-muted'>Your salon</h2>
+          <div className='grid gap-3 sm:grid-cols-2'>
+            <Tile body='Name, logo, colours, theme, hours, contact, Wi-Fi' href={`${base}/profile`} icon={<Palette />} title='Salon page & brand' />
+            <Tile body='Services, prices, durations, refill cycles' href={`${base}/menu`} icon={<ScrollText />} title='Menu & prices' />
+            <Tile body='Add designs, approve customer photos, choose featured' href={`${base}/gallery`} icon={<Images />} title='Gallery' />
+            <Tile body='Invite artists, working hours, time off' href={`${base}/team`} icon={<Users />} title='Team & hours' />
+            <Tile body='Deposits, cancellations, rewards, message timing' href={`${base}/rules`} icon={<ListChecks />} title='Rules & automatic messages' />
+            <Tile body='Plan, WhatsApp costs, invoices' href={`${base}/billing`} icon={<CreditCard />} title='Plan & billing' />
+            {features.has('campaigns') ? (
+              <Tile body='Offers, festival packs, slot fillers' href={`/studio/${slug}/campaigns`} icon={<Megaphone />} title='Campaigns' />
+            ) : null}
+            {features.has('reports') ? (
+              <Tile body='Revenue, repeat visits, what the app earned' href={`/studio/${slug}/insights`} icon={<BarChart3 />} title='Insights' />
+            ) : null}
           </div>
-        ) : null}
-      </section>
+        </>
+      ) : (
+        <>
+          <h2 className='mt-6 mb-3 text-sm font-medium uppercase tracking-wide text-muted'>You</h2>
+          <div className='grid gap-3 sm:grid-cols-2'>
+            <Tile body='Your visits, ratings and portfolio' href={`/studio/${slug}/me`} icon={<BarChart3 />} title='My stats' />
+            <Tile body='Working hours and time off' href={`${base}/team/${user.id}`} icon={<Clock />} title='My hours' />
+            <Tile body='Upload your work for the owner to approve' href={`${base}/gallery`} icon={<Images />} title='Add designs' />
+          </div>
+        </>
+      )}
 
-      <section className='mt-10'>
-        <h2 className='mb-3 font-heading text-xl'>Team</h2>
-        <div className='divide-y divide-line rounded-card border border-line bg-surface'>
-          {team.map((t) => (
-            <div className='flex justify-between px-4 py-3 text-sm' key={t.id}>
-              <span>{t.name}</span>
-              <span className='text-muted'>{t.role}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      <h2 className='mt-8 mb-3 text-sm font-medium uppercase tracking-wide text-muted'>In the salon</h2>
+      <div className='grid gap-3 sm:grid-cols-2'>
+        <Tile body='Mirror, counter and window QR codes, with scan counts' href={`${base}/qr`} icon={<QrCode />} title='QR kit' />
+        <Tile body='Customers check themselves in on a tablet' href={`/studio/${slug}/kiosk`} icon={<Tablet />} title='Reception kiosk' />
+        <Tile body='Gallery and offers on the salon TV' href={`/studio/${slug}/display`} icon={<MonitorPlay />} title='Salon TV display' />
+        {manager ? <Tile body='Every field and record (desktop)' external href='/admin' icon={<ExternalLink />} title='Full admin' /> : null}
+      </div>
 
       <section className='mt-10 rounded-card bg-tint p-4 text-sm'>
         <p className='font-medium'>Need help?</p>
         <p className='text-muted'>WhatsApp our support team any time. We set things up for you.</p>
         <a
           className={buttonClass('secondary', 'sm', 'mt-3')}
-          href={`https://wa.me/${(process.env.SUPPORT_WHATSAPP ?? '').replace(/\D/g, '')}`}
+          href={`https://wa.me/${(process.env.SUPPORT_WHATSAPP ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I need help with ${salon.name} (${slug})`)}`}
           rel='noopener'
           target='_blank'
         >

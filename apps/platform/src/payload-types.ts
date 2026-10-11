@@ -183,7 +183,9 @@ export interface Config {
       'loyalty-birthdays-and-expiry': TaskLoyaltyBirthdaysAndExpiry;
       'campaigns-end-offers': TaskCampaignsEndOffers;
       'contests-close-ended': TaskContestsCloseEnded;
+      'content-weekly-collage': TaskContentWeeklyCollage;
       'messaging-owner-daily-summary': TaskMessagingOwnerDailySummary;
+      'reports-monthly-roi': TaskReportsMonthlyRoi;
       inline: {
         input: unknown;
         output: unknown;
@@ -1356,6 +1358,7 @@ export interface MessageTemplate {
     | 'booking_received'
     | 'booking_confirmed'
     | 'booking_reminder'
+    | 'running_late'
     | 'booking_cancelled'
     | 'waitlist_offer'
     | 'nails_ready'
@@ -1373,7 +1376,11 @@ export interface MessageTemplate {
     | 'offer'
     | 'owner_new_booking'
     | 'owner_low_rating'
-    | 'owner_daily_summary';
+    | 'owner_daily_summary'
+    | 'owner_monthly_report'
+    | 'owner_cancellation'
+    | 'owner_collage_ready'
+    | 'owner_photo_approval';
   language: 'en' | 'hi' | 'gu';
   text: string;
   providerTemplateId?: string | null;
@@ -1519,7 +1526,9 @@ export interface PayloadJob {
           | 'loyalty-birthdays-and-expiry'
           | 'campaigns-end-offers'
           | 'contests-close-ended'
-          | 'messaging-owner-daily-summary';
+          | 'content-weekly-collage'
+          | 'messaging-owner-daily-summary'
+          | 'reports-monthly-roi';
         taskID: string;
         input?:
           | {
@@ -1562,7 +1571,9 @@ export interface PayloadJob {
         | 'loyalty-birthdays-and-expiry'
         | 'campaigns-end-offers'
         | 'contests-close-ended'
+        | 'content-weekly-collage'
         | 'messaging-owner-daily-summary'
+        | 'reports-monthly-roi'
       )
     | null;
   queue?: string | null;
@@ -2889,9 +2900,25 @@ export interface TaskContestsCloseEnded {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskContent-weekly-collage".
+ */
+export interface TaskContentWeeklyCollage {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TaskMessaging-owner-daily-summary".
  */
 export interface TaskMessagingOwnerDailySummary {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskReports-monthly-roi".
+ */
+export interface TaskReportsMonthlyRoi {
   input?: unknown;
   output?: unknown;
 }

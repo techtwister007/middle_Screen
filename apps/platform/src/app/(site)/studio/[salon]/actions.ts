@@ -13,12 +13,15 @@ import {
   launchOffer,
   manualMessageLink,
   markNoShow,
+  notifyRunningLate,
   offerFromPack,
   type PaymentMode,
   previewReward,
+  remindDueCustomers,
   requestBooking,
   verifyShare,
   walletBalance,
+  weeklyCollage,
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { getPayloadClient } from '@/lib/payload'
@@ -415,6 +418,41 @@ export async function kioskCheckIn(
       start = slots[0].start.toISOString()
     }
     return { ok: true, data: { name: customer.name ?? '', start } }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+/** One tap from the "due" list: refill reminder to everyone due who hasn't booked or been reminded this week. */
+export async function remindDue(slug: string): Promise<Result<{ sent: number; skipped: number }>> {
+  try {
+    const { salon, payload } = await ctx(slug, { manager: true })
+    const r = await remindDueCustomers(payload, salon.id)
+    revalidatePath(`/studio/${slug}/customers`)
+    return { ok: true, data: { sent: r.sent, skipped: r.skipped } }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export async function runningLate(slug: string, appointmentId: ID, minutes: number): Promise<Result> {
+  try {
+    const { salon, payload } = await ctx(slug)
+    if (!Number.isFinite(minutes) || minutes < 5 || minutes > 180) return { ok: false, error: 'Pick 5–180 minutes' }
+    const msg = await notifyRunningLate(payload, salon.id, asId(appointmentId), Math.round(minutes))
+    return msg ? { ok: true } : { ok: false, error: 'Appointment not found' }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+/** Builds this week's Instagram collage now instead of waiting for Monday. */
+export async function makeCollage(slug: string): Promise<Result> {
+  try {
+    const { salon, payload } = await ctx(slug)
+    const media = await weeklyCollage(payload, salon.id)
+    revalidatePath(`/studio/${slug}/photos`)
+    return media ? { ok: true } : { ok: false, error: 'Need at least 2 photo sets from the last 7 days' }
   } catch (err) {
     return fail(err)
   }

@@ -4,15 +4,26 @@ import { CalendarPlus, Gift, Home, Sparkles, UserRound } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export const BottomNav = ({ base, labels }: { base: string; labels: { home: string; designs: string; book: string; myNails: string; rewards: string } }) => {
+export const BottomNav = ({
+  base,
+  labels,
+  showRewards = true,
+}: {
+  base: string
+  labels: { home: string; designs: string; book: string; myNails: string; rewards: string }
+  showRewards?: boolean
+}) => {
   const path = usePathname()
-  const items = [
-    { href: base, label: labels.home, icon: Home, exact: true },
-    { href: `${base}/designs`, label: labels.designs, icon: Sparkles },
-    { href: `${base}/book`, label: labels.book, icon: CalendarPlus, primary: true },
-    { href: `${base}/rewards`, label: labels.rewards, icon: Gift },
-    { href: `${base}/me`, label: labels.myNails, icon: UserRound },
-  ]
+  type Item = { href: string; label: string; icon: typeof Home; exact?: boolean; primary?: boolean }
+  const items = (
+    [
+      { href: base, label: labels.home, icon: Home, exact: true },
+      { href: `${base}/designs`, label: labels.designs, icon: Sparkles },
+      { href: `${base}/book`, label: labels.book, icon: CalendarPlus, primary: true },
+      showRewards ? { href: `${base}/rewards`, label: labels.rewards, icon: Gift } : null,
+      { href: `${base}/me`, label: labels.myNails, icon: UserRound },
+    ] as (Item | null)[]
+  ).filter((x): x is Item => x !== null)
   if (path?.includes('/chair') || path?.includes('/display') || path?.includes('/kiosk')) return null
   return (
     <nav className='pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/92 backdrop-blur-md'>

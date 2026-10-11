@@ -189,6 +189,8 @@ export const loyaltyModule = defineModule({
   on: {
     'customer.registered': async ({ payload, event }) => {
       await getAccount(payload, event.tenant, event.payload.customerId)
+      // Imported customers are existing clients: no "first visit" gift.
+      if (event.payload.source === 'import') return
       const s = await settingsOf(payload, event.tenant)
       if (s.firstVisitDiscount > 0 && !event.payload.referralCode) {
         await issueReward(payload, event.tenant, event.payload.customerId, {

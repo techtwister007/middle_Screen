@@ -2,38 +2,32 @@
 import { Button, Textarea } from '@salon/ui'
 import { useState, useTransition } from 'react'
 import { sendFeedback } from '@/app/(site)/s/[salon]/actions'
+import { type DictKey, type Lang, translator } from '@/lib/i18n'
 
-const REASONS = [
-  ['price', 'Price'],
-  ['quality', 'Quality'],
-  ['distance', 'Too far'],
-  ['time', 'No time / slots'],
-  ['moved', 'I moved'],
-  ['tried-elsewhere', 'Trying another salon'],
-  ['other', 'Something else'],
-] as const
+const REASONS = ['price', 'quality', 'distance', 'time', 'moved', 'tried-elsewhere', 'other'] as const
 
-export const FeedbackForm = ({ slug }: { slug: string }) => {
+export const FeedbackForm = ({ slug, lang }: { slug: string; lang: Lang }) => {
+  const tr = translator(lang)
   const [reason, setReason] = useState<string | null>(null)
   const [comment, setComment] = useState('')
   const [done, setDone] = useState(false)
   const [pending, start] = useTransition()
-  if (done) return <p className='rounded-card bg-tint p-6 text-center'>Thank you. This really helps us improve. 💛</p>
+  if (done) return <p className='rounded-card bg-tint p-6 text-center'>{tr('feedbackThanks')}</p>
   return (
     <div className='space-y-4'>
       <div className='grid grid-cols-2 gap-2'>
-        {REASONS.map(([k, label]) => (
+        {REASONS.map((k) => (
           <button
             className={`rounded-btn border py-3 text-sm ${reason === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface'}`}
             key={k}
             onClick={() => setReason(k)}
             type='button'
           >
-            {label}
+            {tr(`fb_${k}` as DictKey)}
           </button>
         ))}
       </div>
-      <Textarea onChange={(e) => setComment(e.target.value)} placeholder='Anything else? (optional)' rows={3} value={comment} />
+      <Textarea onChange={(e) => setComment(e.target.value)} placeholder={tr('anythingElse')} rows={3} value={comment} />
       <Button
         className='w-full'
         disabled={!reason || pending}
@@ -45,7 +39,7 @@ export const FeedbackForm = ({ slug }: { slug: string }) => {
         }
         size='lg'
       >
-        Send
+        {tr('send')}
       </Button>
     </div>
   )

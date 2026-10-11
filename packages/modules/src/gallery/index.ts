@@ -1,5 +1,5 @@
-import { defineModule } from '@salon/core'
-import type { CollectionConfig } from 'payload'
+import { asId, defineModule, forTenant, type ID, idOf } from '@salon/core'
+import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
 
@@ -62,6 +62,42 @@ export const Moodboards: CollectionConfig = {
     { name: 'customer', type: 'relationship', relationTo: 'customers', required: true, index: true },
     { name: 'designs', type: 'relationship', relationTo: 'designs', hasMany: true },
   ],
+}
+
+// ---------------------------------------------------------------------------
+// Moodboard: one board per customer holding the designs they saved.
+// ---------------------------------------------------------------------------
+
+interface MoodboardDoc {
+  id: ID
+  designs?: (ID | { id: ID })[] | null
+}
+
+const boardOf = (payload: Payload, tenant: ID, customerId: ID) =>
+  forTenant(payload, tenant).findOne<MoodboardDoc>('moodboards', { customer: { equals: asId(customerId) } })
+
+/** Design ids the customer has saved, most recent first. */
+export const savedDesignIds = async (payload: Payload, tenant: ID, customerId: ID): Promise<ID[]> => {
+  const board = await boardOf(payload, tenant, customerId)
+  return (board?.designs ?? []).map((d) => idOf(d) as ID).filter((d) => d != null)
+}
+
+/** Save or unsave a design on the customer's moodboard. Returns whether it is now saved. */
+export const setDesignSaved = async (payload: Payload, tenant: ID, rawCustomerId: ID, rawDesignId: ID, save: boolean): Promise<boolean> => {
+  const customerId = asId(rawCustomerId)
+  const designId = asId(rawDesignId)
+  const repo = forTenant(payload, tenant)
+  const design = await repo.findByID<{ id: ID; likes?: number | null }>('designs', designId)
+  if (!design) throw new Error('Design not found')
+  const board = await boardOf(payload, tenant, customerId)
+  const current = (board?.designs ?? []).map((d) => idOf(d) as ID)
+  const has = current.some((d) => String(d) === String(designId))
+  if (has === save) return save
+  const next = save ? [designId, ...current] : current.filter((d) => String(d) !== String(designId))
+  if (board) await repo.update('moodboards', board.id, { designs: next })
+  else await repo.create('moodboards', { customer: customerId, designs: next })
+  await repo.update('designs', designId, { likes: Math.max(0, (design.likes ?? 0) + (save ? 1 : -1)) })
+  return save
 }
 
 export const galleryModule = defineModule({

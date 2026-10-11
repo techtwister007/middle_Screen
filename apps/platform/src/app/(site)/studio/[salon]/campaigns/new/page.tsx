@@ -1,6 +1,7 @@
 import { messagePrice } from '@salon/integrations'
 import { OfferBuilder } from '@/components/studio/OfferBuilder'
 import { getPayloadClient } from '@/lib/payload'
+import { requireFeature } from '@/lib/salon'
 import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'New offer' }
@@ -15,6 +16,7 @@ export default async function NewOfferPage({
   const { salon: slug } = await params
   const sp = await searchParams
   const { salon } = await requireStaff(slug, { manager: true })
+  requireFeature(salon, 'campaigns')
   let initial: Parameters<typeof OfferBuilder>[0]['initial'] = { kind: sp.kind === 'slot-filler' ? 'slot-filler' : 'offer' }
   if (sp.kind === 'slot-filler')
     initial = {

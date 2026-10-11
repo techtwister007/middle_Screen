@@ -8,11 +8,13 @@ export const ScratchCard = ({
   rewardId,
   title,
   revealed: initiallyRevealed,
+  labels,
 }: {
   slug: string
   rewardId: string | number
   title: string
   revealed: boolean
+  labels: { reward: string; scratchHere: string }
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null)
   const [revealed, setRevealed] = useState(initiallyRevealed)
@@ -38,7 +40,7 @@ export const ScratchCard = ({
     ctx.fillStyle = 'rgba(255,255,255,0.9)'
     ctx.font = '600 18px system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('Scratch here ✨', width / 2, height / 2 + 6)
+    ctx.fillText(labels.scratchHere, width / 2, height / 2 + 6)
     ctx.globalCompositeOperation = 'destination-out'
   }, [revealed])
 
@@ -70,7 +72,7 @@ export const ScratchCard = ({
   return (
     <div className='relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-card border border-line bg-surface'>
       <div className='absolute inset-0 flex flex-col items-center justify-center p-6 text-center'>
-        <p className='text-xs font-semibold uppercase tracking-widest text-brand'>Your next-visit reward</p>
+        <p className='text-xs font-semibold uppercase tracking-widest text-brand'>{labels.reward}</p>
         <p className='mt-2 font-heading text-3xl leading-tight'>{title}</p>
       </div>
       {!revealed ? (

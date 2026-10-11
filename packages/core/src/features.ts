@@ -36,6 +36,10 @@ export type FeatureKey = (typeof FEATURES)[number]
 export const PLANS = ['starter', 'studio', 'growth'] as const
 export type Plan = (typeof PLANS)[number]
 
+/** Monthly subscription price per plan, in paise (WhatsApp/AI usage is billed on top at cost). */
+export const PLAN_PRICES: Record<Plan, number> = { starter: 49900, studio: 99900, growth: 249900 }
+export const PLAN_LABELS: Record<Plan, string> = { starter: 'Starter', studio: 'Studio', growth: 'Growth' }
+
 const STARTER: FeatureKey[] = ['catalog', 'gallery', 'booking', 'customers', 'visits', 'loyalty', 'reports', 'tryOn']
 
 const STUDIO: FeatureKey[] = [
