@@ -4,6 +4,9 @@ import { Button, cn, Input, Label, Textarea } from '@salon/ui'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { audienceSize, type OfferInput, saveOffer } from '@/app/(site)/studio/[salon]/actions'
+import { ConfirmSheet } from './ConfirmSheet'
+import { plural } from './format'
+import { toast } from './Toast'
 
 const SEGMENTS = [
   ['due', 'Due for a refill'],
@@ -40,6 +43,26 @@ export const OfferBuilder = ({
   })
   const [count, setCount] = useState<number | null>(null)
   const [pending, start] = useTransition()
+  const [confirm, setConfirm] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!pending) return setElapsed(0)
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(t)
+  }, [pending])
+  // Rough pace of the WhatsApp provider; only used to animate the progress bar.
+  const estimate = Math.max(2, Math.ceil((count ?? 0) / 15))
+  const launchNow = () =>
+    start(async () => {
+      const res = await saveOffer(slug, { ...v, endsAt: v.endsAt ? new Date(`${v.endsAt}T23:59:00+05:30`).toISOString() : undefined })
+      if (!res.ok) {
+        setConfirm(false)
+        setError(res.error)
+        return void toast({ message: res.error, tone: 'error' })
+      }
+      toast({ message: `Launched · ${plural(res.data?.sent ?? 0, 'message')} sent`, tone: 'success' })
+      router.push(`/studio/${slug}/campaigns?launched=${res.data?.id}&sent=${res.data?.sent ?? 0}`)
+    })
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     audienceSize(slug, v.audience).then(setCount)
@@ -86,8 +109,8 @@ export const OfferBuilder = ({
           )}
         </div>
         {v.kind === 'slot-filler' ? (
-          <div className='grid grid-cols-3 gap-2'>
-            <div>
+          <div className='grid grid-cols-2 gap-3'>
+            <div className='col-span-2'>
               <Label htmlFor='sd'>Date</Label>
               <Input id='sd' onChange={(e) => setV({ ...v, slot: { ...v.slot, date: e.target.value } })} type='date' value={v.slot?.date ?? ''} />
             </div>
@@ -112,7 +135,7 @@ export const OfferBuilder = ({
               const on = v.audience.includes(k)
               return (
                 <button
-                  className={cn('rounded-full border px-3 py-1.5 text-sm', on ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
+                  className={cn('min-h-11 rounded-full border px-4 text-sm', on ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
                   key={k}
                   onClick={() => setV({ ...v, audience: on ? v.audience.filter((a) => a !== k) : [...v.audience, k] })}
                   type='button'
@@ -138,26 +161,42 @@ export const OfferBuilder = ({
             week are skipped.
           </p>
         </div>
-        <Button
-          className='w-full'
-          disabled={pending || !v.title}
-          onClick={() =>
-            start(async () => {
-              const res = await saveOffer(slug, { ...v, endsAt: v.endsAt ? new Date(`${v.endsAt}T23:59:00+05:30`).toISOString() : undefined })
-              if (!res.ok) return setError(res.error)
-              router.push(`/studio/${slug}/campaigns?launched=1`)
-            })
-          }
-          size='lg'
-        >
-          {pending ? 'Launching…' : 'Launch & send'}
+        <Button className='w-full' disabled={pending || !v.title} onClick={() => setConfirm(true)} size='lg'>
+          Launch & send
         </Button>
+        <ConfirmSheet
+          confirmLabel={pending ? 'Sending…' : `Send to ${plural(count ?? 0, 'customer')}`}
+          onConfirm={launchNow}
+          onOpenChange={setConfirm}
+          open={confirm}
+          pending={pending}
+          title='Launch this offer?'
+        >
+          <p>
+            <b>{v.title}</b> goes to <b>{plural(count ?? 0, 'customer')}</b> with marketing consent.
+          </p>
+          <p className='text-muted'>
+            Estimated cost: {count == null ? '…' : formatINR(count * marketingPricePaise)}. Anyone who already got an offer this week is skipped and not
+            charged.
+          </p>
+          {pending ? (
+            <div aria-label='Sending progress' className='space-y-1' role='progressbar'>
+              <div className='h-2 overflow-hidden rounded-full bg-tint'>
+                <div className='h-full bg-brand transition-all duration-1000' style={{ width: `${Math.min(95, (elapsed / estimate) * 100)}%` }} />
+              </div>
+              <p className='text-xs text-muted'>
+                Sending to {plural(count ?? 0, 'customer')}… {elapsed}s. Keep this screen open.
+              </p>
+            </div>
+          ) : null}
+        </ConfirmSheet>
         <Button
           className='w-full'
           disabled={pending || !v.title}
           onClick={() =>
             start(async () => {
               const res = await saveOffer(slug, { ...v, launch: false })
+              if (res.ok) toast({ message: 'Saved as draft', tone: 'success' })
               if (!res.ok) return setError(res.error)
               router.push(`/studio/${slug}/campaigns`)
             })

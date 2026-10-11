@@ -1,7 +1,8 @@
 import { forTenant, type ID } from '@salon/core'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ActionForm } from '@/components/studio/ActionForm'
+import { DayHoursRow } from '@/components/studio/DayHours'
 import { Field, inputClass } from '@/components/studio/Field'
 import { getPayloadClient } from '@/lib/payload'
 import { canManage, requireStaff } from '@/lib/staff'
@@ -10,13 +11,13 @@ import { saveHours } from '../../actions'
 export const metadata = { title: 'Hours & time off' }
 
 const DAYS: [string, string][] = [
-  ['mon', 'Mon'],
-  ['tue', 'Tue'],
-  ['wed', 'Wed'],
-  ['thu', 'Thu'],
-  ['fri', 'Fri'],
-  ['sat', 'Sat'],
-  ['sun', 'Sun'],
+  ['mon', 'Monday'],
+  ['tue', 'Tuesday'],
+  ['wed', 'Wednesday'],
+  ['thu', 'Thursday'],
+  ['fri', 'Friday'],
+  ['sat', 'Saturday'],
+  ['sun', 'Sunday'],
 ]
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
@@ -24,7 +25,8 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'n
 export default async function HoursPage({ params }: { params: Promise<{ salon: string; id: string }> }) {
   const { salon: slug, id } = await params
   const { salon, user } = await requireStaff(slug)
-  if (!canManage(user) && String(user.id) !== id) notFound()
+  // Artists can only see their own hours: send them there instead of a dead end.
+  if (!canManage(user) && String(user.id) !== id) redirect(`/studio/${slug}/settings/team/${user.id}`)
   const payload = await getPayloadClient()
   const member = (await payload.findByID({ collection: 'users', id, overrideAccess: true, depth: 0, disableErrors: true })) as unknown as {
     id: ID
@@ -37,6 +39,7 @@ export default async function HoursPage({ params }: { params: Promise<{ salon: s
     timeOff?: { from: string; to: string; reason?: string }[]
   }>('availability', { staff: { equals: member.id } })
   const weekly = new Map((a?.weekly ?? []).map((w) => [w.day, w]))
+  const salonHours = new Map((salon.hours ?? []).map((h) => [h.day, h]))
   const upcoming = (a?.timeOff ?? []).map((t, i) => ({ ...t, i })).filter((t) => new Date(t.to).getTime() >= Date.now() - 86_400_000)
   const today = new Date().toISOString().slice(0, 10)
   return (
@@ -46,33 +49,26 @@ export default async function HoursPage({ params }: { params: Promise<{ salon: s
       </Link>
       <h1 className='mt-3 font-heading text-3xl'>{member.name.split(' ')[0]}'s hours</h1>
       <p className='mt-1 text-sm text-muted'>Customers can only book times inside these hours.</p>
-      <ActionForm action={saveHours.bind(null, slug)} className='mt-6'>
+      <ActionForm action={saveHours.bind(null, slug)} className='mt-6' sticky submit='Save hours'>
         <input name='staff' type='hidden' value={String(member.id)} />
         <section className='space-y-3 rounded-card border border-line bg-surface p-4'>
+          <input name='hours_v2' type='hidden' value='1' />
           {DAYS.map(([day, label]) => {
             const w = weekly.get(day)
+            const salonDay = salonHours.get(day)
+            // No stored hours yet: start from the salon's own hours.
+            const working = w ? !w.off : !salonDay?.closed
             return (
-              <div className='grid grid-cols-[2.25rem_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-1.5 text-sm' key={day}>
-                <span className='font-medium'>{label}</span>
-                <input
-                  aria-label={`${label} start`}
-                  className={`${inputClass} h-10 min-w-0 px-2 text-sm`}
-                  defaultValue={w?.start ?? '10:00'}
-                  name={`start_${day}`}
-                  type='time'
-                />
-                <span className='text-muted'>–</span>
-                <input
-                  aria-label={`${label} end`}
-                  className={`${inputClass} h-10 min-w-0 px-2 text-sm`}
-                  defaultValue={w?.end ?? '20:00'}
-                  name={`end_${day}`}
-                  type='time'
-                />
-                <label className='flex items-center gap-1 text-xs text-muted'>
-                  <input defaultChecked={Boolean(w?.off)} name={`off_${day}`} type='checkbox' /> Off
-                </label>
-              </div>
+              <DayHoursRow
+                day={day}
+                end={w?.end ?? salonDay?.close ?? '20:00'}
+                key={day}
+                label={label}
+                names={{ open: `working_${day}`, start: `start_${day}`, end: `end_${day}` }}
+                open={working}
+                openLabel='Working'
+                start={w?.start ?? salonDay?.open ?? '10:00'}
+              />
             )
           })}
         </section>

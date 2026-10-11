@@ -368,20 +368,28 @@ export const markNoShow = async (payload: Payload, tenant: ID, appointmentId: ID
   return updated
 }
 
-export const rescheduleBooking = async (payload: Payload, tenant: ID, appointmentId: ID, newStart: string) => {
+/** Moves an appointment. Staff may also hand it to another artist with `opts.staffId`. */
+export const rescheduleBooking = async (payload: Payload, tenant: ID, appointmentId: ID, newStart: string, opts: { staffId?: ID | null } = {}) => {
   const repo = forTenant(payload, tenant)
   const appt = await repo.findByID<AppointmentDoc>('appointments', appointmentId)
   if (!appt) throw new BookingError('not-found', 'Appointment not found')
+  if (!['requested', 'confirmed'].includes(appt.status)) throw new BookingError('not-allowed', 'Only upcoming appointments can be moved.')
   const salon = await loadSalon(payload, tenant)
   const duration = new Date(appt.end).getTime() - new Date(appt.start).getTime()
   const start = new Date(newStart)
+  if (Number.isNaN(start.getTime())) throw new BookingError('outside-hours', 'Pick a valid time.')
   const end = new Date(start.getTime() + duration)
-  const staffId = idOf(appt.staff)
+  const staffId = opts.staffId ? asId(opts.staffId) : idOf(appt.staff)
   const staff = await bookableStaff(payload, tenant, staffId)
   const days = await staffDays(payload, salon, localDate(start, salon.timezone ?? 'Asia/Kolkata'), staff, appointmentId)
-  const ok = days.some((d) => isFree(d, localDate(start, salon.timezone ?? 'Asia/Kolkata'), salon.timezone ?? 'Asia/Kolkata', start, end))
-  if (!ok) throw new BookingError('slot-taken', 'That time is not available.')
-  const updated = await repo.update<AppointmentDoc>('appointments', appointmentId, { start: start.toISOString(), end: end.toISOString() })
+  const free = days.filter((d) => isFree(d, localDate(start, salon.timezone ?? 'Asia/Kolkata'), salon.timezone ?? 'Asia/Kolkata', start, end))
+  if (!free.length) throw new BookingError('slot-taken', 'That time is not available.')
+  const updated = await repo.update<AppointmentDoc>('appointments', appointmentId, {
+    start: start.toISOString(),
+    end: end.toISOString(),
+    ...(staffId ? {} : { staff: free[0].staffId }),
+    ...(opts.staffId ? { staff: asId(opts.staffId) } : {}),
+  })
   await emit(payload, {
     tenant,
     type: 'booking.rescheduled',

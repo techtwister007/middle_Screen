@@ -69,6 +69,10 @@ export interface CheckoutRequest extends CheckoutInput {
   designId?: ID | null
   designName?: string
   notes?: string
+  /** Tip for the artist, on top of the bill (not part of revenue) */
+  tip?: Paise
+  /** When the customer paid with more than one mode; amounts should add up to the total */
+  paymentSplit?: { mode: Exclude<PaymentMode, 'package' | 'mixed'>; amount: Paise }[]
 }
 
 export interface VisitDoc {
@@ -88,6 +92,11 @@ export interface VisitDoc {
   designName?: string | null
   design?: ID | { id: ID } | null
   isFirstVisit?: boolean | null
+  tip?: Paise | null
+  paymentSplit?: { mode: string; amount: Paise }[] | null
+  paymentMode?: PaymentMode | null
+  receiptSentAt?: string | null
+  notes?: string | null
   createdAt: string
 }
 
@@ -96,6 +105,7 @@ export const completeVisit = async (payload: Payload, tenant: ID, req: CheckoutR
   const repo = forTenant(payload, tenant)
   const totals = computeCheckout(req)
   const previous = await repo.count('visits', { customer: { equals: req.customerId } })
+  const split = (req.paymentSplit ?? []).filter((p) => p.amount > 0)
   const visit = await repo.create<VisitDoc>('visits', {
     customer: req.customerId,
     staff: req.staffId ?? undefined,
@@ -104,7 +114,9 @@ export const completeVisit = async (payload: Payload, tenant: ID, req: CheckoutR
     ...totals,
     reward: totals.rewardDiscount > 0 ? (req.rewardId ?? undefined) : undefined,
     customerPackage: totals.packageCovered > 0 ? (req.customerPackageId ?? undefined) : undefined,
-    paymentMode: req.paymentMode,
+    paymentMode: split.length > 1 ? 'mixed' : req.paymentMode,
+    paymentSplit: split.length > 1 ? split : [],
+    tip: Math.max(0, Math.round(req.tip ?? 0)),
     paidStatus: req.paymentPending && totals.total > 0 ? 'pending' : 'paid',
     design: req.designId ?? undefined,
     designName: req.designName,

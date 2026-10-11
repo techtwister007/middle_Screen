@@ -1,6 +1,7 @@
 import { THEMES } from '@salon/themes'
 import Link from 'next/link'
 import { ActionForm } from '@/components/studio/ActionForm'
+import { DayHoursRow } from '@/components/studio/DayHours'
 import { Field, inputClass } from '@/components/studio/Field'
 import { mediaUrl } from '@/lib/media'
 import { requireStaff } from '@/lib/staff'
@@ -9,13 +10,27 @@ import { saveProfile } from '../actions'
 export const metadata = { title: 'Salon page & brand' }
 
 const DAYS: [string, string][] = [
-  ['mon', 'Mon'],
-  ['tue', 'Tue'],
-  ['wed', 'Wed'],
-  ['thu', 'Thu'],
-  ['fri', 'Fri'],
-  ['sat', 'Sat'],
-  ['sun', 'Sun'],
+  ['mon', 'Monday'],
+  ['tue', 'Tuesday'],
+  ['wed', 'Wednesday'],
+  ['thu', 'Thursday'],
+  ['fri', 'Friday'],
+  ['sat', 'Saturday'],
+  ['sun', 'Sunday'],
+]
+
+const SEASONS: [string, string][] = [
+  ['', 'None'],
+  ['navratri', 'Navratri'],
+  ['diwali', 'Diwali'],
+  ['holi', 'Holi'],
+  ['karva-chauth', 'Karva Chauth'],
+  ['eid', 'Eid'],
+  ['christmas', 'Christmas'],
+  ['wedding', 'Wedding season'],
+  ['valentine', "Valentine's Day"],
+  ['summer', 'Summer'],
+  ['monsoon', 'Monsoon'],
 ]
 
 export default async function ProfilePage({ params }: { params: Promise<{ salon: string }> }) {
@@ -38,7 +53,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ salon:
           Preview ↗
         </Link>
       </div>
-      <ActionForm action={saveProfile.bind(null, slug)} className='mt-6' submit='Save salon page'>
+      <ActionForm action={saveProfile.bind(null, slug)} className='mt-6' sticky submit='Save salon page'>
         <section className='space-y-4 rounded-card border border-line bg-surface p-4'>
           <h2 className='font-heading text-xl'>About</h2>
           <Field label='Salon name'>
@@ -74,8 +89,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ salon:
             </div>
           </fieldset>
           <div className='grid grid-cols-2 gap-3'>
-            <label className='col-span-2 flex items-center gap-2 text-sm'>
-              <input defaultChecked={!salon.brand?.primaryColor} name='useThemeColors' type='checkbox' /> Use the theme's own colours
+            <label className='col-span-2 flex min-h-11 items-center gap-3 text-sm'>
+              <input className='h-5 w-5' defaultChecked={!salon.brand?.primaryColor} name='useThemeColors' type='checkbox' /> Use the theme's own colours
             </label>
             <Field label='Main colour'>
               <input className={`${inputClass} p-1`} defaultValue={salon.brand?.primaryColor ?? '#B4637A'} name='primaryColor' type='color' />
@@ -94,20 +109,29 @@ export default async function ProfilePage({ params }: { params: Promise<{ salon:
               <input accept='image/*' className='w-full min-w-0 text-xs' name='cover' type='file' />
             </Field>
           </div>
-          <Field hint='Shows matching designs and photo frames, e.g. navratri, diwali, wedding' label='Season / festival highlight'>
-            <input className={inputClass} defaultValue={salon.seasonalHighlight ?? ''} name='seasonalHighlight' />
+          <Field hint='Shows matching designs and photo frames on your page' label='Season / festival highlight'>
+            <select className={inputClass} defaultValue={salon.seasonalHighlight ?? ''} name='seasonalHighlight'>
+              {SEASONS.map(([k, label]) => (
+                <option key={k} value={k}>
+                  {label}
+                </option>
+              ))}
+              {salon.seasonalHighlight && !SEASONS.some(([k]) => k === salon.seasonalHighlight) ? (
+                <option value={salon.seasonalHighlight}>{salon.seasonalHighlight}</option>
+              ) : null}
+            </select>
           </Field>
           <fieldset>
             <legend className='mb-2 text-sm font-medium'>Languages customers can pick</legend>
-            <div className='flex gap-4 text-sm'>
-              <label className='flex items-center gap-2'>
-                <input checked disabled type='checkbox' /> English
+            <div className='flex flex-wrap gap-x-5 text-sm'>
+              <label className='flex min-h-11 items-center gap-2'>
+                <input checked className='h-5 w-5' disabled type='checkbox' /> English
               </label>
-              <label className='flex items-center gap-2'>
-                <input defaultChecked={langs.has('hi')} name='lang_hi' type='checkbox' /> हिन्दी
+              <label className='flex min-h-11 items-center gap-2'>
+                <input className='h-5 w-5' defaultChecked={langs.has('hi')} name='lang_hi' type='checkbox' /> हिन्दी
               </label>
-              <label className='flex items-center gap-2'>
-                <input defaultChecked={langs.has('gu')} name='lang_gu' type='checkbox' /> ગુજરાતી
+              <label className='flex min-h-11 items-center gap-2'>
+                <input className='h-5 w-5' defaultChecked={langs.has('gu')} name='lang_gu' type='checkbox' /> ગુજરાતી
               </label>
             </div>
           </fieldset>
@@ -145,30 +169,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ salon:
 
         <section className='space-y-3 rounded-card border border-line bg-surface p-4'>
           <h2 className='font-heading text-xl'>Opening hours</h2>
+          <input name='hours_v2' type='hidden' value='1' />
           {DAYS.map(([day, label]) => {
             const h = hours.get(day)
             return (
-              <div className='grid grid-cols-[2.25rem_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-1.5 text-sm' key={day}>
-                <span className='font-medium'>{label}</span>
-                <input
-                  aria-label={`${label} opens`}
-                  className={`${inputClass} h-10 min-w-0 px-2 text-sm`}
-                  defaultValue={h?.open ?? '10:00'}
-                  name={`open_${day}`}
-                  type='time'
-                />
-                <span className='text-muted'>–</span>
-                <input
-                  aria-label={`${label} closes`}
-                  className={`${inputClass} h-10 min-w-0 px-2 text-sm`}
-                  defaultValue={h?.close ?? '20:00'}
-                  name={`close_${day}`}
-                  type='time'
-                />
-                <label className='flex items-center gap-1 text-xs text-muted'>
-                  <input defaultChecked={Boolean(h?.closed)} name={`closed_${day}`} type='checkbox' /> Shut
-                </label>
-              </div>
+              <DayHoursRow
+                day={day}
+                end={h?.close ?? '20:00'}
+                key={day}
+                label={label}
+                names={{ open: `isopen_${day}`, start: `open_${day}`, end: `close_${day}` }}
+                open={!h?.closed}
+                start={h?.open ?? '10:00'}
+              />
             )
           })}
         </section>

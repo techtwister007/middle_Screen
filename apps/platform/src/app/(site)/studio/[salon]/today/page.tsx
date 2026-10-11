@@ -1,32 +1,20 @@
-import { DAY_MS, formatINR, formatIST, forTenant, type ID, localDate, zonedDateTime } from '@salon/core'
+import { DAY_MS, formatINR, formatIST, forTenant, localDate, zonedDateTime } from '@salon/core'
 import { actionFeed, ownerSummaryText } from '@salon/modules'
-import { Badge, buttonClass, Stat } from '@salon/ui'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { buttonClass, Stat } from '@salon/ui'
+import { ArrowRight, CalendarDays, CalendarPlus, CreditCard, Moon, Sparkles } from 'lucide-react'
 import Link from 'next/link'
-import { ApptActions } from '@/components/studio/ApptActions'
-import { mediaUrl } from '@/lib/media'
+import type { Where } from 'payload'
+import { ApptCard, type ApptRow } from '@/components/studio/ApptCard'
 import { getPayloadClient } from '@/lib/payload'
 import { canManage, requireStaff } from '@/lib/staff'
+import { teamOf } from '../_lib/team'
 
 export const metadata = { title: 'Today' }
-
-interface Appt {
-  id: ID
-  start: string
-  end: string
-  status: string
-  source?: string
-  notes?: string
-  customer: { id: ID; name?: string; phone: string; visitCount?: number; segment?: string; notes?: string; isVip?: boolean } | null
-  staff?: { name: string } | null
-  services: { name: string }[]
-  design?: { title: string; images?: unknown[] } | null
-  inspiration?: unknown[]
-}
 
 export default async function TodayPage({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const { salon, user } = await requireStaff(slug)
+  const manager = canManage(user)
   const payload = await getPayloadClient()
   const repo = forTenant(payload, salon.id)
   const tz = salon.timezone ?? 'Asia/Kolkata'
@@ -34,88 +22,73 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
   const dayStart = zonedDateTime(localDate(now, tz), '00:00', tz)
   const dayEnd = new Date(dayStart.getTime() + DAY_MS)
   const base = `/studio/${slug}`
-  const staffFilter = user.role === 'artist' ? [{ staff: { equals: user.id } }] : []
-  const [todayAppts, requests, cards, summary] = await Promise.all([
-    repo.find<Appt>('appointments', {
+  // Artists see their own appointments plus requests nobody has taken yet.
+  const mine: Where[] = manager ? [] : [{ or: [{ staff: { equals: user.id } }, { staff: { exists: false } }] }]
+  const [todayAppts, requests, cards, summary, team] = await Promise.all([
+    repo.find<ApptRow & { quotedTotal?: number }>('appointments', {
       where: {
         and: [
           { start: { greater_than_equal: dayStart.toISOString() } },
           { start: { less_than: dayEnd.toISOString() } },
           { status: { not_in: ['cancelled'] } },
-          ...staffFilter,
+          ...mine,
         ],
       },
       sort: 'start',
       depth: 1,
       limit: 100,
     }),
-    repo.find<Appt>('appointments', {
-      where: { and: [{ status: { equals: 'requested' } }, { start: { greater_than_equal: dayEnd.toISOString() } }] },
+    repo.find<ApptRow>('appointments', {
+      where: { and: [{ status: { equals: 'requested' } }, { start: { greater_than_equal: dayEnd.toISOString() } }, ...mine] },
       sort: 'start',
       depth: 1,
       limit: 20,
     }),
-    canManage(user) ? actionFeed(payload, salon.id, base, now) : Promise.resolve([]),
-    canManage(user) ? ownerSummaryText(payload, salon.id, now) : Promise.resolve(''),
+    manager ? actionFeed(payload, salon.id, base, now) : Promise.resolve([]),
+    manager ? ownerSummaryText(payload, salon.id, now) : Promise.resolve(''),
+    teamOf(payload, salon.id, { bookableOnly: true }),
   ])
   const done = todayAppts.docs.filter((a) => a.status === 'completed').length
-  const expected = todayAppts.docs.reduce((n, a) => n + ((a as unknown as { quotedTotal?: number }).quotedTotal ?? 0), 0)
-
-  const Row = ({ a }: { a: Appt }) => {
-    const past = new Date(a.end).getTime() < now.getTime()
-    return (
-      <div className='flex gap-3 rounded-card border border-line bg-surface p-3'>
-        <div className='w-16 shrink-0 text-center'>
-          <p className='font-heading text-lg leading-tight'>{formatIST(a.start, 'h:mm', tz)}</p>
-          <p className='text-[11px] text-muted'>{formatIST(a.start, 'a', tz)}</p>
-        </div>
-        <div className='min-w-0 flex-1'>
-          <div className='flex flex-wrap items-center gap-2'>
-            <Link className='font-medium' href={`${base}/customers/${a.customer?.id}`}>
-              {a.customer?.name ?? a.customer?.phone}
-            </Link>
-            {a.customer?.isVip ? <Badge tone='warning'>VIP</Badge> : null}
-            {a.customer?.visitCount === 0 ? <Badge>First visit</Badge> : null}
-            {a.status === 'completed' ? <Badge tone='success'>Done</Badge> : a.status === 'requested' ? <Badge tone='warning'>Request</Badge> : null}
-          </div>
-          <p className='truncate text-sm text-muted'>
-            {a.services.map((s) => s.name).join(', ')}
-            {a.staff ? ` · ${a.staff.name.split(' ')[0]}` : ''}
-          </p>
-          {a.design ? (
-            <p className='mt-1 flex items-center gap-2 text-xs'>
-              <img alt='' className='h-6 w-6 rounded object-cover' src={mediaUrl(a.design.images?.[0], 'thumb') ?? undefined} /> {a.design.title}
-            </p>
-          ) : null}
-          {a.inspiration?.length ? (
-            <div className='mt-1 flex gap-1'>
-              {a.inspiration.map((m, i) => (
-                <img alt='Inspiration' className='h-10 w-10 rounded object-cover' key={i} src={mediaUrl(m, 'thumb') ?? undefined} />
-              ))}
-            </div>
-          ) : null}
-          {a.customer?.notes || a.notes ? <p className='mt-1 text-xs text-amber-800'>Note: {a.notes ?? a.customer?.notes}</p> : null}
-          <div className='mt-2'>
-            <ApptActions id={a.id} past={past} slug={slug} status={a.status} />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const expected = todayAppts.docs.reduce((n, a) => n + (a.quotedTotal ?? 0), 0)
+  const hour = Number(formatIST(now, 'H', tz))
+  const teamChips = team.map((t) => ({ id: t.id, name: t.name }))
 
   return (
     <div>
       <p className='text-sm text-muted'>{formatIST(now, 'EEEE d MMMM', tz)}</p>
       <h1 className='font-heading text-3xl'>
-        Good {Number(formatIST(now, 'H', tz)) < 12 ? 'morning' : Number(formatIST(now, 'H', tz)) < 17 ? 'afternoon' : 'evening'}, {user.name.split(' ')[0]}
+        Good {hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'}, {user.name.split(' ')[0]}
       </h1>
       {summary ? <p className='mt-1 text-sm text-muted'>{summary}</p> : null}
 
       <div className='mt-5 grid grid-cols-3 gap-2'>
-        <Stat label='Today' value={todayAppts.docs.length} hint='appointments' />
+        <Stat hint='appointments' label='Today' value={todayAppts.docs.length} />
         <Stat label='Done' value={done} />
         <Stat label='Expected' value={formatINR(expected)} />
       </div>
+
+      <div className='mt-4 grid grid-cols-3 gap-2'>
+        <Link className={buttonClass('primary', 'md', 'h-auto min-h-14 flex-col gap-1 px-2 py-2 text-xs')} href={`${base}/checkout`}>
+          <CreditCard size={18} /> Walk-in checkout
+        </Link>
+        <Link className={buttonClass('secondary', 'md', 'h-auto min-h-14 flex-col gap-1 px-2 py-2 text-xs')} href={`${base}/appointments/new`}>
+          <CalendarPlus size={18} /> Add appointment
+        </Link>
+        <Link className={buttonClass('secondary', 'md', 'h-auto min-h-14 flex-col gap-1 px-2 py-2 text-xs')} href={`${base}/calendar`}>
+          <CalendarDays size={18} /> Calendar
+        </Link>
+      </div>
+
+      {manager && hour >= 18 ? (
+        <Link className='mt-4 flex min-h-14 items-center gap-3 rounded-card border border-brand/40 bg-brand/5 p-4' href={`${base}/today/close`}>
+          <Moon className='text-brand' size={20} />
+          <span className='flex-1'>
+            <span className='block font-medium'>Close the day</span>
+            <span className='text-sm text-muted'>Revenue by payment mode, tips and cash to count</span>
+          </span>
+          <ArrowRight className='text-brand' size={16} />
+        </Link>
+      ) : null}
 
       {cards.length ? (
         <section className='mt-8'>
@@ -145,14 +118,16 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
       <section className='mt-8'>
         <div className='mb-3 flex items-center justify-between'>
           <h2 className='font-heading text-xl'>Schedule</h2>
-          <Link className={buttonClass('primary', 'sm')} href={`${base}/checkout`}>
-            Walk-in checkout
-          </Link>
+          {manager ? (
+            <Link className='inline-flex min-h-11 items-center text-sm text-brand' href={`${base}/today/close`}>
+              Day summary
+            </Link>
+          ) : null}
         </div>
         {todayAppts.docs.length ? (
           <div className='space-y-2'>
             {todayAppts.docs.map((a) => (
-              <Row a={a} key={String(a.id)} />
+              <ApptCard a={a} key={String(a.id)} manager={manager} now={now} slug={slug} team={teamChips} timezone={tz} />
             ))}
           </div>
         ) : (
@@ -165,10 +140,7 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
           <h2 className='mb-3 font-heading text-xl'>Requests to confirm</h2>
           <div className='space-y-2'>
             {requests.docs.map((a) => (
-              <div key={String(a.id)}>
-                <p className='mb-1 text-xs text-muted'>{formatIST(a.start, 'EEE d MMM', tz)}</p>
-                <Row a={a} />
-              </div>
+              <ApptCard a={a} key={String(a.id)} manager={manager} now={now} showDate slug={slug} team={teamChips} timezone={tz} />
             ))}
           </div>
         </section>

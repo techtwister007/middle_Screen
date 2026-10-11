@@ -3,7 +3,7 @@ import { Badge, cn, EmptyState } from '@salon/ui'
 import { Camera } from 'lucide-react'
 import Link from 'next/link'
 import { CollageButton } from '@/components/studio/CollageButton'
-import { VerifyButton } from '@/components/studio/VerifyButton'
+import { ShareRow } from '@/components/studio/ShareRow'
 import { mediaUrl } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
 import { requireFeature } from '@/lib/salon'
@@ -27,6 +27,7 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
       designName?: string
       customer: { name?: string; phone: string }
       story?: unknown
+      square?: unknown
       photos?: unknown[]
       sharedTo?: string[]
     }>('photo-tasks', {
@@ -85,16 +86,16 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
         ) : (
           tasks.map((t) =>
             tab === 'verify' ? (
-              <div className='flex items-center gap-3 rounded-card border border-line bg-surface p-3' key={t.id}>
-                <img alt='' className='h-14 w-14 rounded-xl object-cover' src={mediaUrl(t.story ?? t.photos?.[0], 'thumb') ?? undefined} />
-                <div className='flex-1'>
-                  <p className='font-medium'>{t.customer?.name ?? t.customer?.phone}</p>
-                  <p className='text-xs text-muted'>Shared to {(t.sharedTo ?? []).join(', ')} · check the tag on Instagram</p>
-                </div>
-                <VerifyButton slug={slug} taskId={t.id} />
-              </div>
+              <ShareRow
+                channels={t.sharedTo ?? []}
+                key={t.id}
+                name={t.customer?.name ?? t.customer?.phone ?? 'Customer'}
+                slug={slug}
+                taskId={t.id}
+                thumb={mediaUrl(t.story, 'thumb') ?? mediaUrl(t.square, 'thumb') ?? mediaUrl(t.photos?.[0], 'thumb')}
+              />
             ) : (
-              <Link className='flex items-center gap-3 rounded-card border border-line bg-surface p-4' href={`${base}/photos/${t.id}`} key={t.id}>
+              <Link className='flex min-h-16 items-center gap-3 rounded-card border border-line bg-surface p-4' href={`${base}/photos/${t.id}`} key={t.id}>
                 <span className='flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 text-brand'>
                   <Camera size={20} />
                 </span>
@@ -122,7 +123,10 @@ const Tabs = ({ base, tab }: { base: string; tab: string }) => (
       ['collage', 'Weekly collage'],
     ].map(([k, label]) => (
       <Link
-        className={cn('shrink-0 rounded-full border px-4 py-2 text-sm', tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface')}
+        className={cn(
+          'inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm',
+          tab === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
+        )}
         href={`${base}/photos?tab=${k}`}
         key={k}
       >

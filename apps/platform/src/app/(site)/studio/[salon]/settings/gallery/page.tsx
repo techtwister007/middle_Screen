@@ -175,19 +175,29 @@ export default async function GalleryPage({ params, searchParams }: { params: Pr
                   </div>
                   <div className='space-y-2 p-3'>
                     <p className='truncate text-sm font-medium'>{d.title}</p>
+                    {!d.priceFrom && manager ? (
+                      <Link className='inline-flex min-h-8 items-center text-xs font-medium text-amber-800 underline' href={`${base}/${d.id}`}>
+                        Set a price
+                      </Link>
+                    ) : null}
                     <p className='truncate text-xs text-muted'>
                       {d.priceFrom ? `${formatINR(d.priceFrom)} · ` : ''}
                       {(d.styles ?? []).map((s) => s.name).join(', ') ||
-                        (d.source === 'customer' ? `From ${d.customer?.name?.split(' ')[0] ?? 'a customer'} (with consent)` : (d.artist?.name ?? 'Salon'))}
+                        (d.source === 'customer'
+                          ? `From ${d.customer?.name?.split(' ')[0] ?? 'a customer'} (with consent)`
+                          : (d.artist?.name ?? 'By the salon'))}
                       {d.likes ? ` · ♥ ${d.likes}` : ''}
                     </p>
                     {manager ? (
-                      <div className='flex flex-wrap items-center gap-1.5'>
+                      <div className={cn('flex items-center gap-1.5', tab === 'waiting' ? 'flex-wrap' : 'flex-nowrap')}>
                         <Link
-                          className='inline-flex min-h-11 items-center gap-1 rounded-btn border border-line bg-surface px-3 text-xs hover:border-brand'
+                          className={cn(
+                            'inline-flex min-h-11 items-center justify-center gap-1 rounded-btn border border-line bg-surface text-xs hover:border-brand',
+                            tab === 'waiting' ? 'px-3' : 'w-11 sm:w-auto sm:px-3',
+                          )}
                           href={`${base}/${d.id}`}
                         >
-                          <Pencil size={14} /> Edit
+                          <Pencil size={14} /> <span className={tab === 'waiting' ? '' : 'sr-only sm:not-sr-only'}>Edit</span>
                         </Link>
                         {tab === 'waiting' ? (
                           <>

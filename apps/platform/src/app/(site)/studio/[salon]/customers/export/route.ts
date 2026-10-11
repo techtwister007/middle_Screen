@@ -2,12 +2,15 @@ import { formatIST, forTenant } from '@salon/core'
 import { getPayloadClient } from '@/lib/payload'
 import { requireStaff } from '@/lib/staff'
 
+/**
+ * Quote every value, and stop spreadsheet apps running formulas. Phone numbers like +919876543210 (and negative
+ * numbers) are left alone so the file re-imports cleanly; only = @ or +/- followed by a non-digit are guarded.
+ */
 const cell = (v: unknown) => {
   const s = v == null ? '' : String(v)
-  // Quote, and stop spreadsheet apps treating the value as a formula.
-  return `"${(/^[=+\-@]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`
+  const formula = /^[=@\t\r]/.test(s) || /^[+-]\D/.test(s)
+  return `"${(formula ? `'${s}` : s).replace(/"/g, '""')}"`
 }
-
 /** Owner's customer list as CSV (their data, always exportable). */
 export async function GET(_req: Request, { params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params

@@ -4,6 +4,7 @@ import { Button, cn, Input } from '@salon/ui'
 import { Check } from 'lucide-react'
 import { useEffect, useState, useTransition } from 'react'
 import { kioskCheckIn } from '@/app/(site)/studio/[salon]/actions'
+import { ExitHold } from './ExitHold'
 
 export const Kiosk = ({
   slug,
@@ -35,9 +36,15 @@ export const Kiosk = ({
     }, 8000)
     return () => clearTimeout(t)
   }, [done])
+  const shell = (body: React.ReactNode) => (
+    <div className='relative min-h-dvh bg-bg px-5 py-6 sm:px-10 sm:py-10'>
+      <ExitHold className='absolute right-3 top-3' href={`/studio/${slug}/settings`} />
+      {body}
+    </div>
+  )
   if (done)
-    return (
-      <div className='flex min-h-[70vh] flex-col items-center justify-center text-center'>
+    return shell(
+      <div className='flex min-h-[80vh] flex-col items-center justify-center text-center'>
         <span className='flex h-24 w-24 items-center justify-center rounded-full bg-brand text-on-brand'>
           <Check size={48} />
         </span>
@@ -47,23 +54,32 @@ export const Kiosk = ({
             ? `You're booked for ${formatIST(done.start, 'h:mm a', timezone)}. Please take a seat.`
             : "You're on today's list. We'll call you shortly."}
         </p>
-      </div>
+      </div>,
     )
-  return (
-    <div className='grid gap-10 md:grid-cols-[1fr_280px]'>
-      <div className='space-y-5'>
-        <h1 className='font-heading text-5xl'>Welcome to {salonName}</h1>
+  return shell(
+    <div className='mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_300px]'>
+      <div className='min-w-0 space-y-5'>
+        <h1 className='pr-28 font-heading text-4xl sm:text-5xl'>Welcome to {salonName}</h1>
         <p className='text-lg text-muted'>Check in for today in 10 seconds.</p>
-        <Input className='h-16 text-2xl' inputMode='tel' onChange={(e) => setPhone(e.target.value)} placeholder='Your mobile number' value={phone} />
-        <Input className='h-14 text-lg' onChange={(e) => setName(e.target.value)} placeholder='Your name' value={name} />
-        <div className='grid grid-cols-2 gap-2'>
+        <Input
+          aria-label='Your mobile number'
+          className='h-16 text-2xl placeholder:text-xl'
+          inputMode='tel'
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder='Mobile number'
+          value={phone}
+        />
+        <Input aria-label='Your name' className='h-14 text-lg' onChange={(e) => setName(e.target.value)} placeholder='Your name' value={name} />
+        <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
           {services.map((s) => (
             <button
+              aria-pressed={String(service) === String(s.id)}
               className={cn(
-                'rounded-card border p-4 text-left text-lg',
+                'min-h-20 min-w-0 rounded-card border p-4 text-left text-lg leading-snug break-words hyphens-auto',
                 String(service) === String(s.id) ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
               )}
               key={String(s.id)}
+              lang='en'
               onClick={() => setService(s.id)}
               type='button'
             >
@@ -71,9 +87,9 @@ export const Kiosk = ({
             </button>
           ))}
         </div>
-        <label className='flex items-center gap-3 text-muted'>
-          <input checked={consent} className='h-5 w-5' onChange={(e) => setConsent(e.target.checked)} type='checkbox' /> Send me offers on WhatsApp (max one a
-          week)
+        <label className='flex min-h-12 items-center gap-3 text-muted'>
+          <input checked={consent} className='h-6 w-6 shrink-0' onChange={(e) => setConsent(e.target.checked)} type='checkbox' /> Send me offers on WhatsApp
+          (max one a week)
         </label>
         <Button
           className='h-16 w-full text-xl'
@@ -91,10 +107,10 @@ export const Kiosk = ({
         </Button>
         {error ? <p className='text-red-700'>{error}</p> : null}
       </div>
-      <div className='rounded-card border border-line bg-surface p-6 text-center'>
+      <div className='hidden rounded-card border border-line bg-surface p-6 text-center sm:block lg:self-start'>
         <img alt='Scan to see designs' className='mx-auto w-full max-w-[220px]' src={qr} />
         <p className='mt-3 font-medium'>Waiting? Scan to browse designs</p>
       </div>
-    </div>
+    </div>,
   )
 }

@@ -1,19 +1,22 @@
-import { formatINR, formatIST, formatPhone, forTenant, salonLink } from '@salon/core'
+import { formatINR, formatIST, formatPhone, forTenant, idOf, salonLink } from '@salon/core'
 import { walletBalance } from '@salon/modules'
 import { Badge, buttonClass, Stat } from '@salon/ui'
-import { Star } from 'lucide-react'
+import { AlertTriangle, MessageCircle, Phone, Star } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { FollowUp, MessageButtons, NotesEditor } from '@/components/studio/CustomerTools'
+import { CareEditor, FollowUp, MessageButtons, VisitActions } from '@/components/studio/CustomerTools'
+import { PAY_LABEL, waLink } from '@/components/studio/format'
 import { mediaUrl } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
-import { requireStaff } from '@/lib/staff'
+import { canManage, requireStaff } from '@/lib/staff'
+import { teamOf } from '../../_lib/team'
 
 export const metadata = { title: 'Customer' }
 
 export default async function CustomerPage({ params }: { params: Promise<{ salon: string; id: string }> }) {
   const { salon: slug, id } = await params
-  const { salon } = await requireStaff(slug)
+  const { salon, user } = await requireStaff(slug)
+  const manager = canManage(user)
   const payload = await getPayloadClient()
   const repo = forTenant(payload, salon.id)
   const tz = salon.timezone ?? 'Asia/Kolkata'
@@ -28,6 +31,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
     lastVisitAt?: string
     nextDueDate?: string
     notes?: string
+    allergies?: string
     source?: string
     birthday?: string
     consents?: { marketing?: boolean }
@@ -39,9 +43,16 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
       id: string
       createdAt: string
       total: number
+      tip?: number | null
+      manualDiscount?: number | null
+      paymentMode?: string | null
+      paymentSplit?: { mode: string; amount: number }[] | null
+      paidStatus?: string | null
+      receiptSentAt?: string | null
+      notes?: string | null
       designName?: string
-      lines: { name: string }[]
-      staff?: { name: string } | null
+      lines: { name: string; price: number; service?: unknown }[]
+      staff?: { id: string; name: string } | null
       photos?: unknown[]
     }>('visits', { where: { customer: { equals: c.id } }, sort: '-createdAt', depth: 1, limit: 20 }),
     repo.find<{ id: string; start: string; status: string }>('appointments', {
@@ -57,6 +68,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
     repo.findOne<{ stamps: number; points: number; tier: string }>('loyalty-accounts', { customer: { equals: c.id } }),
     walletBalance(payload, salon.id, c.id),
   ])
+  const team = manager ? (await teamOf(payload, salon.id)).map((t) => ({ id: t.id, name: t.name })) : []
   const base = `/studio/${slug}`
   return (
     <div>
@@ -66,11 +78,16 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
         {c.segment ? <Badge>{c.segment}</Badge> : null}
       </div>
       <p className='text-sm text-muted'>
-        <a href={`tel:${c.phone}`}>{formatPhone(c.phone)}</a> · came via {c.source ?? 'direct'}
+        {formatPhone(c.phone)} · came via {c.source ?? 'direct'}
         {c.consents?.marketing ? '' : ' · no marketing consent'}
       </p>
+      {c.allergies ? (
+        <p className='mt-3 flex items-start gap-2 rounded-btn bg-red-500/10 p-3 text-sm font-medium text-red-800' role='alert'>
+          <AlertTriangle className='mt-0.5 shrink-0' size={16} /> Allergy: {c.allergies}
+        </p>
+      ) : null}
       <div className='mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4'>
-        <Stat label='Visits' value={c.visitCount ?? 0} />
+        <Stat label='Visits' value={c.visitCount ?? 0} hint={c.visitCount ? undefined : 'first visit next'} />
         <Stat label='Spent' value={formatINR(c.lifetimeSpend ?? 0)} />
         <Stat label='Points' value={account?.points ?? 0} hint={`${account?.stamps ?? 0} stamps · ${account?.tier ?? 'member'}`} />
         <Stat label='Wallet' value={formatINR(wallet)} />
@@ -79,6 +96,15 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
         <Link className={buttonClass('primary')} href={`${base}/checkout?customer=${c.id}`}>
           Check out
         </Link>
+        <Link className={buttonClass('secondary')} href={`${base}/appointments/new?customer=${c.id}`}>
+          Book
+        </Link>
+        <a className={buttonClass('secondary')} href={`tel:${c.phone}`}>
+          <Phone size={16} /> Call
+        </a>
+        <a className={buttonClass('secondary')} href={waLink(c.phone, `Hi ${c.name?.split(' ')[0] ?? ''}, `)} rel='noopener' target='_blank'>
+          <MessageCircle size={16} /> WhatsApp
+        </a>
       </div>
       <section className='mt-8'>
         <h2 className='mb-2 font-heading text-xl'>Send a WhatsApp</h2>
@@ -86,13 +112,13 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
         {c.nextDueDate ? <p className='mt-2 text-xs text-muted'>Next refill due {formatIST(c.nextDueDate, 'd MMM', tz)}</p> : null}
       </section>
       <section className='mt-8'>
-        <h2 className='mb-2 font-heading text-xl'>Notes</h2>
+        <h2 className='mb-2 font-heading text-xl'>Care notes</h2>
         {c.handProfile?.shape || c.handProfile?.sensitivities ? (
           <p className='mb-2 text-sm text-muted'>
             Prefers {c.handProfile.shape ?? '—'} {c.handProfile.length ?? ''}. {c.handProfile.sensitivities}
           </p>
         ) : null}
-        <NotesEditor customerId={c.id} initial={c.notes ?? ''} slug={slug} />
+        <CareEditor allergies={c.allergies ?? ''} customerId={c.id} notes={c.notes ?? ''} slug={slug} />
       </section>
       {upcoming.docs.length ? (
         <section className='mt-8'>
@@ -130,18 +156,47 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
       <section className='mt-8'>
         <h2 className='mb-2 font-heading text-xl'>History</h2>
         <div className='space-y-2'>
-          {visits.docs.map((v) => (
-            <div className='flex items-center gap-3 rounded-card border border-line bg-surface p-3' key={v.id}>
-              {v.photos?.[0] ? <img alt='' className='h-12 w-12 rounded-lg object-cover' src={mediaUrl(v.photos[0], 'thumb') ?? undefined} /> : null}
-              <div className='flex-1 text-sm'>
-                <p className='font-medium'>{v.designName ?? v.lines.map((l) => l.name).join(', ')}</p>
-                <p className='text-xs text-muted'>
-                  {formatIST(v.createdAt, 'd MMM yyyy', tz)} {v.staff ? `· ${v.staff.name.split(' ')[0]}` : ''}
-                </p>
+          {visits.docs.map((v) => {
+            const voided = Boolean(v.notes?.includes('VOID:'))
+            return (
+              <div className='rounded-card border border-line bg-surface p-3' key={v.id}>
+                <div className='flex items-center gap-3'>
+                  {v.photos?.[0] ? <img alt='' className='h-12 w-12 rounded-lg object-cover' src={mediaUrl(v.photos[0], 'thumb') ?? undefined} /> : null}
+                  <div className='min-w-0 flex-1 text-sm'>
+                    <p className={voided ? 'font-medium text-muted line-through' : 'font-medium'}>{v.designName ?? v.lines.map((l) => l.name).join(', ')}</p>
+                    <p className='text-xs text-muted'>
+                      {formatIST(v.createdAt, 'd MMM yyyy', tz)} {v.staff ? `· ${v.staff.name.split(' ')[0]}` : ''} ·{' '}
+                      {v.paymentSplit?.length
+                        ? v.paymentSplit.map((p) => `${PAY_LABEL[p.mode] ?? p.mode} ${formatINR(p.amount)}`).join(' + ')
+                        : (PAY_LABEL[v.paymentMode ?? ''] ?? v.paymentMode)}
+                      {v.tip ? ` · tip ${formatINR(v.tip)}` : ''}
+                      {v.paidStatus === 'pending' ? ' · not paid yet' : ''}
+                      {v.receiptSentAt ? ' · receipt sent' : ''}
+                    </p>
+                  </div>
+                  <span className='tabular-nums text-sm'>{voided ? 'Void' : formatINR(v.total)}</span>
+                </div>
+                {manager && v.notes ? <p className='mt-1 whitespace-pre-line text-xs text-muted'>{v.notes}</p> : null}
+                <VisitActions
+                  manager={manager}
+                  slug={slug}
+                  team={team}
+                  visit={{
+                    id: v.id,
+                    total: v.total,
+                    tip: v.tip ?? 0,
+                    paymentMode: v.paymentMode ?? 'upi',
+                    staffId: v.staff?.id ?? null,
+                    lines: v.lines.map((l) => ({ name: l.name, price: l.price, serviceId: idOf(l.service) })),
+                    manualDiscount: v.manualDiscount ?? 0,
+                    receiptSentAt: v.receiptSentAt,
+                    voided,
+                  }}
+                />
               </div>
-              <span className='tabular-nums text-sm'>{formatINR(v.total)}</span>
-            </div>
-          ))}
+            )
+          })}
+          {!visits.docs.length ? <p className='text-sm text-muted'>No visits yet.</p> : null}
         </div>
       </section>
     </div>

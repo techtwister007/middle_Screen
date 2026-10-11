@@ -13,7 +13,7 @@ export default async function KioskPage({ params }: { params: Promise<{ salon: s
     await forTenant(await getPayloadClient(), salon.id).find<{ id: string; name: string; isAddOn?: boolean }>('services', {
       where: { and: [{ active: { equals: true } }, { isAddOn: { not_equals: true } }] },
       sort: 'order',
-      limit: 8,
+      limit: 12,
     })
   ).docs
   const qr = await QRCode.toDataURL(`${publicUrl()}/s/${slug}/designs`, { margin: 1, width: 400 })

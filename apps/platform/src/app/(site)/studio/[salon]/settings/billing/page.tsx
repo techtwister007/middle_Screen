@@ -130,22 +130,33 @@ export default async function BillingPage({ params }: { params: Promise<{ salon:
             </span>
           ))}
         </div>
-        <p className='mt-4 text-sm text-muted'>
-          Other plans:{' '}
-          {PLANS.filter((p) => p !== salon.plan)
-            .map((p) => `${PLAN_LABELS[p]} ${formatINR(PLAN_PRICES[p])}/month`)
-            .join(' · ')}
+      </section>
+
+      <section className='mt-6 rounded-card border border-line bg-surface p-4'>
+        <h2 className='font-heading text-xl'>Change plan</h2>
+        <p className='mt-1 text-sm text-muted'>
+          Tap a plan to send our team a WhatsApp. We switch it for you the same day; you only pay the new price from your next bill.
         </p>
-        {support ? (
-          <a
-            className={buttonClass('secondary', 'sm', 'mt-3')}
-            href={`https://wa.me/${support}?text=${encodeURIComponent(`Hi, I'd like to change the plan for ${salon.name} (${slug})`)}`}
-            rel='noopener'
-            target='_blank'
-          >
-            Change plan
-          </a>
-        ) : null}
+        <div className='mt-3 grid gap-2 sm:grid-cols-2'>
+          {PLANS.filter((p) => p !== salon.plan).map((p) => {
+            const up = PLAN_PRICES[p] > PLAN_PRICES[salon.plan]
+            const text = `Hi, I'd like to ${up ? 'upgrade' : 'change'} ${salon.name} (${slug}) from ${PLAN_LABELS[salon.plan]} to ${PLAN_LABELS[p]} (${formatINR(PLAN_PRICES[p])}/month).`
+            const href = support
+              ? `https://wa.me/${support}?text=${encodeURIComponent(text)}`
+              : `mailto:${process.env.SUPPORT_EMAIL ?? 'support@example.com'}?subject=${encodeURIComponent(`Plan change: ${salon.name}`)}&body=${encodeURIComponent(text)}`
+            return (
+              <div className='flex items-center justify-between gap-3 rounded-btn border border-line p-3' key={p}>
+                <div>
+                  <p className='font-medium'>{PLAN_LABELS[p]}</p>
+                  <p className='text-sm text-muted'>{formatINR(PLAN_PRICES[p])}/month</p>
+                </div>
+                <a className={buttonClass(up ? 'primary' : 'secondary', 'md')} href={href} rel='noopener' target='_blank'>
+                  {up ? 'Request upgrade' : 'Switch'}
+                </a>
+              </div>
+            )
+          })}
+        </div>
       </section>
     </div>
   )

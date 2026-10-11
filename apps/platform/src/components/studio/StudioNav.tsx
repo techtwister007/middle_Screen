@@ -1,6 +1,6 @@
 'use client'
 import { cn } from '@salon/ui'
-import { BarChart3, Camera, CreditCard, LayoutList, Megaphone, Settings, Users } from 'lucide-react'
+import { BarChart3, CalendarDays, Camera, CreditCard, LayoutList, Megaphone, Settings, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -8,6 +8,8 @@ type Item = { href: string; label: string; icon: typeof LayoutList; manager?: bo
 
 const ITEMS: Item[] = [
   { href: 'today', label: 'Today', icon: LayoutList },
+  // On phones the calendar opens from Today (a day view); desktop gets the week grid in the sidebar.
+  { href: 'calendar', label: 'Calendar', icon: CalendarDays, desktopOnly: true },
   { href: 'checkout', label: 'Checkout', icon: CreditCard },
   { href: 'photos', label: 'Photos', icon: Camera, feature: 'contentEngine' },
   { href: 'customers', label: 'Customers', icon: Users },
@@ -31,7 +33,7 @@ export const StudioNav = ({ base, manager, features }: { base: string; manager: 
               const active = path?.startsWith(`${base}/${i.href}`)
               return (
                 <Link
-                  className={cn('flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px]', active ? 'text-brand' : 'text-muted')}
+                  className={cn('flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px]', active ? 'text-brand' : 'text-muted')}
                   href={`${base}/${i.href}`}
                   key={i.href}
                 >

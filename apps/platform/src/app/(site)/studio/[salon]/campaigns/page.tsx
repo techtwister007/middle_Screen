@@ -2,6 +2,7 @@ import { formatIST, forTenant } from '@salon/core'
 import { Badge, buttonClass } from '@salon/ui'
 import { CalendarHeart, Plus, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { plural } from '@/components/studio/format'
 import { OfferRowActions } from '@/components/studio/OfferRowActions'
 import { getPayloadClient } from '@/lib/payload'
 import { requireFeature } from '@/lib/salon'
@@ -9,7 +10,15 @@ import { requireStaff } from '@/lib/staff'
 
 export const metadata = { title: 'Campaigns' }
 
-export default async function CampaignsPage({ params, searchParams }: { params: Promise<{ salon: string }>; searchParams: Promise<{ launched?: string }> }) {
+const KIND_LABEL: Record<string, string> = { offer: 'Offer', 'slot-filler': 'Slot filler', festival: 'Festival', 'first-visit': 'First visit' }
+
+export default async function CampaignsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ salon: string }>
+  searchParams: Promise<{ launched?: string; sent?: string }>
+}) {
   const { salon: slug } = await params
   const sp = await searchParams
   const { salon } = await requireStaff(slug, { manager: true })
@@ -23,8 +32,16 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
       limit: 50,
     })
   ).docs
-  const sent = await Promise.all(
-    offers.map((o) => repo.count('messages', { and: [{ relatedEvent: { equals: `offer:${o.id}` } }, { status: { equals: 'sent' } }] })),
+  const stats = await Promise.all(
+    offers.map(async (o) => {
+      const [sent, skipped, claimed] = await Promise.all([
+        repo.count('messages', { and: [{ relatedEvent: { equals: `offer:${o.id}` } }, { status: { equals: 'sent' } }] }),
+        repo.count('messages', { and: [{ relatedEvent: { equals: `offer:${o.id}` } }, { status: { equals: 'skipped' } }] }),
+        // Claims are rewards created from this offer (the counter on the offer can lag behind).
+        repo.count('rewards', { source: { equals: `offer:${o.id}` } }),
+      ])
+      return { sent, skipped, claimed: Math.max(claimed, o.claims ?? 0) }
+    }),
   )
   const packs = (
     await payload.find({
@@ -38,7 +55,11 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const base = `/studio/${slug}`
   return (
     <div>
-      {sp.launched ? <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800'>Launched! Messages are going out now.</p> : null}
+      {sp.launched ? (
+        <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800' role='status'>
+          Launched! {sp.sent ? `${plural(Number(sp.sent) || 0, 'message')} sent on WhatsApp.` : 'Messages are going out now.'}
+        </p>
+      ) : null}
       <div className='flex items-center justify-between'>
         <h1 className='font-heading text-3xl'>Campaigns</h1>
         <Link className={buttonClass('primary', 'sm')} href={`${base}/campaigns/new`}>
@@ -87,13 +108,13 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
             <div className='min-w-0'>
               <p className='truncate font-medium'>{o.title}</p>
               <p className='text-xs text-muted'>
-                {o.kind} · {sent[i]} sent · {o.claims ?? 0} claimed
+                {KIND_LABEL[o.kind] ?? o.kind} · {stats[i].sent} sent{stats[i].skipped ? ` · ${stats[i].skipped} skipped` : ''} · {stats[i].claimed} claimed
                 {o.endsAt ? ` · ends ${formatIST(o.endsAt, 'd MMM', tz)}` : ''}
               </p>
             </div>
             <div className='flex items-center gap-2'>
               <Badge tone={o.status === 'live' ? 'success' : o.status === 'draft' ? 'warning' : 'muted'}>{o.status}</Badge>
-              <OfferRowActions id={o.id} slug={slug} status={o.status} />
+              <OfferRowActions id={o.id} slug={slug} status={o.status} title={o.title} />
             </div>
           </div>
         ))}

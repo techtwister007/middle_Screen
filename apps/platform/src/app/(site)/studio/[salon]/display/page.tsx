@@ -58,5 +58,5 @@ export default async function DisplayPage({ params }: { params: Promise<{ salon:
       qr: await qr('/contest'),
       cta: 'Scan to vote',
     })
-  return <Display salonName={salon.name} slides={slides} />
+  return <Display exitHref={`/studio/${slug}/settings`} salonName={salon.name} slides={slides} />
 }

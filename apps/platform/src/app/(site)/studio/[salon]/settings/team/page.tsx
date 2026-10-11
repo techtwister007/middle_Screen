@@ -1,8 +1,9 @@
-import { forTenant, type ID } from '@salon/core'
+import { forTenant, type ID, publicUrl } from '@salon/core'
 import Link from 'next/link'
 import { ActionForm } from '@/components/studio/ActionForm'
 import { Field, inputClass } from '@/components/studio/Field'
 import { FlagButton } from '@/components/studio/FlagButton'
+import { plural } from '@/components/studio/format'
 import { getPayloadClient } from '@/lib/payload'
 import { requireStaff } from '@/lib/staff'
 import { addTeamMember, setMemberFlags } from '../actions'
@@ -35,17 +36,48 @@ export default async function TeamPage({ params }: { params: Promise<{ salon: st
   ).docs
   const byStaff = new Map(availability.map((a) => [String(a.staff), a]))
   const now = Date.now()
+  const salonDays = salon.hours?.length ? salon.hours.filter((h) => !h.closed).length : 7
   return (
     <div>
       <Link className='text-sm text-brand' href={`/studio/${slug}/settings`}>
         ← More
       </Link>
       <h1 className='mt-3 font-heading text-3xl'>Team & hours</h1>
+      <details className='mt-6 rounded-card border border-dashed border-brand bg-surface p-4'>
+        <summary className='flex min-h-11 cursor-pointer items-center font-medium text-brand'>+ Add a team member</summary>
+        <p className='mb-4 mt-2 text-sm text-muted'>
+          They get their own sign-in. Artists see the schedule, checkout and photo corner; managers see everything.
+        </p>
+        <ActionForm
+          action={addTeamMember.bind(null, slug)}
+          secretShare={{ intro: `Your ${salon.name} Studio sign-in (open ${publicUrl()}/studio/login)`, phoneField: 'phone' }}
+          submit='Add to team'
+        >
+          <div className='grid gap-3 sm:grid-cols-2'>
+            <Field label='Name'>
+              <input className={inputClass} name='name' required />
+            </Field>
+            <Field label='Email (for sign-in)'>
+              <input className={inputClass} name='email' required type='email' />
+            </Field>
+            <Field hint='To send their password on WhatsApp' label='Phone'>
+              <input className={inputClass} inputMode='tel' name='phone' />
+            </Field>
+            <Field label='Role'>
+              <select className={inputClass} defaultValue='artist' name='role'>
+                <option value='artist'>Artist</option>
+                <option value='manager'>Manager</option>
+              </select>
+            </Field>
+          </div>
+        </ActionForm>
+      </details>
 
       <div className='mt-6 divide-y divide-line rounded-card border border-line bg-surface'>
         {team.map((m) => {
           const a = byStaff.get(String(m.id))
-          const days = a?.weekly?.filter((w) => !w.off).length ?? 0
+          // No stored weekly hours means they follow the salon's hours.
+          const days = a?.weekly?.length ? a.weekly.filter((w) => !w.off).length : salonDays
           const away = a?.timeOff?.find((t) => new Date(t.to).getTime() >= now)
           return (
             <div className='flex flex-wrap items-center justify-between gap-3 px-4 py-3' key={String(m.id)}>
@@ -55,17 +87,23 @@ export default async function TeamPage({ params }: { params: Promise<{ salon: st
                 </p>
                 <p className='text-xs text-muted'>
                   {m.email}
-                  {m.role !== 'manager' ? ` · ${days} days a week` : ''}
+                  {m.role !== 'manager' ? ` · ${plural(days, 'day')} a week${a?.weekly?.length ? '' : ' (salon hours)'}` : ''}
                   {away ? ` · away ${new Date(away.from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}` : ''}
                 </p>
               </div>
               <div className='flex flex-wrap gap-1.5'>
                 {m.role === 'artist' || m.role === 'owner' ? (
-                  <Link className='rounded-btn border border-line px-3 py-1.5 text-xs hover:border-brand' href={`/studio/${slug}/me?staff=${m.id}`}>
+                  <Link
+                    className='inline-flex min-h-11 items-center rounded-btn border border-line px-3 text-xs hover:border-brand'
+                    href={`/studio/${slug}/me?staff=${m.id}`}
+                  >
                     Stats
                   </Link>
                 ) : null}
-                <Link className='rounded-btn border border-line px-3 py-1.5 text-xs hover:border-brand' href={`/studio/${slug}/settings/team/${m.id}`}>
+                <Link
+                  className='inline-flex min-h-11 items-center rounded-btn border border-line px-3 text-xs hover:border-brand'
+                  href={`/studio/${slug}/settings/team/${m.id}`}
+                >
                   Hours & time off
                 </Link>
                 <FlagButton run={setMemberFlags.bind(null, slug, m.id, { bookable: !m.bookable })}>{m.bookable ? 'Bookable ✓' : 'Not bookable'}</FlagButton>
@@ -82,30 +120,6 @@ export default async function TeamPage({ params }: { params: Promise<{ salon: st
           )
         })}
       </div>
-
-      <section className='mt-8 rounded-card border border-dashed border-brand bg-surface p-4'>
-        <h2 className='font-heading text-xl'>Add a team member</h2>
-        <p className='mb-4 text-sm text-muted'>They get their own sign-in. Artists see the schedule, checkout and photo corner; managers see everything.</p>
-        <ActionForm action={addTeamMember.bind(null, slug)} submit='Add to team'>
-          <div className='grid gap-3 sm:grid-cols-2'>
-            <Field label='Name'>
-              <input className={inputClass} name='name' required />
-            </Field>
-            <Field label='Email (for sign-in)'>
-              <input className={inputClass} name='email' required type='email' />
-            </Field>
-            <Field label='Phone'>
-              <input className={inputClass} inputMode='tel' name='phone' />
-            </Field>
-            <Field label='Role'>
-              <select className={inputClass} defaultValue='artist' name='role'>
-                <option value='artist'>Artist</option>
-                <option value='manager'>Manager</option>
-              </select>
-            </Field>
-          </div>
-        </ActionForm>
-      </section>
     </div>
   )
 }

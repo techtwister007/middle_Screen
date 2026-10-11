@@ -59,15 +59,15 @@ export default async function RulesPage({ params }: { params: Promise<{ salon: s
         ← More
       </Link>
       <h1 className='mt-3 font-heading text-3xl'>Rules & automatic messages</h1>
-      <ActionForm action={saveRules.bind(null, slug)} className='mt-6' submit='Save rules'>
+      <ActionForm action={saveRules.bind(null, slug)} className='mt-6' sticky submit='Save rules'>
         {SECTIONS.map((sec) => (
           <section className='space-y-3 rounded-card border border-line bg-surface p-4' key={sec.title}>
             <h2 className='font-heading text-xl'>{sec.title}</h2>
             <p className='text-sm text-muted'>{sec.body}</p>
             {sec.title === 'Booking' ? (
-              <label className='flex items-center gap-2 text-sm'>
-                <input defaultChecked={Boolean(s.autoConfirmBookings)} name='autoConfirmBookings' type='checkbox' /> Confirm bookings automatically (otherwise
-                you confirm each one from Today)
+              <label className='flex min-h-11 items-center gap-3 text-sm'>
+                <input className='h-5 w-5 shrink-0' defaultChecked={Boolean(s.autoConfirmBookings)} name='autoConfirmBookings' type='checkbox' /> Confirm
+                bookings automatically (otherwise you confirm each one from Today)
               </label>
             ) : null}
             <div className='grid gap-3 sm:grid-cols-2'>

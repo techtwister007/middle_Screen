@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { StudioNav } from '@/components/studio/StudioNav'
+import { StudioShell } from '@/components/studio/StudioShell'
+import { Toaster } from '@/components/studio/Toast'
 import { salonFeatures } from '@/lib/salon'
 import { canManage, requireStaff } from '@/lib/staff'
 
@@ -15,34 +17,42 @@ export default async function StudioLayout({ children, params }: { children: Rea
         precedence='default'
         rel='stylesheet'
       />
-      <header className='fixed inset-x-0 top-0 z-20 print:hidden border-b border-line bg-surface/95 backdrop-blur'>
-        <div className='flex h-14 items-center justify-between px-4 md:px-6'>
-          <Link className='font-heading text-lg' href={`${base}/today`}>
-            {salon.name} <span className='text-xs font-normal text-muted'>Studio</span>
-          </Link>
-          <div className='flex items-center gap-3 text-sm'>
-            <Link className='hidden text-brand sm:inline' href={`/s/${slug}`} target='_blank'>
-              Customer app ↗
-            </Link>
-            <span className='text-muted'>{user.name.split(' ')[0]}</span>
-          </div>
-        </div>
-      </header>
-      {salon.status === 'demo' || user.role === 'platform-admin' ? (
-        <div className='fixed inset-x-0 top-14 z-20 flex justify-center gap-2 bg-ink px-4 py-1 text-center text-xs text-bg print:hidden'>
-          {salon.status === 'demo' ? (
-            <span>
-              Demo salon with sample data
-              {salon.settings?.keepDemo
-                ? ''
-                : ` · ends ${new Date(new Date(salon.createdAt).getTime() + 7 * 86_400_000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}`}
-            </span>
-          ) : null}
-          {user.role === 'platform-admin' ? <span>{salon.status === 'demo' ? '·' : ''} Viewing as platform support</span> : null}
-        </div>
-      ) : null}
+      <StudioShell
+        banner={
+          salon.status === 'demo' || user.role === 'platform-admin' ? (
+            <div className='fixed inset-x-0 top-14 z-20 flex justify-center gap-2 bg-ink px-4 py-1 text-center text-xs text-bg print:hidden'>
+              {salon.status === 'demo' ? (
+                <span>
+                  Demo salon with sample data
+                  {salon.settings?.keepDemo
+                    ? ''
+                    : ` · ends ${new Date(new Date(salon.createdAt).getTime() + 7 * 86_400_000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}`}
+                </span>
+              ) : null}
+              {user.role === 'platform-admin' ? <span>{salon.status === 'demo' ? '·' : ''} Viewing as platform support</span> : null}
+            </div>
+          ) : null
+        }
+        header={
+          <header className='fixed inset-x-0 top-0 z-20 print:hidden border-b border-line bg-surface/95 backdrop-blur'>
+            <div className='flex h-14 items-center justify-between px-4 md:px-6'>
+              <Link className='font-heading text-lg' href={`${base}/today`}>
+                {salon.name} <span className='text-xs font-normal text-muted'>Studio</span>
+              </Link>
+              <div className='flex items-center gap-3 text-sm'>
+                <Link className='hidden text-brand sm:inline' href={`/s/${slug}`} target='_blank'>
+                  Customer app ↗
+                </Link>
+                <span className='text-muted'>{user.name.split(' ')[0]}</span>
+              </div>
+            </div>
+          </header>
+        }
+      >
+        {children}
+      </StudioShell>
       <StudioNav base={base} features={[...salonFeatures(salon)]} manager={canManage(user)} />
-      <main className='mx-auto max-w-4xl px-4 pb-28 pt-20 md:pl-64 md:pr-8 print:max-w-none print:p-0'>{children}</main>
+      <Toaster />
     </div>
   )
 }

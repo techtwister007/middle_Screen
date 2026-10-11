@@ -32,13 +32,19 @@ const bool = (f: FormData, k: string) => f.get(k) === 'on' || f.get(k) === 'true
 const HEX = /^#[0-9a-f]{6}$/i
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 
+/** Thrown by our own checks: the message is meant for the owner. */
+class UserError extends Error {}
+
 const fail = (err: unknown): FormState => {
-  const details = (err as { data?: { errors?: { message?: string; path?: string }[] } })?.data?.errors
-  if (details?.length) return { ok: false, error: details.map((d) => `${d.path ?? ''} ${d.message ?? ''}`.trim()).join(', ') }
-  if (err instanceof Error && /duplicate|unique|already/i.test(err.message)) return { ok: false, error: 'That already exists.' }
   if (err instanceof Error && err.message.startsWith('NEXT_')) throw err
-  console.error(err)
-  return { ok: false, error: err instanceof Error && err.message.length < 140 ? err.message : 'Could not save. Please try again.' }
+  if (err instanceof UserError) return { ok: false, error: err.message }
+  // Payload validation errors: show what was wrong with which field.
+  const details = (err as { data?: { errors?: { message?: string; path?: string }[] } })?.data?.errors
+  if (details?.length) return { ok: false, error: details.map((d) => (d.path ? `${d.path}: ${d.message ?? 'invalid'}` : (d.message ?? 'invalid'))).join(', ') }
+  if (err instanceof Error && /duplicate|unique|already/i.test(err.message)) return { ok: false, error: 'That already exists.' }
+  const ref = randomBytes(2).toString('hex').toUpperCase()
+  console.error(`[studio settings ref ${ref}]`, err)
+  return { ok: false, error: `Something went wrong (ref ${ref}). Please try again, or send this ref to support.` }
 }
 
 const done = (slug: string, message = 'Saved') => {
@@ -49,8 +55,8 @@ const done = (slug: string, message = 'Saved') => {
 
 const uploadImage = async (payload: Awaited<ReturnType<typeof getPayloadClient>>, tenant: ID, file: FormDataEntryValue | null, kind: string, alt: string) => {
   if (!(file instanceof File) || file.size === 0) return null
-  if (!file.type.startsWith('image/')) throw new Error('Please choose an image file')
-  if (file.size > 12 * 1024 * 1024) throw new Error('Image is too large (max 12 MB)')
+  if (!file.type.startsWith('image/')) throw new UserError('Please choose an image file')
+  if (file.size > 12 * 1024 * 1024) throw new UserError('Image is too large (max 12 MB)')
   const media = (await payload.create({
     collection: 'media',
     overrideAccess: true,
@@ -76,7 +82,8 @@ export async function saveProfile(slug: string, _prev: FormState, f: FormData): 
       day,
       open: str(f, `open_${day}`) || '10:00',
       close: str(f, `close_${day}`) || '20:00',
-      closed: bool(f, `closed_${day}`),
+      // New forms send an "open" switch; older ones a "closed" checkbox.
+      closed: f.has(`isopen_${day}`) || f.has('hours_v2') ? !bool(f, `isopen_${day}`) : bool(f, `closed_${day}`),
     }))
     const badTime = hours.find((h) => !h.closed && (!TIME.test(h.open) || !TIME.test(h.close) || h.open >= h.close))
     if (badTime) return { ok: false, error: `Check the opening hours for ${badTime.day}` }
@@ -366,7 +373,12 @@ export async function saveHours(slug: string, _prev: FormState, f: FormData): Pr
     const { user, repo } = await ctx(slug, false)
     const staffId = asId(str(f, 'staff'))
     if (!canManage(user) && String(staffId) !== String(user.id)) return { ok: false, error: 'You can only change your own hours' }
-    const weekly = DAYS.map((day) => ({ day, start: str(f, `start_${day}`) || '10:00', end: str(f, `end_${day}`) || '20:00', off: bool(f, `off_${day}`) }))
+    const weekly = DAYS.map((day) => ({
+      day,
+      start: str(f, `start_${day}`) || '10:00',
+      end: str(f, `end_${day}`) || '20:00',
+      off: f.has('hours_v2') ? !bool(f, `working_${day}`) : bool(f, `off_${day}`),
+    }))
     const bad = weekly.find((w) => !w.off && (!TIME.test(w.start) || !TIME.test(w.end) || w.start >= w.end))
     if (bad) return { ok: false, error: `Check the hours for ${bad.day}` }
     const existing = await repo.findOne<{ id: ID; timeOff?: { from: string; to: string; reason?: string }[] }>('availability', { staff: { equals: staffId } })
