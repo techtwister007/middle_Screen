@@ -1,4 +1,4 @@
-import { type ID, forTenant, getEventBus, rupees } from '@salon/core'
+import { forTenant, getEventBus, type ID, rupees } from '@salon/core'
 import { FakeMessaging } from '@salon/integrations'
 import {
   BookingError,
@@ -95,9 +95,9 @@ describe('the core customer journey', () => {
   })
 
   it('the same artist cannot be double-booked', async () => {
-    await expect(
-      requestBooking(payload, salon.id, { customerId: priya.id, serviceIds: [gel.id], start: at(date, '12:00') }),
-    ).rejects.toBeInstanceOf(BookingError)
+    await expect(requestBooking(payload, salon.id, { customerId: priya.id, serviceIds: [gel.id], start: at(date, '12:00') })).rejects.toBeInstanceOf(
+      BookingError,
+    )
   })
 
   it('paying the deposit confirms the booking and schedules reminders', async () => {
@@ -174,7 +174,9 @@ describe('the core customer journey', () => {
 
   it('the photo corner produces a share kit and sends the reveal', async () => {
     const task = await photoTaskForVisit(payload, salon.id, visitId)
-    const image = await sharp({ create: { width: 900, height: 1200, channels: 3, background: '#d88aa0' } }).jpeg().toBuffer()
+    const image = await sharp({ create: { width: 900, height: 1200, channels: 3, background: '#d88aa0' } })
+      .jpeg()
+      .toBuffer()
     const photo = (await payload.create({
       collection: 'media' as never,
       overrideAccess: true,

@@ -78,7 +78,12 @@ describe('slots', () => {
     expect(slots.map((s) => s.start.toISOString())).toEqual([at('11:00').toISOString()])
   })
   it('never offers times in the past', () => {
-    const slots = computeSlots({ ...base, now: at('11:10'), durationMinutes: 30, staff: [{ staffId: 'a', hours: { open: '10:00', close: '13:00' }, busy: [] }] })
+    const slots = computeSlots({
+      ...base,
+      now: at('11:10'),
+      durationMinutes: 30,
+      staff: [{ staffId: 'a', hours: { open: '10:00', close: '13:00' }, busy: [] }],
+    })
     expect(slots[0].start.getTime()).toBeGreaterThanOrEqual(at('11:40').getTime())
   })
   it('checks a specific range', () => {
@@ -196,8 +201,20 @@ describe('messaging policy', () => {
   it('caps promotions per week and month', () => {
     expect(withinPromoCap([], now, policy)).toBe(true)
     expect(withinPromoCap([new Date(now.getTime() - 2 * DAY)], now, policy)).toBe(false)
-    expect(withinPromoCap([8, 15, 22].map((d) => new Date(now.getTime() - d * DAY)), now, policy)).toBe(false)
-    expect(withinPromoCap([8, 15].map((d) => new Date(now.getTime() - d * DAY)), now, policy)).toBe(true)
+    expect(
+      withinPromoCap(
+        [8, 15, 22].map((d) => new Date(now.getTime() - d * DAY)),
+        now,
+        policy,
+      ),
+    ).toBe(false)
+    expect(
+      withinPromoCap(
+        [8, 15].map((d) => new Date(now.getTime() - d * DAY)),
+        now,
+        policy,
+      ),
+    ).toBe(true)
   })
   it('never sends promotions without consent; reminders are exempt', () => {
     const base = { promoHistory: [], now, policy, phone: '+919876543210' }

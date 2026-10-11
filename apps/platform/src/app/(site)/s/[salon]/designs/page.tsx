@@ -4,7 +4,13 @@ import { designs, loadSalon } from '@/lib/site'
 
 export const metadata = { title: 'Designs' }
 
-export default async function DesignsPage({ params, searchParams }: { params: Promise<{ salon: string }>; searchParams: Promise<{ occasion?: string; new?: string }> }) {
+export default async function DesignsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ salon: string }>
+  searchParams: Promise<{ occasion?: string; new?: string }>
+}) {
   const { salon: slug } = await params
   const sp = await searchParams
   const salon = await loadSalon(slug)
@@ -26,12 +32,12 @@ export default async function DesignsPage({ params, searchParams }: { params: Pr
     createdAt: d.createdAt,
   }))
   return (
-    <div className="pt-5">
-      <div className="px-4">
-        <h1 className="font-heading text-3xl">Designs</h1>
-        <p className="text-sm text-muted">Real work from our artists and clients. Tap any look to see the price and book it.</p>
+    <div className='pt-5'>
+      <div className='px-4'>
+        <h1 className='font-heading text-3xl'>Designs</h1>
+        <p className='text-sm text-muted'>Real work from our artists and clients. Tap any look to see the price and book it.</p>
       </div>
-      <div className="mt-3">
+      <div className='mt-3'>
         <GalleryBrowser base={`/s/${slug}`} initialOccasion={sp.occasion} items={items} showNewOnly={sp.new === '1'} />
       </div>
     </div>

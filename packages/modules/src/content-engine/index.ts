@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { type ID, defineModule, emit, forTenant, idOf, publicUrl, salonLink } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf, publicUrl, salonLink } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData, staffOnly } from '../_shared/access'
-import { type Frame, buildCollage, buildShareKit, frameByKey } from './sharekit'
+import { buildCollage, buildShareKit, type Frame, frameByKey } from './sharekit'
 
 export const PhotoTasks: CollectionConfig = {
   slug: 'photo-tasks',
@@ -36,7 +36,12 @@ export const PhotoTasks: CollectionConfig = {
 export const Articles: CollectionConfig = {
   slug: 'articles',
   admin: { useAsTitle: 'title' },
-  access: { read: staffOnly, create: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin', update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin', delete: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin' },
+  access: {
+    read: staffOnly,
+    create: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+    update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+    delete: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+  },
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'slug', type: 'text', required: true, unique: true, index: true },
@@ -196,7 +201,10 @@ export const featureInGallery = async (payload: Payload, tenant: ID, taskId: ID,
   const task = await repo.findByID<TaskDoc & { galleryDesign?: ID | null }>('photo-tasks', taskId)
   if (!task || String(idOf(task.customer)) !== String(customerId)) return null
   if (task.galleryDesign) return task.galleryDesign
-  const visit = await repo.findByID<{ lines: { service?: ID | { id: ID } | null; price: number }[]; staff?: ID | { id: ID } | null }>('visits', idOf(task.visit) as ID)
+  const visit = await repo.findByID<{ lines: { service?: ID | { id: ID } | null; price: number }[]; staff?: ID | { id: ID } | null }>(
+    'visits',
+    idOf(task.visit) as ID,
+  )
   const design = await repo.create<{ id: ID }>('designs', {
     title: task.designName || 'Customer favourite',
     images: (task.photos ?? []).map((p) => idOf(p)),
@@ -224,7 +232,9 @@ export const weeklyCollage = async (payload: Payload, tenant: ID) => {
   })
   const media = tasks.docs.flatMap((t) => (t.photos ?? []).slice(0, 1)).filter((m): m is MediaDoc => typeof m === 'object')
   if (media.length < 2) return null
-  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as SalonDoc & { theme?: string }
+  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as SalonDoc & {
+    theme?: string
+  }
   const buffers = await Promise.all(media.slice(0, 4).map(readMedia))
   const collage = await buildCollage(buffers, frameByKey(salon.theme === 'luxe' ? 'noir' : 'classic'), `This week at ${salon.name}`)
   return saveImage(payload, tenant, collage, `collage-${Date.now()}`, 'share-kit', 'Weekly collage')

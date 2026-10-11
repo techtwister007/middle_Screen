@@ -16,8 +16,7 @@ export const formatIST = (date: Date | string, pattern = 'd MMM yyyy, h:mm a', t
   formatInTimeZone(typeof date === 'string' ? new Date(date) : date, tz, pattern)
 
 /** Interprets a wall-clock date + "HH:mm" in a salon's time zone and returns the UTC instant. */
-export const zonedDateTime = (isoDate: string, hhmm: string, tz = IST): Date =>
-  fromZonedTime(`${isoDate}T${hhmm}:00`, tz)
+export const zonedDateTime = (isoDate: string, hhmm: string, tz = IST): Date => fromZonedTime(`${isoDate}T${hhmm}:00`, tz)
 
 /** The salon-local calendar date (yyyy-MM-dd) for an instant. */
 export const localDate = (date: Date, tz = IST): string => formatInTimeZone(date, tz, 'yyyy-MM-dd')
@@ -30,5 +29,4 @@ export const minutesFromHHMM = (hhmm: string): number => {
   return h * 60 + m
 }
 
-export const hhmmFromMinutes = (minutes: number): string =>
-  `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+export const hhmmFromMinutes = (minutes: number): string => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`

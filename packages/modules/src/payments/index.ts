@@ -1,4 +1,4 @@
-import { type ID, type Paise, addDays, defineModule, emit, forTenant, idOf, shortCode } from '@salon/core'
+import { addDays, defineModule, emit, forTenant, type ID, idOf, type Paise, shortCode } from '@salon/core'
 import { getPayments } from '@salon/integrations'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonData } from '../_shared/access'
@@ -183,11 +183,7 @@ export const walletBalance = async (payload: Payload, tenant: ID, customerId: ID
   return res.docs.reduce((sum, e) => sum + e.amount, 0)
 }
 
-export const addWalletEntry = async (
-  payload: Payload,
-  tenant: ID,
-  input: { customerId: ID; amount: number; reason: string; reference?: string },
-) => {
+export const addWalletEntry = async (payload: Payload, tenant: ID, input: { customerId: ID; amount: number; reason: string; reference?: string }) => {
   if (input.amount < 0) {
     const balance = await walletBalance(payload, tenant, input.customerId)
     if (balance + input.amount < 0) throw new Error('Insufficient wallet balance')
@@ -203,7 +199,16 @@ export const addWalletEntry = async (
 export const createGiftCard = async (
   payload: Payload,
   tenant: ID,
-  input: { buyerId?: ID; value: Paise; recipientPhone: string; recipientName?: string; message?: string; occasion?: string; kind?: 'gift' | 'referral-invite'; active?: boolean },
+  input: {
+    buyerId?: ID
+    value: Paise
+    recipientPhone: string
+    recipientName?: string
+    message?: string
+    occasion?: string
+    kind?: 'gift' | 'referral-invite'
+    active?: boolean
+  },
 ) =>
   forTenant(payload, tenant).create<{ id: ID; code: string; value: Paise }>('gift-cards', {
     code: shortCode(8),
@@ -223,7 +228,7 @@ export const redeemGiftCard = async (payload: Payload, tenant: ID, code: string,
   const card = await repo.findOne<{ id: ID; status: string; value: Paise; expiresAt?: string }>('gift-cards', {
     code: { equals: code.toUpperCase() },
   })
-  if (!card || card.status !== 'active') throw new Error('This gift card is not valid')
+  if (card?.status !== 'active') throw new Error('This gift card is not valid')
   if (card.expiresAt && new Date(card.expiresAt) < new Date()) throw new Error('This gift card has expired')
   await repo.update('gift-cards', card.id, { status: 'redeemed', redeemedBy: customerId })
   await addWalletEntry(payload, tenant, { customerId, amount: card.value, reason: 'gift-card', reference: code })

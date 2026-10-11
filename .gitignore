@@ -12,3 +12,4 @@ apps/platform/playwright-report
 __pycache__
 *.tsbuildinfo
 next-env.d.ts
+apps/platform/.test-media

@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, idOf } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonConfig, salonData, staffOnly } from '../_shared/access'
 
@@ -13,7 +13,12 @@ export const Contests: CollectionConfig = {
     { name: 'startsAt', type: 'date', required: true },
     { name: 'endsAt', type: 'date', required: true },
     { name: 'status', type: 'select', defaultValue: 'open', options: ['open', 'closed'] },
-    { name: 'terms', type: 'textarea', defaultValue: 'One vote per phone number. Winner is the entry with the most votes when voting closes. This contest is run by the salon and is not sponsored, endorsed or administered by Instagram or Meta.' },
+    {
+      name: 'terms',
+      type: 'textarea',
+      defaultValue:
+        'One vote per phone number. Winner is the entry with the most votes when voting closes. This contest is run by the salon and is not sponsored, endorsed or administered by Instagram or Meta.',
+    },
     { name: 'winner', type: 'relationship', relationTo: 'contest-entries' },
   ],
 }
@@ -58,11 +63,7 @@ export const currentContest = async (payload: Payload, tenant: ID) => {
   })
 }
 
-export const enterContest = async (
-  payload: Payload,
-  tenant: ID,
-  input: { contestId: ID; customerId: ID; photoId: ID; designName?: string; visitId?: ID },
-) => {
+export const enterContest = async (payload: Payload, tenant: ID, input: { contestId: ID; customerId: ID; photoId: ID; designName?: string; visitId?: ID }) => {
   const repo = forTenant(payload, tenant)
   const existing = await repo.findOne<{ id: ID }>('contest-entries', {
     and: [{ contest: { equals: input.contestId } }, { customer: { equals: input.customerId } }],
@@ -81,14 +82,10 @@ export const enterContest = async (
 export class VoteError extends Error {}
 
 /** One vote per phone per contest. The voter (with consent) becomes a lead for the salon. */
-export const castVote = async (
-  payload: Payload,
-  tenant: ID,
-  input: { contestId: ID; entryId: ID; voterPhone: string; voterCustomerId: ID },
-) => {
+export const castVote = async (payload: Payload, tenant: ID, input: { contestId: ID; entryId: ID; voterPhone: string; voterCustomerId: ID }) => {
   const repo = forTenant(payload, tenant)
   const contest = await repo.findByID<ContestDoc>('contests', input.contestId)
-  if (!contest || contest.status !== 'open' || new Date(contest.endsAt) < new Date()) throw new VoteError('Voting has closed')
+  if (contest?.status !== 'open' || new Date(contest.endsAt) < new Date()) throw new VoteError('Voting has closed')
   const entry = await repo.findByID<{ id: ID; contest: ID | { id: ID }; votes: number }>('contest-entries', input.entryId)
   if (!entry || String(idOf(entry.contest)) !== String(input.contestId)) throw new VoteError('Entry not found')
   const already = await repo.count('contest-votes', {

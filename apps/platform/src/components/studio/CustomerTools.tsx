@@ -10,8 +10,19 @@ export const NotesEditor = ({ slug, customerId, initial }: { slug: string; custo
   const [pending, start] = useTransition()
   return (
     <div>
-      <Textarea onChange={(e) => setNotes(e.target.value)} placeholder="Preferences, sensitivities, favourite artist…" rows={3} value={notes} />
-      <Button className="mt-2" disabled={pending} onClick={() => start(async () => { await saveNotes(slug, customerId, notes); setSaved(true) })} size="sm" variant="secondary">
+      <Textarea onChange={(e) => setNotes(e.target.value)} placeholder='Preferences, sensitivities, favourite artist…' rows={3} value={notes} />
+      <Button
+        className='mt-2'
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            await saveNotes(slug, customerId, notes)
+            setSaved(true)
+          })
+        }
+        size='sm'
+        variant='secondary'
+      >
         {saved ? 'Saved ✓' : 'Save notes'}
       </Button>
     </div>
@@ -28,7 +39,7 @@ const TEMPLATES = [
 export const MessageButtons = ({ slug, customerId, link }: { slug: string; customerId: string | number; link: string }) => {
   const [pending, start] = useTransition()
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className='flex flex-wrap gap-2'>
       {TEMPLATES.map(([t, label]) => (
         <Button
           disabled={pending}
@@ -39,8 +50,8 @@ export const MessageButtons = ({ slug, customerId, link }: { slug: string; custo
               if (r.ok) window.open(r.data!.url, '_blank')
             })
           }
-          size="sm"
-          variant="secondary"
+          size='sm'
+          variant='secondary'
         >
           <MessageCircle size={14} /> {label}
         </Button>
@@ -52,11 +63,22 @@ export const MessageButtons = ({ slug, customerId, link }: { slug: string; custo
 export const FollowUp = ({ slug, ratingId }: { slug: string; ratingId: string | number }) => {
   const [state, setState] = useState<string | null>(null)
   const [pending, start] = useTransition()
-  if (state) return <p className="text-sm text-emerald-700">Marked {state} ✓</p>
+  if (state) return <p className='text-sm text-emerald-700'>Marked {state} ✓</p>
   return (
-    <div className="flex gap-2">
+    <div className='flex gap-2'>
       {(['called', 'resolved'] as const).map((s) => (
-        <Button disabled={pending} key={s} onClick={() => start(async () => { const r = await setFollowUp(slug, ratingId, s); if (r.ok) setState(s) })} size="sm" variant="secondary">
+        <Button
+          disabled={pending}
+          key={s}
+          onClick={() =>
+            start(async () => {
+              const r = await setFollowUp(slug, ratingId, s)
+              if (r.ok) setState(s)
+            })
+          }
+          size='sm'
+          variant='secondary'
+        >
           Mark {s}
         </Button>
       ))}

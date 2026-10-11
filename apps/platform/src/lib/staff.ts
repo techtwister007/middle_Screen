@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
 import { getPayloadClient } from './payload'
-import { type SalonRecord, getSalonBySlug } from './salon'
+import { getSalonBySlug, type SalonRecord } from './salon'
 
 export type StaffRole = 'platform-admin' | 'owner' | 'manager' | 'artist'
 
@@ -23,8 +23,7 @@ export const getStaffUser = cache(async (): Promise<StaffUser | null> => {
   return user as unknown as StaffUser
 })
 
-export const staffSalonIds = (user: StaffUser) =>
-  (user.tenants ?? []).map((t) => (typeof t.tenant === 'object' ? t.tenant.id : t.tenant)).map(String)
+export const staffSalonIds = (user: StaffUser) => (user.tenants ?? []).map((t) => (typeof t.tenant === 'object' ? t.tenant.id : t.tenant)).map(String)
 
 export const canManage = (user: StaffUser) => ['platform-admin', 'owner', 'manager'].includes(user.role)
 

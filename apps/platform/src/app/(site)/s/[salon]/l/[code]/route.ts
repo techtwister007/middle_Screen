@@ -1,7 +1,7 @@
-import { getPayloadClient } from '@/lib/payload'
-import { getSalonBySlug } from '@/lib/salon'
 import { trackClick } from '@salon/modules'
 import { NextResponse } from 'next/server'
+import { getPayloadClient } from '@/lib/payload'
+import { getSalonBySlug } from '@/lib/salon'
 
 /** Tracked short links for QR codes, bio links, posters and partners. */
 export async function GET(req: Request, { params }: { params: Promise<{ salon: string; code: string }> }) {

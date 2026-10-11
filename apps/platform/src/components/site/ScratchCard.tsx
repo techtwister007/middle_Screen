@@ -3,7 +3,17 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { scratch } from '@/app/(site)/s/[salon]/actions'
 
 /** A real scratch card: drag a finger to reveal the reward underneath. */
-export const ScratchCard = ({ slug, rewardId, title, revealed: initiallyRevealed }: { slug: string; rewardId: string | number; title: string; revealed: boolean }) => {
+export const ScratchCard = ({
+  slug,
+  rewardId,
+  title,
+  revealed: initiallyRevealed,
+}: {
+  slug: string
+  rewardId: string | number
+  title: string
+  revealed: boolean
+}) => {
   const canvas = useRef<HTMLCanvasElement>(null)
   const [revealed, setRevealed] = useState(initiallyRevealed)
   const [, start] = useTransition()
@@ -58,14 +68,14 @@ export const ScratchCard = ({ slug, rewardId, title, revealed: initiallyRevealed
   }
 
   return (
-    <div className="relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-card border border-line bg-surface">
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-brand">Your next-visit reward</p>
-        <p className="mt-2 font-heading text-3xl leading-tight">{title}</p>
+    <div className='relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-card border border-line bg-surface'>
+      <div className='absolute inset-0 flex flex-col items-center justify-center p-6 text-center'>
+        <p className='text-xs font-semibold uppercase tracking-widest text-brand'>Your next-visit reward</p>
+        <p className='mt-2 font-heading text-3xl leading-tight'>{title}</p>
       </div>
       {!revealed ? (
         <canvas
-          className="scratch-surface absolute inset-0 h-full w-full cursor-pointer"
+          className='scratch-surface absolute inset-0 h-full w-full cursor-pointer'
           onPointerDown={(e) => {
             drawing.current = true
             scratchAt(e.clientX, e.clientY)

@@ -1,4 +1,4 @@
-import { type ID, type Paise, defineModule, emit, forTenant, idOf } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf, type Paise } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
@@ -46,6 +46,7 @@ export const Visits: CollectionConfig = {
 }
 
 export * from './checkout'
+
 import { type CheckoutInput, computeCheckout } from './checkout'
 
 export interface CheckoutRequest extends CheckoutInput {

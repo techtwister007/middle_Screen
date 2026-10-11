@@ -75,11 +75,7 @@ export const busyness = (slots: Slot[], staffCount: number, possiblePerStaff: nu
 }
 
 /** Picks the staff member for "anyone": preferred first, then the least busy. */
-export const pickStaff = (
-  candidates: (string | number)[],
-  loadByStaff: Map<string, number>,
-  preferred?: string | number | null,
-): string | number | null => {
+export const pickStaff = (candidates: (string | number)[], loadByStaff: Map<string, number>, preferred?: string | number | null): string | number | null => {
   if (candidates.length === 0) return null
   if (preferred != null && candidates.some((c) => String(c) === String(preferred))) return preferred
   return [...candidates].sort((a, b) => (loadByStaff.get(String(a)) ?? 0) - (loadByStaff.get(String(b)) ?? 0))[0]

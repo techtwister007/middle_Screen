@@ -1,10 +1,10 @@
 import 'server-only'
-import { type ID, forTenant, idOf } from '@salon/core'
+import { forTenant, type ID, idOf } from '@salon/core'
 import { activeRewards, aiTryOnAllowance, currentContest, walletBalance } from '@salon/modules'
 import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
 import { getPayloadClient } from './payload'
-import { type SalonRecord, getSalonBySlug, salonFeatures } from './salon'
+import { getSalonBySlug, type SalonRecord, salonFeatures } from './salon'
 import { getCustomerSession } from './session'
 
 export interface CustomerRecord {
@@ -110,10 +110,19 @@ export const artists = cache(async (salon: SalonRecord) => {
 export const liveOffers = cache(async (salon: SalonRecord) => {
   const repo = await repoFor(salon)
   const now = new Date().toISOString()
-  const res = await repo.find<{ id: ID; title: string; description?: string | null; image?: unknown; endsAt?: string | null; kind: string; showOnHome?: boolean | null }>(
-    'offers',
-    { where: { and: [{ status: { equals: 'live' } }, { or: [{ endsAt: { exists: false } }, { endsAt: { greater_than: now } }] }] }, depth: 1, sort: 'endsAt' },
-  )
+  const res = await repo.find<{
+    id: ID
+    title: string
+    description?: string | null
+    image?: unknown
+    endsAt?: string | null
+    kind: string
+    showOnHome?: boolean | null
+  }>('offers', {
+    where: { and: [{ status: { equals: 'live' } }, { or: [{ endsAt: { exists: false } }, { endsAt: { greater_than: now } }] }] },
+    depth: 1,
+    sort: 'endsAt',
+  })
   return res.docs
 })
 
@@ -133,7 +142,14 @@ export const customerHome = async (salon: SalonRecord, customer: CustomerRecord)
   const repo = forTenant(payload, salon.id)
   const now = new Date().toISOString()
   const [upcoming, account, rewards, wallet, lastVisit] = await Promise.all([
-    repo.find<{ id: ID; start: string; status: string; staff?: { name?: string } | ID; services: ({ name: string } | ID)[]; design?: DesignRecord | ID | null }>('appointments', {
+    repo.find<{
+      id: ID
+      start: string
+      status: string
+      staff?: { name?: string } | ID
+      services: ({ name: string } | ID)[]
+      design?: DesignRecord | ID | null
+    }>('appointments', {
       where: { and: [{ customer: { equals: customer.id } }, { start: { greater_than: now } }, { status: { in: ['requested', 'confirmed'] } }] },
       sort: 'start',
       limit: 3,

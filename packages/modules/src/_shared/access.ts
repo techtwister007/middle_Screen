@@ -2,8 +2,7 @@ import type { Access, PayloadRequest } from 'payload'
 
 export type StaffRole = 'platform-admin' | 'owner' | 'manager' | 'artist'
 
-export const roleOf = (req: PayloadRequest): StaffRole | null =>
-  ((req.user as { role?: StaffRole } | null)?.role ?? null)
+export const roleOf = (req: PayloadRequest): StaffRole | null => (req.user as { role?: StaffRole } | null)?.role ?? null
 
 export const isPlatformAdmin = (req: PayloadRequest) => roleOf(req) === 'platform-admin'
 

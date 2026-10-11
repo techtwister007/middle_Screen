@@ -1,22 +1,9 @@
-import {
-  type ID,
-  MINUTE_MS,
-  asId,
-  addDays,
-  defineModule,
-  emit,
-  forTenant,
-  idOf,
-  localDate,
-  localWeekday,
-  shortCode,
-  zonedDateTime,
-} from '@salon/core'
+import { addDays, asId, defineModule, emit, forTenant, type ID, idOf, localDate, localWeekday, MINUTE_MS, shortCode, zonedDateTime } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
 import { type PricedItem, quote } from '../_shared/pricing'
-import { type Slot, type StaffDay, computeSlots, isFree, overlaps, pickStaff } from './slots'
+import { computeSlots, isFree, pickStaff, type Slot, type StaffDay } from './slots'
 
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
@@ -197,28 +184,23 @@ const bookableStaff = async (payload: Payload, tenant: ID, staffId?: ID | null) 
   return res.docs as unknown as { id: ID; name: string }[]
 }
 
-const staffDays = async (
-  payload: Payload,
-  salon: SalonForBooking,
-  date: string,
-  staff: { id: ID }[],
-  ignoreAppointmentId?: ID,
-): Promise<StaffDay[]> => {
+const staffDays = async (payload: Payload, salon: SalonForBooking, date: string, staff: { id: ID }[], ignoreAppointmentId?: ID): Promise<StaffDay[]> => {
   const tz = salon.timezone ?? 'Asia/Kolkata'
   const repo = forTenant(payload, salon.id)
   const dayStart = zonedDateTime(date, '00:00', tz)
   const dayEnd = addDays(dayStart, 1)
   const weekday = WEEKDAYS[localWeekday(dayStart, tz)]
   const salonDay = salon.hours?.find((h) => h.day === weekday)
-  const salonHours = salonDay && !salonDay.closed ? { open: salonDay.open ?? '10:00', close: salonDay.close ?? '20:00' } : salon.hours?.length ? null : { open: '10:00', close: '20:00' }
+  const salonHours =
+    salonDay && !salonDay.closed
+      ? { open: salonDay.open ?? '10:00', close: salonDay.close ?? '20:00' }
+      : salon.hours?.length
+        ? null
+        : { open: '10:00', close: '20:00' }
 
   const appts = await repo.find<AppointmentDoc>('appointments', {
     where: {
-      and: [
-        { start: { less_than: dayEnd.toISOString() } },
-        { end: { greater_than: dayStart.toISOString() } },
-        { status: { in: ['requested', 'confirmed'] } },
-      ],
+      and: [{ start: { less_than: dayEnd.toISOString() } }, { end: { greater_than: dayStart.toISOString() } }, { status: { in: ['requested', 'confirmed'] } }],
     },
     limit: 500,
   })
@@ -305,8 +287,7 @@ export const requestBooking = async (payload: Payload, tenant: ID, raw: RequestB
   const tz = salon.timezone ?? 'Asia/Kolkata'
   if (start.getTime() < Date.now()) throw new BookingError('outside-hours', 'Please choose a time in the future.')
   const candidates = days.filter((d) => isFree(d, date, tz, start, end)).map((d) => d.staffId)
-  if (candidates.length === 0)
-    throw new BookingError('slot-taken', 'Sorry, that time was just taken. Please pick another slot.')
+  if (candidates.length === 0) throw new BookingError('slot-taken', 'Sorry, that time was just taken. Please pick another slot.')
 
   const repo = forTenant(payload, tenant)
   const customer = await repo.findByID<{ id: ID; preferredArtist?: ID | null }>('customers', input.customerId)
@@ -418,11 +399,7 @@ export const markDepositPaid = async (payload: Payload, tenant: ID, appointmentI
   return appt
 }
 
-export const joinWaitlist = async (
-  payload: Payload,
-  tenant: ID,
-  input: { customerId: ID; serviceIds: ID[]; date: string; from?: string; to?: string },
-) =>
+export const joinWaitlist = async (payload: Payload, tenant: ID, input: { customerId: ID; serviceIds: ID[]; date: string; from?: string; to?: string }) =>
   forTenant(payload, tenant).create('waitlist', {
     customer: input.customerId,
     services: input.serviceIds,
@@ -432,11 +409,7 @@ export const joinWaitlist = async (
     status: 'waiting',
   })
 
-export const createGroupBooking = async (
-  payload: Payload,
-  tenant: ID,
-  input: { organiserId: ID; start: string; size: number; occasion?: string },
-) =>
+export const createGroupBooking = async (payload: Payload, tenant: ID, input: { organiserId: ID; start: string; size: number; occasion?: string }) =>
   forTenant(payload, tenant).create<{ id: ID; code: string }>('group-bookings', {
     organiser: input.organiserId,
     start: input.start,
@@ -454,10 +427,7 @@ export const bookingModule = defineModule({
   on: {
     'payment.captured': async ({ payload, event }) => {
       if (event.payload.kind !== 'deposit') return
-      const payment = await forTenant(payload, event.tenant).findByID<{ id: ID; appointment?: ID | { id: ID } | null }>(
-        'payments',
-        event.payload.paymentId,
-      )
+      const payment = await forTenant(payload, event.tenant).findByID<{ id: ID; appointment?: ID | { id: ID } | null }>('payments', event.payload.paymentId)
       const appointmentId = idOf(payment?.appointment)
       if (appointmentId) await markDepositPaid(payload, event.tenant, appointmentId, event.payload.paymentId)
     },

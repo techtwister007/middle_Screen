@@ -1,6 +1,6 @@
 import 'server-only'
-import { type ID } from '@salon/core'
-import { SignJWT, jwtVerify } from 'jose'
+import type { ID } from '@salon/core'
+import { jwtVerify, SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 
 const secret = () => new TextEncoder().encode(process.env.CUSTOMER_SESSION_SECRET || process.env.PAYLOAD_SECRET || 'dev')

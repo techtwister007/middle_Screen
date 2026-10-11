@@ -20,12 +20,16 @@ export const StudioNav = ({ base, manager }: { base: string; manager: boolean })
   if (path?.endsWith('/display') || path?.endsWith('/kiosk')) return null
   return (
     <>
-      <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur md:hidden">
-        <div className="flex justify-around">
+      <nav className='pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur md:hidden'>
+        <div className='flex justify-around'>
           {items.slice(0, 5).map((i) => {
             const active = path?.startsWith(`${base}/${i.href}`)
             return (
-              <Link className={cn('flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px]', active ? 'text-brand' : 'text-muted')} href={`${base}/${i.href}`} key={i.href}>
+              <Link
+                className={cn('flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px]', active ? 'text-brand' : 'text-muted')}
+                href={`${base}/${i.href}`}
+                key={i.href}
+              >
                 <i.icon size={21} />
                 {i.label}
               </Link>
@@ -33,11 +37,18 @@ export const StudioNav = ({ base, manager }: { base: string; manager: boolean })
           })}
         </div>
       </nav>
-      <aside className="fixed inset-y-0 left-0 hidden w-56 border-r border-line bg-surface px-3 pt-20 md:block">
+      <aside className='fixed inset-y-0 left-0 hidden w-56 border-r border-line bg-surface px-3 pt-20 md:block'>
         {items.map((i) => {
           const active = path?.startsWith(`${base}/${i.href}`)
           return (
-            <Link className={cn('mb-1 flex items-center gap-3 rounded-btn px-3 py-2.5 text-sm', active ? 'bg-brand/10 font-medium text-brand' : 'text-ink hover:bg-tint')} href={`${base}/${i.href}`} key={i.href}>
+            <Link
+              className={cn(
+                'mb-1 flex items-center gap-3 rounded-btn px-3 py-2.5 text-sm',
+                active ? 'bg-brand/10 font-medium text-brand' : 'text-ink hover:bg-tint',
+              )}
+              href={`${base}/${i.href}`}
+              key={i.href}
+            >
               <i.icon size={18} />
               {i.label}
             </Link>

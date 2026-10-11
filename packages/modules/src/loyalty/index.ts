@@ -1,8 +1,8 @@
-import { type ID, type Paise, addDays, defineModule, emit, forTenant, idOf, shortCode } from '@salon/core'
+import { addDays, defineModule, emit, forTenant, type ID, idOf, type Paise, shortCode } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
-import { type RewardSpec, applyBudget, estimatedCost, nextVisitReward, pointsFor, rewardDiscount, tierFor } from './rules'
+import { applyBudget, estimatedCost, nextVisitReward, pointsFor, type RewardSpec, rewardDiscount, tierFor } from './rules'
 
 export const LoyaltyAccounts: CollectionConfig = {
   slug: 'loyalty-accounts',
@@ -145,11 +145,7 @@ export const activeRewards = async (payload: Payload, tenant: ID, customerId: ID
   (
     await forTenant(payload, tenant).find<RewardDoc>('rewards', {
       where: {
-        and: [
-          { customer: { equals: customerId } },
-          { status: { equals: 'active' } },
-          { validTo: { greater_than: new Date().toISOString() } },
-        ],
+        and: [{ customer: { equals: customerId } }, { status: { equals: 'active' } }, { validTo: { greater_than: new Date().toISOString() } }],
       },
       sort: 'validTo',
     })

@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, idOf, normalizePhone, salonLink } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf, normalizePhone, salonLink } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
 

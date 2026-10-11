@@ -30,7 +30,12 @@ const ornamentSvg = (frame: Frame, cx: number, y: number) => {
     case 'diya':
       return `<path d="M${cx - 40} ${y} q40 30 80 0 z" fill="${frame.accent}"/><path d="M${cx} ${y - 34} q12 18 0 30 q-12 -12 0 -30z" fill="#FFD36B"/>`
     case 'garba':
-      return [-60, -30, 0, 30, 60].map((dx, i) => `<rect x="${cx + dx - 8}" y="${y - 8}" width="16" height="16" transform="rotate(45 ${cx + dx} ${y})" fill="${i % 2 ? frame.foreground : frame.accent}"/>`).join('')
+      return [-60, -30, 0, 30, 60]
+        .map(
+          (dx, i) =>
+            `<rect x="${cx + dx - 8}" y="${y - 8}" width="16" height="16" transform="rotate(45 ${cx + dx} ${y})" fill="${i % 2 ? frame.foreground : frame.accent}"/>`,
+        )
+        .join('')
     case 'line':
       return `<rect x="${cx - 60}" y="${y - 1}" width="120" height="2" fill="${frame.accent}"/>`
     default:
@@ -74,12 +79,18 @@ const textBand = (width: number, height: number, frame: Frame, t: ShareKitText, 
       `<text x="${cx}" y="${y}" text-anchor="middle" font-family="'Helvetica Neue', Arial, 'DejaVu Sans', sans-serif" font-size="30" fill="${frame.background}">Book this look · ${esc(t.link.replace(/^https?:\/\//, ''))}</text>`,
     )
   }
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${frame.background}"/>${lines.join('')}</svg>`)
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${frame.background}"/>${lines.join('')}</svg>`,
+  )
 }
 
 /** Builds a branded image: the nail photo on top, the salon band beneath. */
 const compose = async (photo: Buffer, width: number, height: number, photoHeight: number, frame: Frame, t: ShareKitText, cta: boolean) => {
-  const img = await sharp(photo).rotate().resize(width - 80, photoHeight - 80, { fit: 'cover', position: 'attention' }).jpeg({ quality: 88 }).toBuffer()
+  const img = await sharp(photo)
+    .rotate()
+    .resize(width - 80, photoHeight - 80, { fit: 'cover', position: 'attention' })
+    .jpeg({ quality: 88 })
+    .toBuffer()
   const rounded = await sharp(img)
     .composite([
       {

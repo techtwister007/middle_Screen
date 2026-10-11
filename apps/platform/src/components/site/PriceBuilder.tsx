@@ -35,21 +35,24 @@ export const PriceBuilder = ({
   const minutes = (main?.durationMinutes ?? 0) + chosen.reduce((n, a) => n + a.durationMinutes, 0)
   const ids = [main?.id, ...chosen.map((a) => a.id)].filter(Boolean).join(',')
   return (
-    <div className="rounded-card border border-line bg-surface p-4">
+    <div className='rounded-card border border-line bg-surface p-4'>
       {main ? (
-        <div className="flex items-center justify-between text-[15px]">
+        <div className='flex items-center justify-between text-[15px]'>
           <span>{main.name}</span>
-          <span className="tabular-nums">{formatINR(main.price)}</span>
+          <span className='tabular-nums'>{formatINR(main.price)}</span>
         </div>
       ) : null}
       {addOns.length ? (
-        <div className="mt-3 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Add-ons</p>
+        <div className='mt-3 space-y-2'>
+          <p className='text-xs font-semibold uppercase tracking-wider text-muted'>Add-ons</p>
           {addOns.map((a) => {
             const on = selected.has(String(a.id))
             return (
               <button
-                className={cn('flex w-full items-center justify-between rounded-btn border px-3 py-2.5 text-sm transition', on ? 'border-brand bg-brand/8' : 'border-line')}
+                className={cn(
+                  'flex w-full items-center justify-between rounded-btn border px-3 py-2.5 text-sm transition',
+                  on ? 'border-brand bg-brand/8' : 'border-line',
+                )}
                 key={String(a.id)}
                 onClick={() =>
                   setSelected((s) => {
@@ -59,23 +62,27 @@ export const PriceBuilder = ({
                     return n
                   })
                 }
-                type="button"
+                type='button'
               >
-                <span className="flex items-center gap-2">
-                  <span className={cn('flex h-5 w-5 items-center justify-center rounded-full border', on ? 'border-brand bg-brand text-on-brand' : 'border-line')}>{on ? <Check size={12} /> : null}</span>
+                <span className='flex items-center gap-2'>
+                  <span
+                    className={cn('flex h-5 w-5 items-center justify-center rounded-full border', on ? 'border-brand bg-brand text-on-brand' : 'border-line')}
+                  >
+                    {on ? <Check size={12} /> : null}
+                  </span>
                   {a.name}
                 </span>
-                <span className="tabular-nums text-muted">+{formatINR(a.price)}</span>
+                <span className='tabular-nums text-muted'>+{formatINR(a.price)}</span>
               </button>
             )
           })}
         </div>
       ) : null}
-      <div className="mt-4 flex items-end justify-between border-t border-line pt-4">
+      <div className='mt-4 flex items-end justify-between border-t border-line pt-4'>
         <div>
-          <p className="text-xs text-muted">Total</p>
-          <p className="font-heading text-3xl tabular-nums">{formatINR(total)}</p>
-          <p className="flex items-center gap-1 text-xs text-muted">
+          <p className='text-xs text-muted'>Total</p>
+          <p className='font-heading text-3xl tabular-nums'>{formatINR(total)}</p>
+          <p className='flex items-center gap-1 text-xs text-muted'>
             <Clock size={12} /> {fmt(minutes)}
           </p>
         </div>

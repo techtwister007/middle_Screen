@@ -1,4 +1,4 @@
-import { type ID, defineModule, isEnabled } from '@salon/core'
+import { defineModule, type ID, isEnabled } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { platformOnly, staffOnly } from '../_shared/access'
 

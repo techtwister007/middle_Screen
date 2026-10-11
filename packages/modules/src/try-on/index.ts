@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, isEnabled, publicUrl } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, isEnabled, publicUrl } from '@salon/core'
 import { getImageAi } from '@salon/integrations'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
@@ -92,4 +92,3 @@ export const tryOnModule = defineModule({
   collections: [TryOns],
   tenantCollections: ['try-ons'],
 })
-

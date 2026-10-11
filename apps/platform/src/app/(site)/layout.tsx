@@ -15,10 +15,10 @@ export const viewport: Viewport = {
 
 export default function SiteRootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <head>
-        <link href="https://fonts.googleapis.com" rel="preconnect" />
-        <link crossOrigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href='https://fonts.googleapis.com' rel='preconnect' />
+        <link crossOrigin='' href='https://fonts.gstatic.com' rel='preconnect' />
       </head>
       <body>{children}</body>
     </html>

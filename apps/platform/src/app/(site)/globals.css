@@ -13,8 +13,8 @@
   --t-on-primary: #ffffff;
   --t-accent: #e08e6d;
   --t-border: #e6e0dd;
-  --t-font-heading: 'Fraunces', 'Noto Sans Gujarati', 'Noto Sans Devanagari', Georgia, serif;
-  --t-font-body: 'Plus Jakarta Sans', 'Noto Sans Gujarati', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --t-font-heading: "Fraunces", "Noto Sans Gujarati", "Noto Sans Devanagari", Georgia, serif;
+  --t-font-body: "Plus Jakarta Sans", "Noto Sans Gujarati", "Noto Sans Devanagari", system-ui, sans-serif;
   --t-radius: 18px;
   --t-btn-radius: 12px;
   --t-heading-tracking: -0.01em;
@@ -73,8 +73,8 @@ body {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
   }
 }
 

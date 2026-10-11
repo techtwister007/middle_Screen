@@ -39,7 +39,9 @@ test('walk-in checkout, pre-book and photo corner', async ({ page }) => {
 
   // Photo corner
   await page.getByRole('link', { name: /photo corner/i }).click()
-  const image = await sharp({ create: { width: 800, height: 1000, channels: 3, background: '#c77d9e' } }).jpeg().toBuffer()
+  const image = await sharp({ create: { width: 800, height: 1000, channels: 3, background: '#c77d9e' } })
+    .jpeg()
+    .toBuffer()
   await page.locator('input[type=file]').setInputFiles({ name: 'nails.jpg', mimeType: 'image/jpeg', buffer: image })
   await expect(page.locator('img[src*="/api/media/file/"]').first()).toBeVisible()
   await page.getByLabel('Design name').fill('E2E Chrome')

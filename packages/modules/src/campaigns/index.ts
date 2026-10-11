@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, shortCode } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, shortCode } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonConfig, staffOnly } from '../_shared/access'
 
@@ -42,7 +42,12 @@ export const Offers: CollectionConfig = {
 export const CampaignPacks: CollectionConfig = {
   slug: 'campaign-packs',
   admin: { useAsTitle: 'title' },
-  access: { read: staffOnly, create: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin', update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin', delete: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin' },
+  access: {
+    read: staffOnly,
+    create: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+    update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+    delete: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin',
+  },
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'festival', type: 'text', required: true, index: true },
@@ -121,7 +126,7 @@ export const offerFromPack = async (payload: Payload, tenant: ID, packId: ID) =>
 export const claimOffer = async (payload: Payload, tenant: ID, offerId: ID, customerId: ID) => {
   const repo = forTenant(payload, tenant)
   const offer = await repo.findByID<OfferDoc>('offers', offerId)
-  if (!offer || offer.status !== 'live') throw new Error('This offer is no longer available')
+  if (offer?.status !== 'live') throw new Error('This offer is no longer available')
   if (offer.endsAt && new Date(offer.endsAt) < new Date()) throw new Error('This offer has ended')
   const already = await repo.count('rewards', { and: [{ customer: { equals: customerId } }, { source: { equals: `offer:${offerId}` } }] })
   if (already) return offer

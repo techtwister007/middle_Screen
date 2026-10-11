@@ -3,7 +3,20 @@ import type { CollectionConfig } from 'payload'
 import { salonConfig } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
 
-export const SERVICE_CATEGORIES = ['gel', 'extensions', 'nail-art', 'manicure', 'pedicure', 'refill', 'removal', 'add-on', 'bridal', 'lashes', 'brows', 'other'] as const
+export const SERVICE_CATEGORIES = [
+  'gel',
+  'extensions',
+  'nail-art',
+  'manicure',
+  'pedicure',
+  'refill',
+  'removal',
+  'add-on',
+  'bridal',
+  'lashes',
+  'brows',
+  'other',
+] as const
 
 export const Services: CollectionConfig = {
   slug: 'services',
@@ -16,10 +29,7 @@ export const Services: CollectionConfig = {
     { name: 'description', type: 'textarea' },
     {
       type: 'row',
-      fields: [
-        moneyField('price', { required: true }),
-        { name: 'durationMinutes', type: 'number', required: true, defaultValue: 60, min: 5 },
-      ],
+      fields: [moneyField('price', { required: true }), { name: 'durationMinutes', type: 'number', required: true, defaultValue: 60, min: 5 }],
     },
     {
       name: 'isAddOn',

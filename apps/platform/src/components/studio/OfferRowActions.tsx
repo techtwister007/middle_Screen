@@ -7,13 +7,13 @@ export const OfferRowActions = ({ slug, id, status }: { slug: string; id: string
   const [pending, start] = useTransition()
   if (status === 'draft')
     return (
-      <Button disabled={pending} onClick={() => start(async () => void (await launch(slug, id)))} size="sm">
+      <Button disabled={pending} onClick={() => start(async () => void (await launch(slug, id)))} size='sm'>
         Launch
       </Button>
     )
   if (status === 'live')
     return (
-      <Button disabled={pending} onClick={() => start(async () => void (await endOffer(slug, id)))} size="sm" variant="ghost">
+      <Button disabled={pending} onClick={() => start(async () => void (await endOffer(slug, id)))} size='sm' variant='ghost'>
         End
       </Button>
     )

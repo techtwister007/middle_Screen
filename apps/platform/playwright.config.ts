@@ -15,7 +15,5 @@ export default defineConfig({
     launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : undefined,
   },
   projects: [{ name: 'mobile', use: { ...devices['Pixel 7'] } }],
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : { command: 'pnpm start', url: `${baseURL}/s/glamnails`, reuseExistingServer: true, timeout: 180_000 },
+  webServer: process.env.E2E_BASE_URL ? undefined : { command: 'pnpm start', url: `${baseURL}/s/glamnails`, reuseExistingServer: true, timeout: 180_000 },
 })

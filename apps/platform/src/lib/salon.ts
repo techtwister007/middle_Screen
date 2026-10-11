@@ -1,5 +1,5 @@
 import 'server-only'
-import { type ID, enabledFeatures, type FeatureKey, formatIST, localWeekday } from '@salon/core'
+import { enabledFeatures, type FeatureKey, formatIST, type ID, localWeekday } from '@salon/core'
 import { fontsHref, getTheme, resolveTokens, tokensToCss } from '@salon/themes'
 import { cache } from 'react'
 import { mediaUrl } from './media'
@@ -83,7 +83,11 @@ export const openStatus = (salon: SalonRecord, now = new Date()) => {
   if (today && !today.closed && today.open && hhmm < today.open) return { open: false, label: `Opens ${to12h(today.open)} today` }
   for (let i = 1; i <= 7; i++) {
     const d = salon.hours.find((h) => h.day === DAYS[(localWeekday(now, tz) + i) % 7])
-    if (d && !d.closed && d.open) return { open: false, label: `Closed · opens ${to12h(d.open)} ${i === 1 ? 'tomorrow' : DAYS[(localWeekday(now, tz) + i) % 7].replace(/^\w/, (c) => c.toUpperCase())}` }
+    if (d && !d.closed && d.open)
+      return {
+        open: false,
+        label: `Closed · opens ${to12h(d.open)} ${i === 1 ? 'tomorrow' : DAYS[(localWeekday(now, tz) + i) % 7].replace(/^\w/, (c) => c.toUpperCase())}`,
+      }
   }
   return { open: false, label: 'Closed' }
 }

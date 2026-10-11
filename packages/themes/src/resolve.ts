@@ -1,4 +1,4 @@
-import { THEMES, defaultTheme } from './themes'
+import { defaultTheme, THEMES } from './themes'
 import type { BrandOverrides, ThemeDefinition, ThemeTokens } from './types'
 
 const HEX = /^#[0-9a-f]{6}$/i
@@ -73,6 +73,8 @@ export const fontsHref = (theme: ThemeDefinition, tokens: ThemeTokens) => {
   for (const f of [tokens.headingFont, tokens.bodyFont]) if (![...families].some((x) => x.startsWith(f))) families.add(f)
   families.add('Noto Sans Gujarati:wght@400;600')
   families.add('Noto Sans Devanagari:wght@400;600')
-  const q = [...families].map((f) => `family=${encodeURIComponent(f).replace(/%20/g, '+').replace(/%3A/g, ':').replace(/%3B/g, ';').replace(/%40/g, '@').replace(/%2C/g, ',')}`).join('&')
+  const q = [...families]
+    .map((f) => `family=${encodeURIComponent(f).replace(/%20/g, '+').replace(/%3A/g, ':').replace(/%3B/g, ';').replace(/%40/g, '@').replace(/%2C/g, ',')}`)
+    .join('&')
   return `https://fonts.googleapis.com/css2?${q}&display=swap`
 }

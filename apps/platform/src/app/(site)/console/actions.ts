@@ -1,6 +1,6 @@
 'use server'
 
-import { type ID, asId, forTenant, getEventBus, idOf, rupees, slugify } from '@salon/core'
+import { asId, forTenant, getEventBus, type ID, idOf, rupees, slugify } from '@salon/core'
 import {
   closeContest,
   completePhotoTask,
@@ -44,14 +44,18 @@ export async function createSalonFromForm(_: unknown, form: FormData): Promise<R
     if (!name || !slug) return { ok: false, error: 'Name is required' }
     const isDemo = form.get('demo') === 'on'
     const photos = form.getAll('photos').filter((f): f is File => f instanceof File && f.size > 0 && f.type.startsWith('image/'))
-    const designImages = await Promise.all(photos.slice(0, 24).map(async (f) => ({ buffer: Buffer.from(await f.arrayBuffer()), mimetype: f.type, title: f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') })))
+    const designImages = await Promise.all(
+      photos
+        .slice(0, 24)
+        .map(async (f) => ({ buffer: Buffer.from(await f.arrayBuffer()), mimetype: f.type, title: f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') })),
+    )
     const def: SalonSeed = {
       name,
       slug,
       tagline: String(form.get('tagline') || 'Nail art that gets you noticed'),
       about: String(form.get('about') || `${name} in ${form.get('area') || 'Vadodara'}.`),
-      theme: (String(form.get('theme') || 'default') as SalonSeed['theme']),
-      plan: (String(form.get('plan') || 'studio') as SalonSeed['plan']),
+      theme: String(form.get('theme') || 'default') as SalonSeed['theme'],
+      plan: String(form.get('plan') || 'studio') as SalonSeed['plan'],
       colors: { cover: ['#F6D6DF', '#E8B4C8', '#C77D9E'], logoBg: String(form.get('primary') || '#B4537A'), logoFg: '#FFFFFF' },
       area: `${form.get('area') || 'Alkapuri'}, Vadodara`,
       instagram: String(form.get('instagram') || '').replace(/^@/, ''),
@@ -72,7 +76,9 @@ export async function createSalonFromForm(_: unknown, form: FormData): Promise<R
     const payload = await getPayloadClient()
     const salon = await seedSalon(payload, def, { ownerPassword: String(form.get('ownerPassword') || 'change-me-now'), designImages })
     if (form.get('primary')) {
-      await payload.update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { brand: { primaryColor: String(form.get('primary')) } } as never, depth: 0 }).catch(() => null)
+      await payload
+        .update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { brand: { primaryColor: String(form.get('primary')) } } as never, depth: 0 })
+        .catch(() => null)
     }
     if (!isDemo) {
       // Real salons start clean: remove the sample offers/contest history the seeder adds.
@@ -92,7 +98,9 @@ export async function setSalonField(slug: string, field: 'status' | 'plan' | 'th
   try {
     await requirePlatformAdmin()
     const payload = await getPayloadClient()
-    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, where: { slug: { equals: slug } }, limit: 1 })).docs[0] as { id: ID } | undefined
+    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, where: { slug: { equals: slug } }, limit: 1 })).docs[0] as
+      | { id: ID }
+      | undefined
     if (!salon) return { ok: false, error: 'Salon not found' }
     await payload.update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { [field]: value } as never })
     await audit(`salon.${field}`, { slug, value })
@@ -138,7 +146,9 @@ const demoContext = async (slug: string) => {
   if (!salon) throw new Error('Salon not found')
   const repo = forTenant(payload, salon.id)
   const phone = String(salon.settings?.demoPhone ?? '')
-  const customer = phone ? await repo.findOne<{ id: ID; phone: string; referralCode?: string; language?: string }>('customers', { phone: { equals: phone } }) : null
+  const customer = phone
+    ? await repo.findOne<{ id: ID; phone: string; referralCode?: string; language?: string }>('customers', { phone: { equals: phone } })
+    : null
   return { payload, salon, repo, customer }
 }
 
@@ -146,7 +156,12 @@ export async function setDemoPhone(slug: string, phone: string): Promise<Result>
   try {
     const { payload, salon } = await demoContext(slug)
     const { customer } = await findOrCreateCustomer(payload, salon.id, { phone, name: 'Demo Owner', marketingConsent: true, source: 'instagram' })
-    await payload.update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { settings: { ...(salon.settings ?? {}), demoPhone: customer.phone } } as never })
+    await payload.update({
+      collection: 'salons',
+      id: salon.id,
+      overrideAccess: true,
+      data: { settings: { ...(salon.settings ?? {}), demoPhone: customer.phone } } as never,
+    })
     revalidatePath(`/console/demo/${slug}`)
     return { ok: true, message: `Demo customer ready: ${customer.phone}` }
   } catch (err) {
@@ -155,11 +170,13 @@ export async function setDemoPhone(slug: string, phone: string): Promise<Result>
 }
 
 const latestVisit = async (repo: ReturnType<typeof forTenant>, customerId: ID) =>
-  (await repo.find<{ id: ID; createdAt: string; staff?: ID | { id: ID } | null; lines: { service?: ID | { id: ID } | null }[] }>('visits', {
-    where: { customer: { equals: customerId } },
-    sort: '-createdAt',
-    limit: 1,
-  })).docs[0] ?? null
+  (
+    await repo.find<{ id: ID; createdAt: string; staff?: ID | { id: ID } | null; lines: { service?: ID | { id: ID } | null }[] }>('visits', {
+      where: { customer: { equals: customerId } },
+      sort: '-createdAt',
+      limit: 1,
+    })
+  ).docs[0] ?? null
 
 export async function presenter(slug: string, action: string): Promise<Result> {
   try {
@@ -172,12 +189,14 @@ export async function presenter(slug: string, action: string): Promise<Result> {
     switch (action) {
       case 'complete-visit': {
         const c = needCustomer()
-        const appt = (await repo.find<{ id: ID; services: ID[]; design?: ID | { id: ID; title?: string } | null; staff?: ID | null }>('appointments', {
-          where: { and: [{ customer: { equals: c.id } }, { status: { in: ['requested', 'confirmed'] } }] },
-          sort: '-createdAt',
-          limit: 1,
-          depth: 1,
-        })).docs[0]
+        const appt = (
+          await repo.find<{ id: ID; services: ID[]; design?: ID | { id: ID; title?: string } | null; staff?: ID | null }>('appointments', {
+            where: { and: [{ customer: { equals: c.id } }, { status: { in: ['requested', 'confirmed'] } }] },
+            sort: '-createdAt',
+            limit: 1,
+            depth: 1,
+          })
+        ).docs[0]
         let serviceIds: ID[] = []
         let designName: string | undefined
         if (appt) {
@@ -228,13 +247,21 @@ export async function presenter(slug: string, action: string): Promise<Result> {
       case 'friend-accepts': {
         const c = needCustomer()
         const friendPhone = `+91${7000000000 + Math.floor(Math.random() * 999999999)}`
-        const { customer: friend } = await findOrCreateCustomer(payload, salon.id, { phone: friendPhone, name: 'Ananya (friend)', referralCode: c.referralCode ?? undefined, marketingConsent: true })
+        const { customer: friend } = await findOrCreateCustomer(payload, salon.id, {
+          phone: friendPhone,
+          name: 'Ananya (friend)',
+          referralCode: c.referralCode ?? undefined,
+          marketingConsent: true,
+        })
         const svc = await repo.findOne<{ id: ID; name: string; price: number }>('services', { isAddOn: { equals: false } })
         if (!svc) throw new Error('No services')
         const date = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10)
         const { slots } = await getAvailableSlots(payload, salon.id, { date, serviceIds: [svc.id] })
-        if (slots[0]) await requestBooking(payload, salon.id, { customerId: friend.id, serviceIds: [svc.id], start: slots[0].start.toISOString(), source: 'referral' })
-        const reward = await repo.findOne<{ id: ID; value: number }>('rewards', { and: [{ customer: { equals: friend.id } }, { kind: { equals: 'referral' } }] })
+        if (slots[0])
+          await requestBooking(payload, salon.id, { customerId: friend.id, serviceIds: [svc.id], start: slots[0].start.toISOString(), source: 'referral' })
+        const reward = await repo.findOne<{ id: ID; value: number }>('rewards', {
+          and: [{ customer: { equals: friend.id } }, { kind: { equals: 'referral' } }],
+        })
         await completeVisit(payload, salon.id, {
           customerId: friend.id,
           lines: [{ serviceId: svc.id, name: svc.name, price: svc.price }],
@@ -249,11 +276,24 @@ export async function presenter(slug: string, action: string): Promise<Result> {
         if (!victim) throw new Error('No sample customer')
         const visit = await latestVisit(repo, victim.id)
         await repo.update('customers', victim.id, { name: 'Hetal Desai' })
-        await submitRating(payload, salon.id, { customerId: victim.id, visitId: undefined, score: 2, comment: visit ? 'One nail lifted after two days.' : 'Waited 20 minutes.' })
+        await submitRating(payload, salon.id, {
+          customerId: victim.id,
+          visitId: undefined,
+          score: 2,
+          comment: visit ? 'One nail lifted after two days.' : 'Waited 20 minutes.',
+        })
         return { ok: true, message: "Owner alerted: 'Hetal rated 2 stars, call her'." }
       }
       case 'festival-pack': {
-        const pack = (await payload.find({ collection: 'campaign-packs', overrideAccess: true, sort: 'startsOn', limit: 1, where: { endsOn: { greater_than: new Date().toISOString() } } })).docs[0] as { id: ID } | undefined
+        const pack = (
+          await payload.find({
+            collection: 'campaign-packs',
+            overrideAccess: true,
+            sort: 'startsOn',
+            limit: 1,
+            where: { endsOn: { greater_than: new Date().toISOString() } },
+          })
+        ).docs[0] as { id: ID } | undefined
         if (!pack) throw new Error('No festival pack')
         const offer = await offerFromPack(payload, salon.id, pack.id)
         await launchOffer(payload, salon.id, offer.id)
@@ -281,8 +321,12 @@ export async function presenter(slug: string, action: string): Promise<Result> {
       }
       case 'reset': {
         const c = needCustomer()
-        for (const col of ['appointments', 'visits', 'rewards', 'photo-tasks', 'ratings', 'messages', 'referrals'])
-          for (const d of (await repo.find<{ id: ID }>(col, { where: col === 'referrals' ? { referrer: { equals: c.id } } : { customer: { equals: c.id } }, limit: 500 })).docs) await repo.delete(col, d.id)
+        // Children first: photo tasks require their visit.
+        for (const col of ['photo-tasks', 'ratings', 'messages', 'referrals', 'rewards', 'visits', 'appointments'])
+          for (const d of (
+            await repo.find<{ id: ID }>(col, { where: col === 'referrals' ? { referrer: { equals: c.id } } : { customer: { equals: c.id } }, limit: 500 })
+          ).docs)
+            await repo.delete(col, d.id)
         await repo.update('customers', c.id, { visitCount: 0, lifetimeSpend: 0, lastVisitAt: null, nextDueDate: null, segment: 'lead' })
         return { ok: true, message: 'Demo customer reset. Ready for the next demo.' }
       }
@@ -303,7 +347,17 @@ export async function demoRupees(n: number) {
 /** Messages the demo customer and the owner received, for the on-screen phone preview. */
 export async function demoMessages(slug: string) {
   const { repo, customer } = await demoContext(slug)
-  const res = await repo.find<{ id: ID; to: string; body: string; link?: string; template: string; audience?: string; status: string; createdAt: string; customer?: ID | { id: ID } | null }>('messages', {
+  const res = await repo.find<{
+    id: ID
+    to: string
+    body: string
+    link?: string
+    template: string
+    audience?: string
+    status: string
+    createdAt: string
+    customer?: ID | { id: ID } | null
+  }>('messages', {
     where: customer ? { or: [{ customer: { equals: customer.id } }, { audience: { equals: 'owner' } }] } : { audience: { equals: 'owner' } },
     sort: '-createdAt',
     limit: 30,

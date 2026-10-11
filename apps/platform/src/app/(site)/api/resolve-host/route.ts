@@ -1,5 +1,5 @@
-import { getPayloadClient } from '@/lib/payload'
 import { NextResponse } from 'next/server'
+import { getPayloadClient } from '@/lib/payload'
 
 export async function GET(req: Request) {
   const host = new URL(req.url).searchParams.get('host')?.toLowerCase()

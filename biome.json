@@ -13,20 +13,53 @@
       "!**/playwright-report",
       "!templates",
       "!app.py",
-      "!**/*.md"
+      "!**/*.md",
+      "!**/migrations",
+      "!**/next-env.d.ts"
     ]
   },
-  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 160 },
-  "javascript": { "formatter": { "quoteStyle": "single", "jsxQuoteStyle": "single", "semicolons": "asNeeded", "trailingCommas": "all" } },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 160
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all"
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
-      "a11y": { "useSemanticElements": "off", "noSvgWithoutTitle": "off", "useKeyWithClickEvents": "off" },
-      "suspicious": { "noExplicitAny": "warn", "noArrayIndexKey": "off" },
-      "style": { "noNonNullAssertion": "off" },
-      "correctness": { "useExhaustiveDependencies": "off" },
-      "performance": { "noImgElement": "off" }
+      "a11y": {
+        "useSemanticElements": "off",
+        "noSvgWithoutTitle": "off",
+        "useKeyWithClickEvents": "off",
+        "noLabelWithoutControl": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noArrayIndexKey": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "performance": {
+        "noImgElement": "off"
+      }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }

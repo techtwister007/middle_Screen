@@ -19,7 +19,12 @@ export const Designs: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'category', type: 'select', defaultValue: 'nail-art', options: ['nail-art', 'french', 'chrome', 'cat-eye', 'ombre', 'minimal', 'bridal', 'glitter', 'solid', '3d'] },
+        {
+          name: 'category',
+          type: 'select',
+          defaultValue: 'nail-art',
+          options: ['nail-art', 'french', 'chrome', 'cat-eye', 'ombre', 'minimal', 'bridal', 'glitter', 'solid', '3d'],
+        },
         { name: 'shape', type: 'select', options: [...SHAPES] },
         { name: 'length', type: 'select', options: [...LENGTHS] },
       ],

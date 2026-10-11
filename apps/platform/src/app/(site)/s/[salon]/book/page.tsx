@@ -1,8 +1,8 @@
+import type { ID } from '@salon/core'
 import { BookingFlow } from '@/components/site/BookingFlow'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
-import { type DesignRecord, artists, currentCustomer, idOf, loadSalon, repoFor, services } from '@/lib/site'
-import type { ID } from '@salon/core'
+import { artists, currentCustomer, type DesignRecord, idOf, loadSalon, repoFor, services } from '@/lib/site'
 
 export const metadata = { title: 'Book' }
 
@@ -23,7 +23,12 @@ export default async function BookPage({ params, searchParams }: { params: Promi
     if (design && !initial.length) initial = [idOf(design.service), ...(design.addOns ?? []).map((a) => idOf(a))].filter(Boolean) as ID[]
   }
   if (sp.repeat && customer) {
-    const visit = await repo.findByID<{ customer: ID | { id: ID }; lines: { service?: ID | { id: ID } | null }[]; design?: ID | null; staff?: ID | { id: ID } | null }>('visits', sp.repeat)
+    const visit = await repo.findByID<{
+      customer: ID | { id: ID }
+      lines: { service?: ID | { id: ID } | null }[]
+      design?: ID | null
+      staff?: ID | { id: ID } | null
+    }>('visits', sp.repeat)
     if (visit && String(idOf(visit.customer)) === String(customer.id)) {
       initial = visit.lines.map((l) => idOf(l.service)).filter(Boolean) as ID[]
       staff = idOf(visit.staff)
@@ -48,7 +53,14 @@ export default async function BookPage({ params, searchParams }: { params: Promi
       mapUrl={salon.contact?.mapUrl}
       preBooked={sp.chair === '1'}
       salonName={salon.name}
-      services={serviceList.map((s) => ({ id: s.id, name: s.name, category: s.category, price: s.price, durationMinutes: s.durationMinutes, isAddOn: s.isAddOn }))}
+      services={serviceList.map((s) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category,
+        price: s.price,
+        durationMinutes: s.durationMinutes,
+        isAddOn: s.isAddOn,
+      }))}
       slug={slug}
       timezone={salon.timezone ?? 'Asia/Kolkata'}
     />

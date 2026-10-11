@@ -47,4 +47,3 @@ export const computeCheckout = (input: CheckoutInput): CheckoutTotals => {
   const walletApplied = input.useWallet ? take(input.walletBalance) : 0
   return { subtotal, manualDiscount, rewardDiscount, packageCovered, walletApplied, total: remaining }
 }
-

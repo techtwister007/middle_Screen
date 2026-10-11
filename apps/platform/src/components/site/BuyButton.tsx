@@ -17,12 +17,12 @@ export const BuyPackageButton = ({ slug, packageId, label }: { slug: string; pac
             window.location.href = res.data!.payUrl
           })
         }
-        size="sm"
-        variant="secondary"
+        size='sm'
+        variant='secondary'
       >
         {pending ? 'Opening…' : label}
       </Button>
-      {error ? <p className="mt-2 text-xs">{error}</p> : null}
+      {error ? <p className='mt-2 text-xs'>{error}</p> : null}
     </div>
   )
 }
@@ -33,14 +33,14 @@ export const ClaimOfferButton = ({ slug, offerId, loggedIn, loginHref }: { slug:
   const [error, setError] = useState<string | null>(null)
   if (!loggedIn)
     return (
-      <a className="inline-flex h-14 w-full items-center justify-center rounded-btn bg-brand font-medium text-on-brand" href={loginHref}>
+      <a className='inline-flex h-14 w-full items-center justify-center rounded-btn bg-brand font-medium text-on-brand' href={loginHref}>
         Log in to claim
       </a>
     )
   return (
     <div>
       <Button
-        className="w-full"
+        className='w-full'
         disabled={pending || done}
         onClick={() =>
           start(async () => {
@@ -49,11 +49,11 @@ export const ClaimOfferButton = ({ slug, offerId, loggedIn, loginHref }: { slug:
             setDone(true)
           })
         }
-        size="lg"
+        size='lg'
       >
         {done ? 'Added to your rewards ✓' : pending ? 'Claiming…' : 'Claim this offer'}
       </Button>
-      {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
+      {error ? <p className='mt-2 text-sm text-red-700'>{error}</p> : null}
     </div>
   )
 }

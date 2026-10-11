@@ -8,7 +8,7 @@ export const StaffLoginForm = ({ next }: { next: string }) => {
   const [pending, setPending] = useState(false)
   return (
     <form
-      className="space-y-4"
+      className='space-y-4'
       onSubmit={async (e) => {
         e.preventDefault()
         setPending(true)
@@ -34,17 +34,17 @@ export const StaffLoginForm = ({ next }: { next: string }) => {
       }}
     >
       <div>
-        <Label htmlFor="email">Email</Label>
-        <Input autoComplete="username" id="email" name="email" required type="email" />
+        <Label htmlFor='email'>Email</Label>
+        <Input autoComplete='username' id='email' name='email' required type='email' />
       </div>
       <div>
-        <Label htmlFor="password">Password</Label>
-        <Input autoComplete="current-password" id="password" name="password" required type="password" />
+        <Label htmlFor='password'>Password</Label>
+        <Input autoComplete='current-password' id='password' name='password' required type='password' />
       </div>
-      <Button className="w-full" disabled={pending} size="lg" type="submit">
+      <Button className='w-full' disabled={pending} size='lg' type='submit'>
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className='text-sm text-red-700'>{error}</p> : null}
     </form>
   )
 }

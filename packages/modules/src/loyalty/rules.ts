@@ -28,8 +28,7 @@ export interface CrossSellInput {
  */
 export const nextVisitReward = (input: CrossSellInput, roll: number): RewardSpec => {
   const has = (c: string) => input.categories.includes(c)
-  if (has('gel') && !has('extensions') && roll < 0.5)
-    return { title: '₹300 off extensions', valueType: 'amount', value: 30000, isDiscount: true }
+  if (has('gel') && !has('extensions') && roll < 0.5) return { title: '₹300 off extensions', valueType: 'amount', value: 30000, isDiscount: true }
   if (!has('nail-art') && roll < 0.8) return { title: 'Free art on 2 nails', valueType: 'freebie', value: 0, freebie: 'Art on 2 nails', isDiscount: false }
   if (roll < 0.9) return { title: 'Free cuticle spa', valueType: 'freebie', value: 0, freebie: 'Cuticle spa', isDiscount: false }
   return { title: '10% off your next visit', valueType: 'percent', value: 10, isDiscount: true }

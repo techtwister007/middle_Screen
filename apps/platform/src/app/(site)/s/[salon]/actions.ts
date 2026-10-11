@@ -1,12 +1,9 @@
 'use server'
 
-import { type ID, asId, forTenant, idOf, normalizePhone } from '@salon/core'
+import { asId, forTenant, type ID, idOf, normalizePhone } from '@salon/core'
 import {
-  BookingError,
-  OtpError,
-  TryOnError,
-  VoteError,
   aiTryOn,
+  BookingError,
   cancelBooking,
   castVote,
   claimOffer,
@@ -19,6 +16,7 @@ import {
   findOrCreateCustomer,
   getAvailableSlots,
   joinWaitlist,
+  OtpError,
   recordInvite,
   recordShare,
   redeemGiftCard,
@@ -27,6 +25,8 @@ import {
   revealScratchCard,
   sendOtp,
   submitRating,
+  TryOnError,
+  VoteError,
   verifyOtp,
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'

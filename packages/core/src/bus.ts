@@ -1,6 +1,6 @@
 import type { Payload, PayloadRequest, TaskConfig } from 'payload'
 import { type ActorType, type EventEnvelope, type EventPayload, type EventType, parseEvent } from './events'
-import { type SalonFeatureInput, isEnabled } from './features'
+import { isEnabled, type SalonFeatureInput } from './features'
 import type { ID, SalonModule } from './module'
 
 export interface EmitInput<E extends EventType> {
@@ -44,10 +44,7 @@ const moduleActive = async (payload: Payload, mod: SalonModule, tenant: ID) => {
   return salon ? isEnabled(salon, mod.feature) : false
 }
 
-export const createEventBus = (
-  modules: SalonModule[],
-  options: { mode: BusMode; onError?: (err: unknown, context: string) => void },
-): EventBus => {
+export const createEventBus = (modules: SalonModule[], options: { mode: BusMode; onError?: (err: unknown, context: string) => void }): EventBus => {
   const byKey = new Map(modules.map((m) => [m.key, m]))
   const onError =
     options.onError ??
@@ -72,7 +69,7 @@ export const createEventBus = (
   }
 
   const bus: EventBus = {
-    async emit(payload, input, req) {
+    async emit(payload, input, _req) {
       const parsed = parseEvent(input.type, input.payload)
       const row = await payload.create({
         collection: 'events' as never,
@@ -189,7 +186,6 @@ export const getEventBus = (): EventBus => {
   return current
 }
 
-export const emit = <E extends EventType>(payload: Payload, input: EmitInput<E>, req?: PayloadRequest) =>
-  getEventBus().emit(payload, input, req)
+export const emit = <E extends EventType>(payload: Payload, input: EmitInput<E>, req?: PayloadRequest) => getEventBus().emit(payload, input, req)
 
 export const schedule = (payload: Payload, input: ScheduleInput) => getEventBus().schedule(payload, input)

@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, normalizePhone, shortCode } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, normalizePhone, shortCode } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { nobody, salonData } from '../_shared/access'
 import { moneyField, phoneField } from '../_shared/fields'
@@ -112,11 +112,7 @@ export interface FindOrCreateInput {
 }
 
 /** Finds a customer by phone within a salon, creating them (and emitting customer.registered) if new. */
-export const findOrCreateCustomer = async (
-  payload: Payload,
-  tenant: ID,
-  input: FindOrCreateInput,
-): Promise<{ customer: CustomerDoc; created: boolean }> => {
+export const findOrCreateCustomer = async (payload: Payload, tenant: ID, input: FindOrCreateInput): Promise<{ customer: CustomerDoc; created: boolean }> => {
   const phone = normalizePhone(input.phone)
   if (!phone) throw new Error('Invalid phone number')
   const repo = forTenant(payload, tenant)
@@ -175,10 +171,7 @@ export const recomputeSegments = async (payload: Payload, tenant: ID, now = new 
   const threshold = vipThreshold(all.map((c) => c.lifetimeSpend ?? 0))
   let changed = 0
   for (const c of all) {
-    const segment = segmentFor(
-      { visitCount: c.visitCount ?? 0, nextDueDate: c.nextDueDate, lastVisitAt: c.lastVisitAt },
-      now,
-    )
+    const segment = segmentFor({ visitCount: c.visitCount ?? 0, nextDueDate: c.nextDueDate, lastVisitAt: c.lastVisitAt }, now)
     const isVip = (c.lifetimeSpend ?? 0) >= threshold && (c.visitCount ?? 0) >= 2
     if (segment !== c.segment || isVip !== Boolean(c.isVip)) {
       await repo.update('customers', c.id, { segment, isVip })

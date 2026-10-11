@@ -11,23 +11,23 @@ export const AppointmentActions = ({ slug, id, policy, rebookHref }: { slug: str
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <Button onClick={() => router.push(rebookHref)} variant="secondary">
+    <div className='grid grid-cols-2 gap-2'>
+      <Button onClick={() => router.push(rebookHref)} variant='secondary'>
         Reschedule
       </Button>
       <Sheet
         onOpenChange={setOpen}
         open={open}
-        title="Cancel this appointment?"
+        title='Cancel this appointment?'
         trigger={
-          <Button variant="ghost" className="text-red-700">
+          <Button variant='ghost' className='text-red-700'>
             Cancel
           </Button>
         }
       >
-        {policy ? <p className="mb-4 text-sm text-muted">{policy}</p> : null}
+        {policy ? <p className='mb-4 text-sm text-muted'>{policy}</p> : null}
         <Button
-          className="w-full"
+          className='w-full'
           disabled={pending}
           onClick={() =>
             start(async () => {
@@ -37,11 +37,11 @@ export const AppointmentActions = ({ slug, id, policy, rebookHref }: { slug: str
               router.refresh()
             })
           }
-          variant="danger"
+          variant='danger'
         >
           {pending ? 'Cancelling…' : 'Yes, cancel'}
         </Button>
-        {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+        {error ? <p className='mt-3 text-sm text-red-700'>{error}</p> : null}
       </Sheet>
     </div>
   )

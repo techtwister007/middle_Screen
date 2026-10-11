@@ -86,5 +86,4 @@ export const enabledFeatures = (salon: SalonFeatureInput): Set<FeatureKey> => {
   return set
 }
 
-export const isEnabled = (salon: SalonFeatureInput, feature: FeatureKey): boolean =>
-  enabledFeatures(salon).has(feature)
+export const isEnabled = (salon: SalonFeatureInput, feature: FeatureKey): boolean => enabledFeatures(salon).has(feature)

@@ -1,4 +1,4 @@
-import { type ID, defineModule, emit, forTenant, idOf } from '@salon/core'
+import { defineModule, emit, forTenant, type ID, idOf } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { salonData } from '../_shared/access'
 
@@ -29,11 +29,7 @@ export const Feedback: CollectionConfig = {
   ],
 }
 
-export const submitRating = async (
-  payload: Payload,
-  tenant: ID,
-  input: { customerId: ID; visitId?: ID; score: number; comment?: string },
-) => {
+export const submitRating = async (payload: Payload, tenant: ID, input: { customerId: ID; visitId?: ID; score: number; comment?: string }) => {
   const repo = forTenant(payload, tenant)
   if (input.visitId) {
     const existing = await repo.findOne<{ id: ID }>('ratings', { visit: { equals: input.visitId } })

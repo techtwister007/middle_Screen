@@ -1,6 +1,6 @@
 // Payload generates value imports for types in migrations; Node's type stripping (used by Vitest's
 // migration loader) needs `import type`. Run after `payload migrate:create`.
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
 const dir = path.resolve(import.meta.dirname, '../src/migrations')

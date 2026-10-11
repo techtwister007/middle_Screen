@@ -1,6 +1,6 @@
 'use server'
 
-import { type ID, asId, forTenant, localDate, normalizePhone } from '@salon/core'
+import { asId, forTenant, type ID, localDate, normalizePhone } from '@salon/core'
 import {
   BookingError,
   completePhotoTask,
@@ -14,11 +14,11 @@ import {
   manualMessageLink,
   markNoShow,
   offerFromPack,
+  type PaymentMode,
   previewReward,
   requestBooking,
   verifyShare,
   walletBalance,
-  type PaymentMode,
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { getPayloadClient } from '@/lib/payload'
@@ -194,7 +194,10 @@ export async function staffSlots(slug: string, input: { date: string; serviceIds
 }
 
 /** Pre-book the next visit at checkout, or book on behalf of a customer. */
-export async function staffBook(slug: string, input: { customerId: ID; serviceIds: ID[]; start: string; staffId?: ID | null; preBooked?: boolean }): Promise<Result<{ appointmentId: ID }>> {
+export async function staffBook(
+  slug: string,
+  input: { customerId: ID; serviceIds: ID[]; start: string; staffId?: ID | null; preBooked?: boolean },
+): Promise<Result<{ appointmentId: ID }>> {
   try {
     const { salon, payload } = await ctx(slug)
     const { appointment } = await requestBooking(payload, salon.id, {
@@ -289,7 +292,12 @@ export async function setFollowUp(slug: string, ratingId: ID, followUp: 'called'
   }
 }
 
-export async function whatsappLink(slug: string, customerId: ID, template: 'refill_due' | 'winback' | 'nudge_new_designs' | 'aftercare', link: string): Promise<Result<{ url: string }>> {
+export async function whatsappLink(
+  slug: string,
+  customerId: ID,
+  template: 'refill_due' | 'winback' | 'nudge_new_designs' | 'aftercare',
+  link: string,
+): Promise<Result<{ url: string }>> {
   try {
     const { salon, payload } = await ctx(slug)
     const url = await manualMessageLink(payload, salon.id, asId(customerId), { template, link })
@@ -380,7 +388,10 @@ export async function newTrackingLink(slug: string, input: { label: string; sour
 }
 
 /** Reception kiosk: a walk-in types their number and joins today's list. */
-export async function kioskCheckIn(slug: string, input: { phone: string; name?: string; serviceId: ID; consent: boolean }): Promise<Result<{ name: string; start?: string }>> {
+export async function kioskCheckIn(
+  slug: string,
+  input: { phone: string; name?: string; serviceId: ID; consent: boolean },
+): Promise<Result<{ name: string; start?: string }>> {
   try {
     const { salon, payload } = await ctx(slug)
     const { customer } = await findOrCreateCustomer(payload, salon.id, {
@@ -408,4 +419,3 @@ export async function kioskCheckIn(slug: string, input: { phone: string; name?: 
     return fail(err)
   }
 }
-

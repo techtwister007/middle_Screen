@@ -7,7 +7,7 @@ export const SignOut = () => (
       await fetch('/api/users/logout', { method: 'POST', credentials: 'include' }).catch(() => null)
       window.location.href = '/studio/login'
     }}
-    variant="ghost"
+    variant='ghost'
   >
     Sign out
   </Button>

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { PLAN_FEATURES, enabledFeatures, isEnabled } from './features'
+import { parseEvent } from './events'
+import { enabledFeatures, isEnabled, PLAN_FEATURES } from './features'
 import { formatINR, percentOf, rupees } from './money'
 import { formatPhone, normalizePhone, waDigits } from './phone'
 import { localDate, zonedDateTime } from './time'
-import { parseEvent } from './events'
 
 describe('money', () => {
   it('stores rupees as integer paise', () => {

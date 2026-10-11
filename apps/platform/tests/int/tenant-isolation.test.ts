@@ -41,13 +41,11 @@ describe('tenant isolation', () => {
   it("a salon owner never sees another salon's documents in any scoped collection", async () => {
     const user = { ...ownerA, collection: 'users' }
     for (const slug of tenantCollections()) {
-      const res = await payload
-        .find({ collection: slug as never, user: user as never, overrideAccess: false, depth: 0, limit: 500 })
-        .catch((err: Error) => {
-          // Collections nobody may list through the API (e.g. login codes) are fine.
-          if (err.name === 'Forbidden' || /not allowed/i.test(err.message)) return { docs: [] }
-          throw err
-        })
+      const res = await payload.find({ collection: slug as never, user: user as never, overrideAccess: false, depth: 0, limit: 500 }).catch((err: Error) => {
+        // Collections nobody may list through the API (e.g. login codes) are fine.
+        if (err.name === 'Forbidden' || /not allowed/i.test(err.message)) return { docs: [] }
+        throw err
+      })
       for (const doc of res.docs as { tenant?: unknown }[]) {
         const t = doc.tenant && typeof doc.tenant === 'object' ? (doc.tenant as { id: unknown }).id : doc.tenant
         expect(String(t), `collection ${slug} leaked a document`).toBe(String(salonA.id))
@@ -75,9 +73,7 @@ describe('tenant isolation', () => {
 
   it('anonymous API requests cannot read customer data', async () => {
     for (const slug of ['customers', 'appointments', 'visits', 'messages', 'rewards', 'payments', 'otp-codes']) {
-      const res = await payload
-        .find({ collection: slug as never, overrideAccess: false, depth: 0 })
-        .catch(() => ({ docs: [] as unknown[] }))
+      const res = await payload.find({ collection: slug as never, overrideAccess: false, depth: 0 }).catch(() => ({ docs: [] as unknown[] }))
       expect(res.docs, slug).toHaveLength(0)
     }
   })

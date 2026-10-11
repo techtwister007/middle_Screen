@@ -1,7 +1,7 @@
-import { DAY_MS, type ID, addDays, forTenant, rupees, shortCode, zonedDateTime } from '@salon/core'
+import { addDays, DAY_MS, forTenant, type ID, rupees, shortCode, zonedDateTime } from '@salon/core'
 import { recomputeSegments } from '@salon/modules'
 import type { Payload } from 'payload'
-import { ARTICLES, CAMPAIGN_PACKS, DESIGNS, FIRST_NAMES, LAST_NAMES, LASH_SERVICES, NAIL_SERVICES, REVIEWS, type ServiceSeed } from './content'
+import { ARTICLES, CAMPAIGN_PACKS, DESIGNS, FIRST_NAMES, LASH_SERVICES, LAST_NAMES, NAIL_SERVICES, REVIEWS, type ServiceSeed } from './content'
 import { renderAvatar, renderLogo, renderNailSet } from './nailArt'
 
 /** Deterministic random so every demo looks the same. */
@@ -145,7 +145,8 @@ const SOURCES: [string, number][] = [
 const weighted = (r: () => number, items: [string, number][]) => {
   let x = r()
   for (const [v, w] of items) {
-    if ((x -= w) <= 0) return v
+    x -= w
+    if (x <= 0) return v
   }
   return items[items.length - 1][0]
 }
@@ -216,14 +217,30 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
   const tenant = salon.id
   const repo = forTenant(payload, tenant)
 
-  const logo = await upload(payload, tenant, await renderLogo(def.name.slice(0, 1), def.colors.logoBg, def.colors.logoFg), `${def.slug}-logo.png`, 'image/png', 'brand', `${def.name} logo`)
+  const logo = await upload(
+    payload,
+    tenant,
+    await renderLogo(def.name.slice(0, 1), def.colors.logoBg, def.colors.logoFg),
+    `${def.slug}-logo.png`,
+    'image/png',
+    'brand',
+    `${def.name} logo`,
+  )
   await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { logo: logo.id } } as never })
 
   // Team
   await payload.create({
     collection: 'users',
     overrideAccess: true,
-    data: { name: def.ownerName, email: def.ownerEmail, password: opts.ownerPassword, role: 'owner', bookable: false, tenants: [{ tenant }], phone: def.phone } as never,
+    data: {
+      name: def.ownerName,
+      email: def.ownerEmail,
+      password: opts.ownerPassword,
+      role: 'owner',
+      bookable: false,
+      tenants: [{ tenant }],
+      phone: def.phone,
+    } as never,
   })
   const artists: { id: ID; name: string }[] = []
   for (const a of def.artists) {
@@ -236,7 +253,17 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     const user = (await payload.create({
       collection: 'users',
       overrideAccess: true,
-      data: { name: a.name, email, password: opts.ownerPassword, role: 'artist', bookable: true, active: true, specialties: a.specialties, avatar: avatar.id, tenants: [{ tenant }] } as never,
+      data: {
+        name: a.name,
+        email,
+        password: opts.ownerPassword,
+        role: 'artist',
+        bookable: true,
+        active: true,
+        specialties: a.specialties,
+        avatar: avatar.id,
+        tenants: [{ tenant }],
+      } as never,
     })) as unknown as { id: ID; name: string }
     artists.push(user)
     await repo.create('availability', {
@@ -291,7 +318,15 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     const own = opts.designImages?.[i]
     const img = own
       ? await upload(payload, tenant, own.buffer, `${def.slug}-design-${i}.jpg`, own.mimetype ?? 'image/jpeg', 'design', own.title ?? d.title)
-      : await upload(payload, tenant, await renderNailSet(d.spec, def.seed * 100 + i, 1000), `${def.slug}-${d.title.toLowerCase().replace(/\W+/g, '-')}.jpg`, 'image/jpeg', 'design', d.title)
+      : await upload(
+          payload,
+          tenant,
+          await renderNailSet(d.spec, def.seed * 100 + i, 1000),
+          `${def.slug}-${d.title.toLowerCase().replace(/\W+/g, '-')}.jpg`,
+          'image/jpeg',
+          'design',
+          d.title,
+        )
     const service = serviceIds.get(d.service) ?? mains[0]?.[1]
     const addOns = (d.addOns ?? []).map((a) => serviceIds.get(a)).filter(Boolean) as { id: ID; price: number; minutes: number }[]
     const price = (service?.price ?? 0) + addOns.reduce((n, a) => n + a.price, 0)
@@ -322,7 +357,8 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
   const heroDesign = designIds.find((d) => DESIGNS.find((x) => x.title === d.title)?.featured) ?? designIds[0]
   if (heroDesign) {
     const doc = await repo.findByID<{ images: ID[] }>('designs', heroDesign.id)
-    if (doc?.images?.[0]) await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { logo: logo.id, cover: doc.images[0] } } as never })
+    if (doc?.images?.[0])
+      await payload.update({ collection: 'salons', id: tenant, overrideAccess: true, data: { brand: { logo: logo.id, cover: doc.images[0] } } as never })
   }
 
   // Customers with 90 days of history
@@ -395,7 +431,14 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
         customer: c.id,
         appointment: appt.id,
         staff: artist.id,
-        lines: [{ service: design?.service ?? svc.id, name: design ? design.title : svcName, price, quantity: 1 }],
+        lines: [
+          {
+            service: design?.service ?? svc.id,
+            name: design ? (DESIGNS.find((x) => x.title === design.title)?.service ?? svcName) : svcName,
+            price,
+            quantity: 1,
+          },
+        ],
         subtotal: price,
         rewardDiscount: discount,
         total: price - discount,
@@ -460,7 +503,13 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
         nextDueDate: lastVisit ? addDays(lastVisit, lastCycle).toISOString() : null,
       })
       const account = await repo.findOne<{ id: ID }>('loyalty-accounts', { customer: { equals: c.id } })
-      if (account) await repo.update('loyalty-accounts', account.id, { stamps, points, tier: visitIndex >= 10 ? 'gold' : visitIndex >= 4 ? 'silver' : 'member', lifetimeStamps: visitIndex })
+      if (account)
+        await repo.update('loyalty-accounts', account.id, {
+          stamps,
+          points,
+          tier: visitIndex >= 10 ? 'gold' : visitIndex >= 4 ? 'silver' : 'member',
+          lifetimeStamps: visitIndex,
+        })
     }
   }
 
@@ -543,7 +592,13 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     ['Window poster', 'poster', '/designs'],
     ['Aftercare card', 'qr', '/care'],
   ] as const)
-    await repo.create('tracking-links', { label, source, target, code: `${def.slug.slice(0, 3)}${shortCode(3).toLowerCase()}`, clicks: Math.floor(20 + r() * 300) })
+    await repo.create('tracking-links', {
+      label,
+      source,
+      target,
+      code: `${def.slug.slice(0, 3)}${shortCode(3).toLowerCase()}`,
+      clicks: Math.floor(20 + r() * 300),
+    })
 
   await recomputeSegments(payload, tenant, now)
   log(`  done ${def.slug}`)

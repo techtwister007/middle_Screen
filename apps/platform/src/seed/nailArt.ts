@@ -4,19 +4,7 @@ import sharp from 'sharp'
  * Generates "press-on set" product shots for demo galleries: five almond nails fanned out on a
  * soft background. Purely synthetic so demos never use anyone's real photos without permission.
  */
-export type NailStyle =
-  | 'solid'
-  | 'french'
-  | 'chrome'
-  | 'cat-eye'
-  | 'ombre'
-  | 'glitter'
-  | 'garba'
-  | 'moon'
-  | 'dots'
-  | 'marble'
-  | 'diya'
-  | 'lace'
+export type NailStyle = 'solid' | 'french' | 'chrome' | 'cat-eye' | 'ombre' | 'glitter' | 'garba' | 'moon' | 'dots' | 'marble' | 'diya' | 'lace'
 
 export interface NailSpec {
   style: NailStyle
@@ -40,7 +28,10 @@ const patternFor = (spec: NailSpec, id: string, w: number, h: number, rand: () =
   const { style, base, accent } = spec
   switch (style) {
     case 'french':
-      return { fill: base, overlay: `<path d="M${-w * 0.55} ${-h * 0.18} Q 0 ${-h * 0.32} ${w * 0.55} ${-h * 0.18} L ${w * 0.6} ${-h * 0.7} L ${-w * 0.6} ${-h * 0.7} Z" fill="${accent}" clip-path="url(#clip-${id})"/>` }
+      return {
+        fill: base,
+        overlay: `<path d="M${-w * 0.55} ${-h * 0.18} Q 0 ${-h * 0.32} ${w * 0.55} ${-h * 0.18} L ${w * 0.6} ${-h * 0.7} L ${-w * 0.6} ${-h * 0.7} Z" fill="${accent}" clip-path="url(#clip-${id})"/>`,
+      }
     case 'chrome':
       return {
         fill: `url(#chrome-${id})`,
@@ -58,7 +49,10 @@ const patternFor = (spec: NailSpec, id: string, w: number, h: number, rand: () =
       }
     case 'glitter': {
       const dots = Array.from({ length: 60 })
-        .map(() => `<circle cx="${(rand() - 0.5) * w}" cy="${(rand() - 0.5) * h}" r="${0.8 + rand() * 2.2}" fill="${rand() > 0.5 ? accent : '#ffffff'}" opacity="${0.5 + rand() * 0.5}"/>`)
+        .map(
+          () =>
+            `<circle cx="${(rand() - 0.5) * w}" cy="${(rand() - 0.5) * h}" r="${0.8 + rand() * 2.2}" fill="${rand() > 0.5 ? accent : '#ffffff'}" opacity="${0.5 + rand() * 0.5}"/>`,
+        )
         .join('')
       return { fill: base, overlay: `<g clip-path="url(#clip-${id})">${dots}</g>` }
     }
@@ -66,7 +60,10 @@ const patternFor = (spec: NailSpec, id: string, w: number, h: number, rand: () =
       const motifs = [-0.25, 0, 0.25]
         .map((y, i) => `<rect x="${-7}" y="${y * h - 7}" width="14" height="14" transform="rotate(45 0 ${y * h})" fill="${i % 2 ? '#ffffff' : accent}"/>`)
         .join('')
-      return { fill: base, overlay: `<g clip-path="url(#clip-${id})">${motifs}<rect x="${-w}" y="${h * 0.32}" width="${w * 2}" height="5" fill="${accent}"/></g>` }
+      return {
+        fill: base,
+        overlay: `<g clip-path="url(#clip-${id})">${motifs}<rect x="${-w}" y="${h * 0.32}" width="${w * 2}" height="5" fill="${accent}"/></g>`,
+      }
     }
     case 'moon':
       return { fill: base, overlay: `<ellipse cx="0" cy="${h * 0.42}" rx="${w * 0.3}" ry="${h * 0.12}" fill="${accent}" clip-path="url(#clip-${id})"/>` }
@@ -77,7 +74,10 @@ const patternFor = (spec: NailSpec, id: string, w: number, h: number, rand: () =
       }
     case 'marble': {
       const veins = Array.from({ length: 3 })
-        .map(() => `<path d="M${-w} ${(rand() - 0.5) * h} C ${-w * 0.2} ${(rand() - 0.5) * h}, ${w * 0.2} ${(rand() - 0.5) * h}, ${w} ${(rand() - 0.5) * h}" stroke="${accent}" stroke-width="${1 + rand() * 2}" fill="none" opacity="0.7"/>`)
+        .map(
+          () =>
+            `<path d="M${-w} ${(rand() - 0.5) * h} C ${-w * 0.2} ${(rand() - 0.5) * h}, ${w * 0.2} ${(rand() - 0.5) * h}, ${w} ${(rand() - 0.5) * h}" stroke="${accent}" stroke-width="${1 + rand() * 2}" fill="none" opacity="0.7"/>`,
+        )
         .join('')
       return { fill: base, overlay: `<g clip-path="url(#clip-${id})">${veins}</g>` }
     }

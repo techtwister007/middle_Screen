@@ -22,11 +22,7 @@ export const createSalon = async (payload: Payload, overrides: Record<string, un
   })) as unknown as { id: ID; slug: string; name: string }
 }
 
-export const createStaff = async (
-  payload: Payload,
-  salonId: ID,
-  overrides: Record<string, unknown> = {},
-) =>
+export const createStaff = async (payload: Payload, salonId: ID, overrides: Record<string, unknown> = {}) =>
   (await payload.create({
     collection: 'users' as never,
     overrideAccess: true,

@@ -1,5 +1,5 @@
 'use client'
-import { Button, Pill, cn } from '@salon/ui'
+import { Button, cn, Pill } from '@salon/ui'
 import { Camera, Loader2, Sparkles, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
@@ -23,7 +23,19 @@ const nailPath = (shape: Shape) => {
 }
 
 /** Free try-on on an illustrated hand, plus optional AI try-on on the customer's own photo. */
-export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug: string; design?: { id: string | number; title: string; image: string | null } | null; aiRemaining: number; aiEnabled: boolean; loggedIn: boolean }) => {
+export const TryOn = ({
+  slug,
+  design,
+  aiRemaining,
+  aiEnabled,
+  loggedIn,
+}: {
+  slug: string
+  design?: { id: string | number; title: string; image: string | null } | null
+  aiRemaining: number
+  aiEnabled: boolean
+  loggedIn: boolean
+}) => {
   const [color, setColor] = useState(COLORS[0])
   const [shape, setShape] = useState<Shape>('almond')
   const [length, setLength] = useState(1)
@@ -35,14 +47,17 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
   const [pending, start] = useTransition()
 
   const Hand = ({ c, s, l, small }: { c: string; s: Shape; l: number; small?: boolean }) => (
-    <svg className={cn('w-full', small ? 'max-w-[160px]' : '')} viewBox="0 0 300 360">
+    <svg className={cn('w-full', small ? 'max-w-[160px]' : '')} viewBox='0 0 300 360'>
       <defs>
-        <linearGradient id="skin" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#E9B99A" />
-          <stop offset="1" stopColor="#C98E6E" />
+        <linearGradient id='skin' x1='0' x2='0' y1='0' y2='1'>
+          <stop offset='0' stopColor='#E9B99A' />
+          <stop offset='1' stopColor='#C98E6E' />
         </linearGradient>
       </defs>
-      <path d="M60 360 C 50 280, 40 220, 52 170 L 70 110 Q 82 92 96 110 L 98 168 L 108 70 Q 120 50 134 70 L 136 160 L 146 52 Q 160 34 174 52 L 174 160 L 186 76 Q 200 60 212 78 L 208 182 L 236 140 Q 256 128 262 150 L 230 250 C 220 300, 210 340, 214 360 Z" fill="url(#skin)" />
+      <path
+        d='M60 360 C 50 280, 40 220, 52 170 L 70 110 Q 82 92 96 110 L 98 168 L 108 70 Q 120 50 134 70 L 136 160 L 146 52 Q 160 34 174 52 L 174 160 L 186 76 Q 200 60 212 78 L 208 182 L 236 140 Q 256 128 262 150 L 230 250 C 220 300, 210 340, 214 360 Z'
+        fill='url(#skin)'
+      />
       {[
         [83, 118, -8],
         [121, 80, -3],
@@ -52,17 +67,17 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
       ].map(([x, y, r], i) => (
         <g key={i} transform={`translate(${x} ${y}) rotate(${r}) scale(${(i === 4 ? 0.8 : 0.62) * l} ${(i === 4 ? 0.8 : 0.62) * l})`}>
           <path d={nailPath(s)} fill={c} />
-          <path d="M-10 -26 Q -14 0 -10 22" fill="none" opacity="0.35" stroke="#fff" strokeLinecap="round" strokeWidth="5" />
+          <path d='M-10 -26 Q -14 0 -10 22' fill='none' opacity='0.35' stroke='#fff' strokeLinecap='round' strokeWidth='5' />
         </g>
       ))}
     </svg>
   )
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-card bg-tint p-4">
+    <div className='space-y-6'>
+      <div className='rounded-card bg-tint p-4'>
         {compare ? (
-          <div className="grid grid-cols-2 gap-2 text-center text-xs text-muted">
+          <div className='grid grid-cols-2 gap-2 text-center text-xs text-muted'>
             <div>
               <Hand c={compare.color} l={compare.length} s={compare.shape} small />
               Saved look
@@ -77,17 +92,30 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
         )}
       </div>
       <div>
-        <p className="mb-2 text-sm font-medium">Colour</p>
-        <div className="flex flex-wrap gap-2">
+        <p className='mb-2 text-sm font-medium'>Colour</p>
+        <div className='flex flex-wrap gap-2'>
           {COLORS.map((c) => (
-            <button aria-label={`Colour ${c}`} className={cn('h-9 w-9 rounded-full border-2', color === c ? 'border-ink' : 'border-transparent')} key={c} onClick={() => setColor(c)} style={{ background: c }} type="button" />
+            <button
+              aria-label={`Colour ${c}`}
+              className={cn('h-9 w-9 rounded-full border-2', color === c ? 'border-ink' : 'border-transparent')}
+              key={c}
+              onClick={() => setColor(c)}
+              style={{ background: c }}
+              type='button'
+            />
           ))}
-          <input aria-label="Custom colour" className="h-9 w-9 cursor-pointer rounded-full border border-line" onChange={(e) => setColor(e.target.value)} type="color" value={color} />
+          <input
+            aria-label='Custom colour'
+            className='h-9 w-9 cursor-pointer rounded-full border border-line'
+            onChange={(e) => setColor(e.target.value)}
+            type='color'
+            value={color}
+          />
         </div>
       </div>
       <div>
-        <p className="mb-2 text-sm font-medium">Shape</p>
-        <div className="flex flex-wrap gap-2">
+        <p className='mb-2 text-sm font-medium'>Shape</p>
+        <div className='flex flex-wrap gap-2'>
           {(Object.keys(SHAPES) as Shape[]).map((s) => (
             <Pill active={shape === s} key={s} onClick={() => setShape(s)}>
               {s}
@@ -96,33 +124,41 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
         </div>
       </div>
       <div>
-        <p className="mb-2 text-sm font-medium">Length</p>
-        <input className="w-full accent-[var(--t-primary)]" max={1.35} min={0.8} onChange={(e) => setLength(Number(e.target.value))} step={0.05} type="range" value={length} />
+        <p className='mb-2 text-sm font-medium'>Length</p>
+        <input
+          className='w-full accent-[var(--t-primary)]'
+          max={1.35}
+          min={0.8}
+          onChange={(e) => setLength(Number(e.target.value))}
+          step={0.05}
+          type='range'
+          value={length}
+        />
       </div>
-      <Button className="w-full" onClick={() => setCompare({ color, shape, length })} variant="secondary">
+      <Button className='w-full' onClick={() => setCompare({ color, shape, length })} variant='secondary'>
         Save to compare
       </Button>
 
       {design ? (
-        <div className="rounded-card border border-line bg-surface p-4">
-          <div className="flex items-center gap-3">
-            {design.image ? <img alt="" className="h-14 w-14 rounded-xl object-cover" src={design.image} /> : null}
-            <div className="flex-1">
-              <p className="flex items-center gap-1 font-medium">
-                <Wand2 size={15} className="text-brand" /> See "{design.title}" on your own hand
+        <div className='rounded-card border border-line bg-surface p-4'>
+          <div className='flex items-center gap-3'>
+            {design.image ? <img alt='' className='h-14 w-14 rounded-xl object-cover' src={design.image} /> : null}
+            <div className='flex-1'>
+              <p className='flex items-center gap-1 font-medium'>
+                <Wand2 size={15} className='text-brand' /> See "{design.title}" on your own hand
               </p>
-              <p className="text-xs text-muted">{aiEnabled ? `AI preview · ${left} left` : 'Coming soon at this salon'}</p>
+              <p className='text-xs text-muted'>{aiEnabled ? `AI preview · ${left} left` : 'Coming soon at this salon'}</p>
             </div>
           </div>
           {aiEnabled ? (
             loggedIn ? (
-              <div className="mt-4 space-y-3">
-                <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-line text-sm">
+              <div className='mt-4 space-y-3'>
+                <label className='flex h-12 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-line text-sm'>
                   <Camera size={16} /> {hand ? 'Change hand photo' : 'Upload a photo of your hand'}
                   <input
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
+                    accept='image/*'
+                    capture='environment'
+                    className='hidden'
                     onChange={(e) => {
                       const f = e.target.files?.[0]
                       if (!f) return
@@ -135,12 +171,12 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
                         else if (!res.ok) setError(res.error)
                       })
                     }}
-                    type="file"
+                    type='file'
                   />
                 </label>
                 {hand ? (
                   <Button
-                    className="w-full"
+                    className='w-full'
                     disabled={pending || left <= 0}
                     onClick={() =>
                       start(async () => {
@@ -152,20 +188,23 @@ export const TryOn = ({ slug, design, aiRemaining, aiEnabled, loggedIn }: { slug
                       })
                     }
                   >
-                    {pending ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />} Try it on
+                    {pending ? <Loader2 className='animate-spin' size={16} /> : <Sparkles size={16} />} Try it on
                   </Button>
                 ) : null}
-                {aiImage ? <img alt="AI preview" className="w-full rounded-card" src={aiImage} /> : null}
+                {aiImage ? <img alt='AI preview' className='w-full rounded-card' src={aiImage} /> : null}
               </div>
             ) : (
-              <Link className="mt-3 block text-sm font-medium text-brand" href={`/s/${slug}/login?next=${encodeURIComponent(`/s/${slug}/try-on?design=${design.id}`)}`}>
+              <Link
+                className='mt-3 block text-sm font-medium text-brand'
+                href={`/s/${slug}/login?next=${encodeURIComponent(`/s/${slug}/try-on?design=${design.id}`)}`}
+              >
                 Log in to try it on →
               </Link>
             )
           ) : null}
         </div>
       ) : null}
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className='text-sm text-red-700'>{error}</p> : null}
     </div>
   )
 }

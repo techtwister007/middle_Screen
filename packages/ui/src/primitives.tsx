@@ -30,15 +30,17 @@ export const Button = ({
   size = 'md',
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }) => (
-  <button className={buttonClass(variant, size, className)} {...props} />
-)
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }) => <button className={buttonClass(variant, size, className)} {...props} />
 
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('rounded-card bg-surface border border-line', className)} {...props} />
 )
 
-export const Badge = ({ className, tone = 'brand', ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: 'brand' | 'muted' | 'success' | 'warning' | 'danger' }) => {
+export const Badge = ({
+  className,
+  tone = 'brand',
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { tone?: 'brand' | 'muted' | 'success' | 'warning' | 'danger' }) => {
   const tones = {
     brand: 'bg-brand/12 text-brand',
     muted: 'bg-tint text-muted',
@@ -76,27 +78,27 @@ export const Label = ({ className, ...props }: HTMLAttributes<HTMLLabelElement> 
 export const SectionTitle = ({ title, eyebrow, action, className }: { title: ReactNode; eyebrow?: ReactNode; action?: ReactNode; className?: string }) => (
   <div className={cn('mb-4 flex items-end justify-between gap-4', className)}>
     <div>
-      {eyebrow ? <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand">{eyebrow}</p> : null}
-      <h2 className="font-heading text-2xl leading-tight text-ink">{title}</h2>
+      {eyebrow ? <p className='mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand'>{eyebrow}</p> : null}
+      <h2 className='font-heading text-2xl leading-tight text-ink'>{title}</h2>
     </div>
     {action}
   </div>
 )
 
 export const EmptyState = ({ icon, title, body, action }: { icon?: ReactNode; title: ReactNode; body?: ReactNode; action?: ReactNode }) => (
-  <div className="flex flex-col items-center rounded-card border border-dashed border-line bg-surface/60 px-6 py-10 text-center">
-    {icon ? <div className="mb-3 text-brand">{icon}</div> : null}
-    <p className="font-heading text-xl text-ink">{title}</p>
-    {body ? <p className="mt-1 max-w-sm text-sm text-muted">{body}</p> : null}
-    {action ? <div className="mt-5">{action}</div> : null}
+  <div className='flex flex-col items-center rounded-card border border-dashed border-line bg-surface/60 px-6 py-10 text-center'>
+    {icon ? <div className='mb-3 text-brand'>{icon}</div> : null}
+    <p className='font-heading text-xl text-ink'>{title}</p>
+    {body ? <p className='mt-1 max-w-sm text-sm text-muted'>{body}</p> : null}
+    {action ? <div className='mt-5'>{action}</div> : null}
   </div>
 )
 
 export const Stat = ({ label, value, hint, className }: { label: ReactNode; value: ReactNode; hint?: ReactNode; className?: string }) => (
   <div className={cn('rounded-card border border-line bg-surface p-4', className)}>
-    <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-    <p className="mt-1 font-heading text-2xl text-ink tabular-nums">{value}</p>
-    {hint ? <p className="mt-0.5 text-xs text-muted">{hint}</p> : null}
+    <p className='text-xs font-medium uppercase tracking-wide text-muted'>{label}</p>
+    <p className='mt-1 font-heading text-2xl text-ink tabular-nums'>{value}</p>
+    {hint ? <p className='mt-0.5 text-xs text-muted'>{hint}</p> : null}
   </div>
 )
 

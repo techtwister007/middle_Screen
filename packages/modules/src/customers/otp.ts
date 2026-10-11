@@ -1,5 +1,5 @@
 import { createHash, randomInt } from 'node:crypto'
-import { type ID, forTenant, normalizePhone } from '@salon/core'
+import { forTenant, type ID, normalizePhone } from '@salon/core'
 import type { Payload } from 'payload'
 
 const OTP_TTL_MS = 5 * 60 * 1000
@@ -29,9 +29,7 @@ export const createOtp = async (payload: Payload, tenant: ID, rawPhone: string, 
   const recent = await repo.count('otp-codes', { and: [{ phone: { equals: phone } }, { createdAt: { greater_than: hourAgo } }] })
   if (recent >= MAX_SENDS_PER_HOUR) throw new OtpError('rate-limited', 'Too many codes requested. Try again in a while.')
   const code =
-    process.env.OTP_FIXED_CODE && process.env.NODE_ENV !== 'production'
-      ? process.env.OTP_FIXED_CODE
-      : String(randomInt(0, 1_000_000)).padStart(6, '0')
+    process.env.OTP_FIXED_CODE && process.env.NODE_ENV !== 'production' ? process.env.OTP_FIXED_CODE : String(randomInt(0, 1_000_000)).padStart(6, '0')
   await repo.create('otp-codes', {
     phone,
     purpose,
@@ -47,14 +45,11 @@ export const verifyOtp = async (payload: Payload, tenant: ID, rawPhone: string, 
   const phone = normalizePhone(rawPhone)
   if (!phone) throw new OtpError('invalid-phone', 'Please enter a valid mobile number')
   const repo = forTenant(payload, tenant)
-  const { docs } = await repo.find<{ id: ID; codeHash: string; expiresAt: string; attempts: number; consumed: boolean }>(
-    'otp-codes',
-    {
-      where: { and: [{ phone: { equals: phone } }, { purpose: { equals: purpose } }, { consumed: { equals: false } }] },
-      sort: '-createdAt',
-      limit: 1,
-    },
-  )
+  const { docs } = await repo.find<{ id: ID; codeHash: string; expiresAt: string; attempts: number; consumed: boolean }>('otp-codes', {
+    where: { and: [{ phone: { equals: phone } }, { purpose: { equals: purpose } }, { consumed: { equals: false } }] },
+    sort: '-createdAt',
+    limit: 1,
+  })
   const found = docs[0] ?? null
   if (!found || new Date(found.expiresAt).getTime() < Date.now()) throw new OtpError('expired', 'This code has expired. Request a new one.')
   if (found.attempts >= MAX_ATTEMPTS) throw new OtpError('too-many-attempts', 'Too many wrong attempts. Request a new code.')

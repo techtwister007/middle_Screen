@@ -1,4 +1,4 @@
-import { FEATURES, PLANS, defineModule } from '@salon/core'
+import { defineModule, FEATURES, PLANS } from '@salon/core'
 import type { CollectionConfig } from 'payload'
 import { managersOnly, platformOnly, staffOnly } from '../_shared/access'
 import { moneyField, phoneField } from '../_shared/fields'
@@ -43,7 +43,14 @@ export const Salons: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'plan', type: 'select', required: true, defaultValue: 'studio', options: [...PLANS], access: { update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin' } },
+        {
+          name: 'plan',
+          type: 'select',
+          required: true,
+          defaultValue: 'studio',
+          options: [...PLANS],
+          access: { update: ({ req }) => (req.user as { role?: string } | null)?.role === 'platform-admin' },
+        },
         {
           name: 'status',
           type: 'select',
@@ -162,7 +169,11 @@ export const Salons: CollectionConfig = {
                 { name: 'bookingHorizonDays', type: 'number', defaultValue: 30 },
                 { name: 'depositMinMinutes', type: 'number', defaultValue: 90, admin: { description: 'Services this long or longer need a deposit' } },
                 { name: 'depositPercent', type: 'number', defaultValue: 20 },
-                { name: 'cancellationPolicy', type: 'textarea', defaultValue: 'Free cancellation up to 4 hours before. Deposits are refundable up to 24 hours before.' },
+                {
+                  name: 'cancellationPolicy',
+                  type: 'textarea',
+                  defaultValue: 'Free cancellation up to 4 hours before. Deposits are refundable up to 24 hours before.',
+                },
                 { name: 'stampsForReward', type: 'number', defaultValue: 6 },
                 { name: 'pointsPer100', type: 'number', defaultValue: 5, admin: { description: 'Points earned per ₹100 spent' } },
                 { name: 'silverAfterVisits', type: 'number', defaultValue: 4 },

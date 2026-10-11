@@ -1,13 +1,13 @@
 import {
-  DAY_MS,
-  HOUR_MS,
-  type ID,
   addDays,
+  DAY_MS,
   defineModule,
   emit,
-  forTenant,
   formatINR,
   formatIST,
+  forTenant,
+  HOUR_MS,
+  type ID,
   idOf,
   localDate,
   salonLink,
@@ -20,7 +20,7 @@ import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonConfig, salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
 import { refillJourney, shouldSend } from './policy'
-import { type Lang, TEMPLATES, type TemplateKey, render } from './templates'
+import { type Lang, render, TEMPLATES, type TemplateKey } from './templates'
 
 export const MessageTemplates: CollectionConfig = {
   slug: 'message-templates',
@@ -282,11 +282,7 @@ interface ApptDoc {
 const hasMovedOn = async (payload: Payload, tenant: ID, customerId: ID, since: string) => {
   const repo = forTenant(payload, tenant)
   const upcoming = await repo.count('appointments', {
-    and: [
-      { customer: { equals: customerId } },
-      { status: { in: ['requested', 'confirmed'] } },
-      { start: { greater_than: new Date().toISOString() } },
-    ],
+    and: [{ customer: { equals: customerId } }, { status: { in: ['requested', 'confirmed'] } }, { start: { greater_than: new Date().toISOString() } }],
   })
   if (upcoming > 0) return true
   const newer = await repo.count('visits', { and: [{ customer: { equals: customerId } }, { createdAt: { greater_than: since } }] })
@@ -313,7 +309,7 @@ export const messagingModule = defineModule({
         repo.findByID<ApptDoc>('appointments', event.payload.appointmentId),
         repo.findByID<CustomerDoc>('customers', event.payload.customerId),
       ])
-      if (!appt || appt.status !== 'requested') return
+      if (appt?.status !== 'requested') return
       const vars = { date: fmtDate(salon, appt.start), time: fmtTime(salon, appt.start) }
       await sendToCustomer(payload, event.tenant, event.payload.customerId, {
         template: 'booking_received',
@@ -446,10 +442,7 @@ export const messagingModule = defineModule({
     },
     'reward.issued': async ({ payload, event }) => {
       const salon = await getSalon(payload, event.tenant)
-      const reward = await forTenant(payload, event.tenant).findByID<{ title?: string; validTo?: string; scratch?: boolean }>(
-        'rewards',
-        event.payload.rewardId,
-      )
+      const reward = await forTenant(payload, event.tenant).findByID<{ title?: string; validTo?: string; scratch?: boolean }>('rewards', event.payload.rewardId)
       if (!reward || reward.scratch) return
       await sendToCustomer(payload, event.tenant, event.payload.customerId, {
         template: 'reward_issued',
@@ -489,10 +482,7 @@ export const messagingModule = defineModule({
     'offer.launched': async ({ payload, event }) => {
       const repo = forTenant(payload, event.tenant)
       const salon = await getSalon(payload, event.tenant)
-      const offer = await repo.findByID<{ id: ID; title: string; audience?: string[]; status: string; code?: string }>(
-        'offers',
-        event.payload.offerId,
-      )
+      const offer = await repo.findByID<{ id: ID; title: string; audience?: string[]; status: string; code?: string }>('offers', event.payload.offerId)
       if (!offer) return
       const segments = offer.audience?.length ? offer.audience : ['due', 'at-risk', 'regular']
       const audience = await repo.find<CustomerDoc & { segment?: string }>('customers', {
@@ -514,7 +504,7 @@ export const messagingModule = defineModule({
       const repo = forTenant(payload, tenant)
       const appt = await repo.findByID<ApptDoc>('appointments', data.appointmentId as ID)
       // Skip when cancelled or rescheduled since this reminder was scheduled.
-      if (!appt || appt.status !== 'confirmed' || appt.start !== data.start) return
+      if (appt?.status !== 'confirmed' || appt.start !== data.start) return
       const salon = await getSalon(payload, tenant)
       await sendToCustomer(payload, tenant, idOf(appt.customer) as ID, {
         template: 'booking_reminder',

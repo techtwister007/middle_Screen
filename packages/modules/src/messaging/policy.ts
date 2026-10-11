@@ -33,10 +33,7 @@ export const shouldSend = (input: {
  * The refill journey for a visit: the offsets (in days from the visit) at which each step fires.
  * A step is skipped at run time if the customer has booked or visited since.
  */
-export const refillJourney = (
-  cycleDays: number,
-  t: { refillHeadsUpDays: number; nudgeDays: number; winbackDays: number; lastChanceDays: number },
-) =>
+export const refillJourney = (cycleDays: number, t: { refillHeadsUpDays: number; nudgeDays: number; winbackDays: number; lastChanceDays: number }) =>
   [
     { step: 'refill-heads-up', offsetDays: Math.max(1, cycleDays - t.refillHeadsUpDays) },
     { step: 'refill-due', offsetDays: cycleDays },

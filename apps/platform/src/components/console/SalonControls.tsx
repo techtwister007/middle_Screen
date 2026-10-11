@@ -8,7 +8,7 @@ export const FieldSelect = ({ slug, field, value, options }: { slug: string; fie
   const [pending, start] = useTransition()
   return (
     <select
-      className="h-10 rounded-btn border border-line bg-surface px-3 text-sm"
+      className='h-10 rounded-btn border border-line bg-surface px-3 text-sm'
       disabled={pending}
       onChange={(e) => {
         const next = e.target.value
@@ -35,7 +35,7 @@ export const FeatureToggle = ({ slug, feature, enabled }: { slug: string; featur
         setOn(!on)
         start(async () => void (await toggleFeature(slug, feature, !on)))
       }}
-      type="button"
+      type='button'
     >
       <span>{feature}</span>
       <span className={cn('h-5 w-9 rounded-full p-0.5 transition', on ? 'bg-brand' : 'bg-line')}>

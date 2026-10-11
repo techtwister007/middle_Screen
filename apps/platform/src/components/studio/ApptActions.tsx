@@ -7,9 +7,9 @@ import { confirmAppt, noShow } from '@/app/(site)/studio/[salon]/actions'
 export const ApptActions = ({ slug, id, status, past }: { slug: string; id: string | number; status: string; past: boolean }) => {
   const [pending, start] = useTransition()
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className='flex flex-wrap gap-2'>
       {status === 'requested' ? (
-        <Button disabled={pending} onClick={() => start(async () => void (await confirmAppt(slug, id)))} size="sm">
+        <Button disabled={pending} onClick={() => start(async () => void (await confirmAppt(slug, id)))} size='sm'>
           Confirm
         </Button>
       ) : null}
@@ -19,7 +19,7 @@ export const ApptActions = ({ slug, id, status, past }: { slug: string; id: stri
         </Link>
       ) : null}
       {past && status === 'confirmed' ? (
-        <Button disabled={pending} onClick={() => start(async () => void (await noShow(slug, id)))} size="sm" variant="ghost">
+        <Button disabled={pending} onClick={() => start(async () => void (await noShow(slug, id)))} size='sm' variant='ghost'>
           No-show
         </Button>
       ) : null}

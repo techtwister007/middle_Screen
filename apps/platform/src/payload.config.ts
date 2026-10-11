@@ -6,7 +6,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { createEventBus, setEventBus } from '@salon/core'
 import { allCollections, modules, tenantCollections } from '@salon/modules'
-import { type Plugin, buildConfig } from 'payload'
+import { buildConfig, type Plugin } from 'payload'
 import sharp from 'sharp'
 
 const filename = fileURLToPath(import.meta.url)

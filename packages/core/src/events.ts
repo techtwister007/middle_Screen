@@ -62,5 +62,4 @@ export interface EventEnvelope<E extends EventType = EventType> {
   occurredAt: string
 }
 
-export const parseEvent = <E extends EventType>(type: E, payload: unknown): EventPayload<E> =>
-  eventSchemas[type].parse(payload) as EventPayload<E>
+export const parseEvent = <E extends EventType>(type: E, payload: unknown): EventPayload<E> => eventSchemas[type].parse(payload) as EventPayload<E>

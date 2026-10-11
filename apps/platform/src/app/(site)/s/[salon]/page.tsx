@@ -1,9 +1,9 @@
+import type { SectionKey } from '@salon/themes'
 import { DEFAULT_SECTIONS_MAP, type HomeData } from '@/components/site/sections'
 import { t } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
 import { homeSectionOrder, salonFeatures, salonTheme, sectionSalon } from '@/lib/salon'
 import { artists, contestNow, currentCustomer, customerHome, designs, firstName, liveOffers, loadSalon, recentRatings, services } from '@/lib/site'
-import type { SectionKey } from '@salon/themes'
 
 export default async function SalonHome({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
