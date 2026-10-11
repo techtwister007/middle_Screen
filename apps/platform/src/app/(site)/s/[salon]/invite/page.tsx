@@ -3,7 +3,7 @@ import { leaderboard } from '@salon/modules'
 import { Trophy } from 'lucide-react'
 import { GiftCardForm, InviteActions } from '@/components/site/InviteActions'
 import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { getPayloadClient } from '@/lib/payload'
 import { salonFeatures } from '@/lib/salon'
 import { firstName, loadSalon, repoFor, requireCustomer } from '@/lib/site'
@@ -20,7 +20,7 @@ export default async function InvitePage({ params, searchParams }: { params: Pro
   const salon = await loadSalon(slug)
   requireFeature(salon, 'referrals')
   const customer = await requireCustomer(salon, `/s/${slug}/invite`)
-  const lang = await getLang(customer.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const repo = await repoFor(salon)
   const settings = (salon.settings ?? {}) as { referralFriendReward?: number; referralReferrerReward?: number }

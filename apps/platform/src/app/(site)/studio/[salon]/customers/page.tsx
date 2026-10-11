@@ -158,24 +158,24 @@ export default async function CustomersPage({
       <div className='mt-1 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface'>
         {docs.map((c) => (
           <div className='flex items-center gap-1 pr-2' data-testid='customer-row' key={c.id}>
-            <Link className='flex min-h-16 min-w-0 flex-1 items-center justify-between gap-2 py-3 pl-4' href={`${base}/customers/${c.id}`}>
-              <div className='min-w-0'>
-                <p className='flex items-center gap-1.5 truncate font-medium'>
-                  <span className='truncate'>{c.name ?? c.phone}</span>
-                  {c.isVip ? <Badge tone='warning'>VIP</Badge> : null}
-                  {c.allergies ? <Badge tone='danger'>Allergy</Badge> : null}
-                </p>
-                <p className='truncate text-xs text-muted'>
+            <Link className='flex min-h-16 min-w-0 flex-1 flex-col justify-center py-3 pl-4' href={`${base}/customers/${c.id}`}>
+              <p className='flex min-w-0 items-center gap-1.5 font-medium'>
+                <span className='truncate'>{c.name ?? c.phone}</span>
+                {c.isVip ? <Badge tone='warning'>VIP</Badge> : null}
+                {c.allergies ? <Badge tone='danger'>Allergy</Badge> : null}
+              </p>
+              <p className='flex min-w-0 items-center gap-1.5 text-xs text-muted'>
+                {c.segment ? (
+                  <Badge className='shrink-0 px-2 py-0 text-[11px]' tone={TONE[c.segment] ?? 'muted'}>
+                    {SEGMENT_LABEL[c.segment] ?? c.segment}
+                  </Badge>
+                ) : null}
+                <span className='truncate'>
                   {c.visitCount ? plural(c.visitCount, 'visit') : 'No visits yet'}
                   {c.visitCount ? ` · ${formatINR(c.lifetimeSpend ?? 0)}` : ''}
-                  {c.lastVisitAt ? ` · last ${formatIST(c.lastVisitAt, 'd MMM', tz)}` : ''}
-                </p>
-              </div>
-              {c.segment ? (
-                <Badge className='shrink-0' tone={TONE[c.segment] ?? 'muted'}>
-                  {SEGMENT_LABEL[c.segment] ?? c.segment}
-                </Badge>
-              ) : null}
+                  {c.lastVisitAt ? ` · ${formatIST(c.lastVisitAt, 'd MMM', tz)}` : ''}
+                </span>
+              </p>
             </Link>
             <a
               aria-label={`Call ${c.name ?? c.phone}`}

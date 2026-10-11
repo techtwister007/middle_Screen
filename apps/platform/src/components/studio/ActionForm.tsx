@@ -1,7 +1,7 @@
 'use client'
 import { Button, cn } from '@salon/ui'
 import { Check, Copy, MessageCircle } from 'lucide-react'
-import { type ReactNode, useActionState, useEffect, useState } from 'react'
+import { type ReactNode, useActionState, useState } from 'react'
 import type { FormState } from '@/app/(site)/studio/[salon]/settings/actions'
 import { ABOVE_NAV } from './format'
 import { toast } from './Toast'
@@ -31,11 +31,6 @@ export const ActionForm = ({
 }) => {
   const [state, formAction, pending] = useActionState(action, null)
   const [phone, setPhone] = useState('')
-  useEffect(() => {
-    if (!sticky || !state) return
-    if (state.ok) toast({ message: state.message ?? 'Saved', tone: 'success' })
-    else if (state.error) toast({ message: state.error, tone: 'error' })
-  }, [state, sticky])
   return (
     <form
       action={formAction}

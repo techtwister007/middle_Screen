@@ -75,6 +75,8 @@ export const ApptCard = ({
               <Badge tone='success'>Done</Badge>
             ) : a.status === 'requested' ? (
               <Badge tone='warning'>Request</Badge>
+            ) : a.status === 'confirmed' && showDate ? (
+              <Badge tone='success'>Confirmed</Badge>
             ) : a.status === 'no-show' ? (
               <Badge tone='danger'>No-show</Badge>
             ) : null}

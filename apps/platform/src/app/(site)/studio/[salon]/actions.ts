@@ -43,7 +43,7 @@ const fail = (err: unknown): { ok: false; error: string } => {
   if (err instanceof Error && err.message.startsWith('NEXT_')) throw err
   if (err instanceof BookingError) return { ok: false, error: err.message }
   const details = (err as { data?: { errors?: { message?: string; path?: string }[] } })?.data?.errors
-  if (details?.length) return { ok: false, error: details.map((d) => d.message ?? d.path ?? '').join(', ') }
+  if (details?.length) return { ok: false, error: details.map((d) => (d.path ? `${d.path}: ${d.message ?? 'invalid'}` : (d.message ?? 'invalid'))).join(', ') }
   if (err instanceof Error && SAFE_MESSAGE.test(err.message) && err.message.length < 160) return { ok: false, error: err.message }
   const ref = randomBytes(2).toString('hex').toUpperCase()
   console.error(`[studio ref ${ref}]`, err)
@@ -587,7 +587,7 @@ export async function staffBook(
       const { customer } = await findOrCreateCustomer(c.payload, c.salon.id, {
         phone: input.phone,
         name: input.name,
-        source: input.walkIn ? 'walk-in' : 'staff',
+        source: input.walkIn ? 'walk-in' : 'direct',
       })
       customerId = customer.id
     }

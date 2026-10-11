@@ -735,7 +735,7 @@ const AfterCheckout = ({
       <div className={cn('sticky z-20 -mx-4 grid grid-cols-2 gap-2 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur', ABOVE_NAV)}>
         {done.photoTaskId ? (
           <Link className={buttonClass('secondary', 'lg')} href={`/studio/${slug}/photos/${done.photoTaskId}`}>
-            <Camera size={18} /> Photos
+            <Camera size={18} /> Photo corner
           </Link>
         ) : (
           <Link className={buttonClass('secondary', 'lg')} href={`/studio/${slug}/today`}>
@@ -775,7 +775,9 @@ const PreBook = ({
   const mainIds = lines.map((l) => l.serviceId).filter((id) => !services.find((s) => String(s.id) === String(id))?.isAddOn)
   const [date, setDate] = useState(formatIST(suggested, 'yyyy-MM-dd', timezone))
   const [artist, setArtist] = useState<string | number | null>(done.staffId)
-  const [slots, setSlots] = useState<{ start: string; staffIds: (string | number)[] }[] | null>(null)
+  const [loaded, setLoaded] = useState<{ key: string; list: { start: string; staffIds: (string | number)[] }[] } | null>(null)
+  const slotKey = `${date}|${artist ?? ''}`
+  const slots = loaded?.key === slotKey ? loaded.list : null
   const [picked, setPicked] = useState<string | null>(null)
   const [state, setState] = useState<'pick' | 'confirm' | 'undo' | 'saving' | 'booked'>('pick')
   const [left, setLeft] = useState(UNDO_MS / 1000)
@@ -787,8 +789,13 @@ const PreBook = ({
   }, [])
   useEffect(() => {
     if (!mainIds.length) return
-    setSlots(null)
-    staffSlots(slug, { date, serviceIds: mainIds, staffId: artist }).then((r) => setSlots(r.ok ? (r.data ?? []) : []))
+    let live = true
+    staffSlots(slug, { date, serviceIds: mainIds, staffId: artist }).then((r) => {
+      if (live) setLoaded({ key: slotKey, list: r.ok ? (r.data ?? []) : [] })
+    })
+    return () => {
+      live = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, artist, slug])
 

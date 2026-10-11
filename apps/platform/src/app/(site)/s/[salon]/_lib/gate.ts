@@ -2,7 +2,7 @@ import 'server-only'
 import type { FeatureKey } from '@salon/core'
 import { formatIST, localWeekday } from '@salon/core'
 import { notFound } from 'next/navigation'
-import type { DictKey, Translator } from '@/lib/i18n'
+import { type DictKey, formatClockIn, type Translator } from '@/lib/i18n'
 import { getPayloadClient } from '@/lib/payload'
 import { type SalonRecord, salonFeatures } from '@/lib/salon'
 
@@ -14,16 +14,10 @@ export const requireFeature = (salon: SalonRecord, ...features: FeatureKey[]) =>
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
-const to12h = (hhmm: string) => {
-  const [h, m] = hhmm.split(':').map(Number)
-  const suffix = h >= 12 ? 'pm' : 'am'
-  const hour = h % 12 || 12
-  return m ? `${hour}:${String(m).padStart(2, '0')} ${suffix}` : `${hour} ${suffix}`
-}
-
 /** Same rules as `openStatus` in lib/salon, with a translated label. */
 export const openStatusIn = (salon: SalonRecord, tr: Translator, now = new Date()) => {
   const tz = salon.timezone ?? 'Asia/Kolkata'
+  const to12h = (hhmm: string) => formatClockIn(tr.lang, hhmm)
   if (!salon.hours?.length) return null
   const wd = localWeekday(now, tz)
   const hhmm = formatIST(now, 'HH:mm', tz)

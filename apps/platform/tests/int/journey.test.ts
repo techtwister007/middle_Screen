@@ -90,8 +90,9 @@ describe('the core customer journey', () => {
     appointmentId = appointment.id
     expect(appointment.status).toBe('requested')
     expect(quote.deposit).toBe(rupees(400))
-    expect(messagesTo(ananya.phone)).toContain('booking_received')
-    expect(messagesTo(OWNER_PHONE)).toContain('owner_new_booking')
+    // Nothing is sent while the deposit is unpaid: no "we got your request" followed by "you're booked".
+    expect(messagesTo(ananya.phone)).not.toContain('booking_received')
+    expect(messagesTo(OWNER_PHONE)).not.toContain('owner_new_booking')
   })
 
   it('the same artist cannot be double-booked', async () => {
@@ -115,6 +116,9 @@ describe('the core customer journey', () => {
     expect(appt?.status).toBe('confirmed')
     expect(appt?.depositPaid).toBe(true)
     expect(messagesTo(ananya.phone).filter((t) => t === 'booking_confirmed')).toHaveLength(1)
+    expect(messagesTo(ananya.phone)).not.toContain('booking_received')
+    // The owner hears about it once, when the deposit lands.
+    expect(messagesTo(OWNER_PHONE).filter((t) => t === 'owner_new_booking')).toHaveLength(1)
     const jobs = await payload.find({ collection: 'payload-jobs' as never, overrideAccess: true, limit: 100, where: { taskSlug: { equals: 'module-step' } } })
     const steps = (jobs.docs as { input: { step: string } }[]).map((j) => j.input.step)
     expect(steps).toContain('appointment-reminder')

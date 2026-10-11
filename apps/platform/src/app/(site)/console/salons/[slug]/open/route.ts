@@ -9,12 +9,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const user = await requirePlatformAdmin()
   const salon = await getSalonAnyStatus(slug)
   if (!salon) return new Response('Not found', { status: 404 })
-  const reason = new URL(req.url).searchParams.get('reason') ?? 'support'
+  const url = new URL(req.url)
+  const reason = url.searchParams.get('reason') ?? 'support'
+  // Only paths inside this salon's Studio.
+  const to = url.searchParams.get('to') ?? '/today'
+  const target = /^\/[a-z0-9/_-]*$/i.test(to) && !to.includes('//') ? to : '/today'
   const payload = await getPayloadClient()
   await payload.create({
     collection: 'audit-log',
     overrideAccess: true,
-    data: { actor: user.id, action: 'studio.opened', details: { slug, reason } } as never,
+    data: { actor: user.id, action: 'studio.opened', details: { slug, reason, to: target } } as never,
   })
-  redirect(`/studio/${slug}/today`)
+  redirect(`/studio/${slug}${target}`)
 }

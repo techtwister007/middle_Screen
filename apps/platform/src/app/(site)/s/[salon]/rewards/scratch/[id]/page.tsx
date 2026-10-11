@@ -1,10 +1,9 @@
-import { formatIST } from '@salon/core'
 import { buttonClass } from '@salon/ui'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ScratchCard } from '@/components/site/ScratchCard'
-import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { formatDateIn, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
 import { requireFeature } from '../../../_lib/gate'
 
@@ -18,7 +17,7 @@ export default async function ScratchPage({ params }: { params: Promise<{ salon:
   const salon = await loadSalon(slug)
   requireFeature(salon, 'loyalty')
   const customer = await requireCustomer(salon, `/s/${slug}/rewards/scratch/${id}`)
-  const tr = translator(await getLang(customer.language))
+  const tr = translator(await getLang(customer?.language, salonLanguages(salon)))
   const reward = await (await repoFor(salon)).findByID<{ id: string; customer: unknown; title: string; revealed?: boolean; validTo?: string }>('rewards', id)
   if (!reward || String(idOf(reward.customer)) !== String(customer.id)) notFound()
   return (
@@ -33,7 +32,9 @@ export default async function ScratchPage({ params }: { params: Promise<{ salon:
         title={reward.title}
       />
       {reward.validTo ? (
-        <p className='mt-4 text-sm text-muted'>{tr('useBefore', { date: formatIST(reward.validTo, 'd MMMM', salon.timezone ?? 'Asia/Kolkata') })}</p>
+        <p className='mt-4 text-sm text-muted'>
+          {tr('useBefore', { date: formatDateIn(tr.lang, reward.validTo, 'd MMMM', salon.timezone ?? 'Asia/Kolkata') })}
+        </p>
       ) : null}
       <Link className={buttonClass('primary', 'lg', 'mt-8 w-full')} href={`/s/${slug}/book?chair=1`}>
         {tr('bookNextNow')}

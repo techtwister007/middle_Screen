@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { ConsoleHeader } from '@/components/console/ConsoleHeader'
 import { requirePlatformAdmin } from '@/lib/staff'
 
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
@@ -11,20 +11,8 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
         precedence='default'
         rel='stylesheet'
       />
-      <header className='border-b border-line bg-surface'>
-        <div className='mx-auto flex h-14 max-w-6xl items-center justify-between px-6'>
-          <Link className='font-heading text-lg' href='/console'>
-            Platform console
-          </Link>
-          <nav className='flex gap-5 text-sm'>
-            <Link href='/console'>Salons</Link>
-            <Link href='/console/new'>New salon / demo</Link>
-            <Link href='/console/library'>Design library</Link>
-            <Link href='/admin'>Admin</Link>
-          </nav>
-        </div>
-      </header>
-      <main className='mx-auto max-w-6xl px-6 py-8'>{children}</main>
+      <ConsoleHeader />
+      <main className='mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8'>{children}</main>
     </div>
   )
 }

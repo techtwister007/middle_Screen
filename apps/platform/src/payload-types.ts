@@ -415,6 +415,18 @@ export interface Salon {
      * Do not expire this demo after 7 days
      */
     keepDemo?: boolean | null;
+    /**
+     * Demo salons are paused after this date unless "keep" is ticked
+     */
+    demoExpiresAt?: string | null;
+    /**
+     * When the presenter last started a demo (reset clears what came after)
+     */
+    demoStartedAt?: string | null;
+    /**
+     * Theme to restore when the demo is reset
+     */
+    demoOriginalTheme?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -2043,6 +2055,9 @@ export interface SalonsSelect<T extends boolean = true> {
         wifiPassword?: T;
         demoPhone?: T;
         keepDemo?: T;
+        demoExpiresAt?: T;
+        demoStartedAt?: T;
+        demoOriginalTheme?: T;
       };
   updatedAt?: T;
   createdAt?: T;

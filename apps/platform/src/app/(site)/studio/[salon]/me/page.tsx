@@ -19,7 +19,11 @@ export default async function MyStatsPage({ params, searchParams }: { params: Pr
   const since = new Date(Date.now() - 30 * DAY_MS).toISOString()
   const mine = { staff: { equals: staffId } }
   const [visits, ratings, tasks, preBooked, upcoming] = await Promise.all([
-    repo.find<{ id: ID; total: number; subtotal: number }>('visits', { where: { and: [mine, { createdAt: { greater_than: since } }] }, limit: 2000, depth: 0 }),
+    repo.find<{ id: ID; total: number; subtotal: number; tip?: number | null }>('visits', {
+      where: { and: [mine, { createdAt: { greater_than: since } }] },
+      limit: 2000,
+      depth: 0,
+    }),
     repo.find<{ score: number; comment?: string | null }>('ratings', {
       where: { and: [mine, { createdAt: { greater_than: since } }] },
       limit: 2000,
@@ -36,6 +40,7 @@ export default async function MyStatsPage({ params, searchParams }: { params: Pr
     repo.count('appointments', { and: [mine, { start: { greater_than: new Date().toISOString() } }, { status: { in: ['requested', 'confirmed'] } }] }),
   ])
   const revenue = visits.docs.reduce((n, v) => n + (v.subtotal ?? v.total ?? 0), 0)
+  const tips = visits.docs.reduce((n, v) => n + (v.tip ?? 0), 0)
   const avg = ratings.docs.length ? ratings.docs.reduce((n, r) => n + r.score, 0) / ratings.docs.length : null
   const shared = tasks.docs.filter((t) => ['shared', 'verified'].includes(t.status)).length
   const comments = ratings.docs.filter((r) => r.comment && r.score >= 4).slice(0, 3)
@@ -53,6 +58,7 @@ export default async function MyStatsPage({ params, searchParams }: { params: Pr
         />
         <Stat label='Photos shared by clients' value={shared} />
         <Stat label='Upcoming bookings' value={upcoming} />
+        <Stat hint='From customers, on top of the bill' label='Tips received' value={formatINR(tips)} />
       </div>
 
       {comments.length ? (

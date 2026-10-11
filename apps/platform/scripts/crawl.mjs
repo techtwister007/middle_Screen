@@ -41,7 +41,15 @@ const ROLES = [
   {
     name: 'owner',
     login: staffLogin(`owner@${SLUG}.test`, 'owner-demo-123'),
-    seeds: ['/studio', `/studio/${SLUG}/today`, `/studio/${SLUG}/settings`, `/studio/${SLUG}/photos?tab=collage`],
+    seeds: [
+      '/studio',
+      `/studio/${SLUG}/today`,
+      `/studio/${SLUG}/today/close`,
+      `/studio/${SLUG}/calendar`,
+      `/studio/${SLUG}/appointments/new`,
+      `/studio/${SLUG}/settings`,
+      `/studio/${SLUG}/photos?tab=collage`,
+    ],
     scope: /^\/studio/,
   },
   { name: 'admin', login: staffLogin('admin@platform.test', 'admin-demo-123'), seeds: ['/console', '/admin'], scope: /^\/(console|admin$)/ },

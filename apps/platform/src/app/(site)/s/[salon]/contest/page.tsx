@@ -1,9 +1,9 @@
-import { formatIST } from '@salon/core'
+import { DEFAULT_CONTEST_TERMS } from '@salon/modules'
 import { EmptyState } from '@salon/ui'
 import { Share2, Trophy } from 'lucide-react'
-import { VoteButton } from '@/components/site/ContestVote'
-import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { ContestEntries } from '@/components/site/ContestVote'
+import { formatDateIn, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { contestNow, currentCustomer, loadSalon, repoFor } from '@/lib/site'
 import { requireFeature } from '../_lib/gate'
@@ -18,7 +18,7 @@ export default async function ContestPage({ params }: { params: Promise<{ salon:
   const salon = await loadSalon(slug)
   requireFeature(salon, 'contests')
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const contest = await contestNow(salon)
   if (!contest)
@@ -48,46 +48,35 @@ export default async function ContestPage({ params }: { params: Promise<{ salon:
       <p className='text-xs font-semibold uppercase tracking-widest text-brand'>{contest.theme ?? tr('thisMonth')}</p>
       <h1 className='font-heading text-3xl'>{contest.title}</h1>
       <p className='mt-1 text-sm text-muted'>
-        {tr('contestIntro', { prize: contest.prize, date: formatIST(contest.endsAt, 'd MMM', salon.timezone ?? 'Asia/Kolkata') })}
+        {tr('contestIntro', { prize: contest.prize, date: formatDateIn(lang, contest.endsAt, 'd MMM', salon.timezone ?? 'Asia/Kolkata') })}
       </p>
       <a
-        className='mt-3 inline-flex items-center gap-2 text-sm font-medium text-brand'
+        className='mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand'
         href={`https://wa.me/?text=${encodeURIComponent(tr('voteText', { salon: salon.name, url }))}`}
         rel='noopener'
         target='_blank'
       >
         <Share2 size={14} /> {tr('askFriendsVote')}
       </a>
-      <div className='mt-5 grid grid-cols-2 gap-3'>
-        {entries.map((e, i) => (
-          <div className='rounded-card border border-line bg-surface p-2' key={e.id}>
-            <div className='relative'>
-              <img
-                alt={e.designName ?? tr('untitled')}
-                className='aspect-square w-full rounded-[calc(var(--t-radius)-6px)] object-cover'
-                loading='lazy'
-                src={mediaUrl(e.photo, 'card') ?? undefined}
-              />
-              {i === 0 && e.votes > 0 ? (
-                <span className='absolute left-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-ink'>{tr('leading')}</span>
-              ) : null}
-            </div>
-            <p className='mt-2 truncate px-1 text-sm font-medium'>{e.designName ?? tr('untitled')}</p>
-            <p className='px-1 text-xs text-muted'>{e.customer?.name?.split(' ')[0] ?? tr('aClient')}</p>
-            <VoteButton
-              contestId={contest.id}
-              entryId={e.id}
-              lang={lang}
-              loggedIn={Boolean(customer)}
-              salonName={salon.name}
-              slug={slug}
-              voted={votedEntry === e.id}
-              votes={e.votes}
-            />
-          </div>
-        ))}
-      </div>
-      {contest.terms ? <p className='mt-8 text-xs text-muted'>{contest.terms}</p> : null}
+      <ContestEntries
+        contestId={contest.id}
+        entries={entries.map((e, i) => ({
+          id: String(e.id),
+          title: e.designName ?? tr('untitled'),
+          name: e.customer?.name?.split(' ')[0] ?? tr('aClient'),
+          image: mediaUrl(e.photo, 'card'),
+          votes: e.votes,
+          leading: i === 0 && e.votes > 0,
+        }))}
+        lang={lang}
+        loggedIn={Boolean(customer)}
+        salonName={salon.name}
+        slug={slug}
+        votedEntry={votedEntry}
+      />
+      {contest.terms ? (
+        <p className='mt-8 text-xs leading-relaxed text-muted'>{contest.terms.trim() === DEFAULT_CONTEST_TERMS ? tr('contestTermsDefault') : contest.terms}</p>
+      ) : null}
     </div>
   )
 }

@@ -1,22 +1,23 @@
-import { formatINR, formatIST } from '@salon/core'
+import { formatINR } from '@salon/core'
 import { customerCanChange } from '@salon/modules'
 import { Badge, buttonClass } from '@salon/ui'
-import { Calendar, Clock, MapPin, ParkingCircle } from 'lucide-react'
+import { Calendar, Clock, MapPin, MessageCircle, ParkingCircle, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppointmentActions } from '@/components/site/AppointmentActions'
 import { GroupShare } from '@/components/site/BookingFlow'
-import { type DictKey, translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { StickyBar } from '@/components/site/StickyBar'
+import { type DictKey, formatDateIn, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
-import { currentCustomer, idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
+import { idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
 import { STATUS_TONE } from '../../_lib/status'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
-  return { title: translator(await getLang((await currentCustomer(salon))?.language))('yourAppointment') }
+  return { title: translator(await salonLang(salon))('yourAppointment') }
 }
 
 export default async function AppointmentPage({
@@ -30,7 +31,7 @@ export default async function AppointmentPage({
   const { paid, moved } = await searchParams
   const salon = await loadSalon(slug)
   const customer = await requireCustomer(salon, `/s/${slug}/appointments/${id}`)
-  const tr = translator(await getLang(customer.language))
+  const tr = translator(await getLang(customer?.language, salonLanguages(salon)))
   const repo = await repoFor(salon)
   const appt = await repo.findByID<{
     id: string
@@ -43,30 +44,63 @@ export default async function AppointmentPage({
     depositPaid?: boolean
     staff?: { name: string; avatar?: unknown } | null
     services: { id: string; name: string }[]
-    design?: { title: string; images?: unknown[] } | null
+    design?: { id: string; title: string; images?: unknown[] } | null
     inspiration?: unknown[]
     group?: { code: string; status: string; organiser: string | { id: string } } | null
+    updatedAt?: string
   }>('appointments', id, 2)
   if (!appt || String(idOf(appt.customer)) !== String(customer.id)) notFound()
   const tz = salon.timezone ?? 'Asia/Kolkata'
-  const upcoming = customerCanChange(appt, new Date(), Number(salon.settings?.changeCutoffHours ?? 4) || 0)
-  const policy = (salon.settings as { cancellationPolicy?: string } | null)?.cancellationPolicy
+  const settings = (salon.settings ?? {}) as { cancellationPolicy?: string; changeCutoffHours?: number; depositRefundHours?: number }
+  const cutoffHours = Number(settings.changeCutoffHours ?? 4) || 0
+  const refundHours = Number(settings.depositRefundHours ?? 24) || 0
+  const upcoming = customerCanChange(appt, new Date(), cutoffHours)
+  const cancelled = appt.status === 'cancelled'
+  // Still ahead but inside the salon's cut-off: changes go through the salon.
+  const lockedIn = !upcoming && ['requested', 'confirmed'].includes(appt.status) && new Date(appt.start).getTime() > Date.now()
+  const policy = settings.cancellationPolicy
   const base = `/s/${slug}`
   const showGroup = upcoming && salonFeatures(salon).has('groupBooking') && appt.group && typeof appt.group === 'object' && appt.group.status === 'open'
+  const deposit = appt.depositRequired
+    ? ((
+        await repo.find<{ status: string; amount: number; refundedAt?: string | null }>('payments', {
+          where: { and: [{ appointment: { equals: appt.id } }, { kind: { equals: 'deposit' } }, { status: { in: ['captured', 'refunded'] } }] },
+          sort: '-createdAt',
+          limit: 1,
+        })
+      ).docs[0] ?? null)
+    : null
+  const depositAmount = formatINR(deposit?.amount ?? appt.depositRequired ?? 0)
+  const depositPaid = Boolean(appt.depositPaid) || deposit?.status === 'captured' || deposit?.status === 'refunded'
+  const hoursToStart = (new Date(appt.start).getTime() - Date.now()) / 3_600_000
+  // When cancelled: refunded, on its way (cancelled in time, refund still processing) or kept (cancelled late).
+  const cancelledInTime =
+    hoursToStart >= refundHours || (appt.updatedAt ? (new Date(appt.start).getTime() - new Date(appt.updatedAt).getTime()) / 3_600_000 >= refundHours : false)
+  const depositText = !appt.depositRequired
+    ? null
+    : deposit?.status === 'refunded'
+      ? tr('depositRefunded', { amount: depositAmount, date: deposit.refundedAt ? formatDateIn(tr.lang, deposit.refundedAt, 'd MMM', tz) : '' })
+      : cancelled && depositPaid
+        ? cancelledInTime
+          ? tr('depositRefundOnWay', { amount: depositAmount })
+          : tr('depositKept', { amount: depositAmount })
+        : tr('depositLine', { amount: depositAmount, state: depositPaid ? tr('paid') : tr('pending') })
+  const rebookHref = `${base}/book?services=${appt.services.map((sv) => sv.id).join(',')}${appt.design?.id ? `&design=${appt.design.id}` : ''}`
+  const whatsapp = salon.contact?.whatsapp?.replace(/\D/g, '')
   return (
     <div className='px-4 pt-5'>
-      {paid ? <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800'>{tr('depositReceived')}</p> : null}
-      {moved ? (
+      {paid && !cancelled ? <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800'>{tr('depositReceived')}</p> : null}
+      {moved && !cancelled ? (
         <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800' data-testid='moved'>
           {tr('apptMoved')}
         </p>
       ) : null}
       <Badge tone={STATUS_TONE[appt.status] ?? 'warning'}>{tr.or(`ap_${appt.status}`, appt.status)}</Badge>
-      <h1 className='mt-2 font-heading text-3xl' data-testid='appt-date'>
-        {formatIST(appt.start, 'EEEE d MMMM', tz)}
+      <h1 className={cancelled ? 'mt-2 font-heading text-3xl text-muted line-through decoration-1' : 'mt-2 font-heading text-3xl'} data-testid='appt-date'>
+        {formatDateIn(tr.lang, appt.start, 'EEEE d MMMM', tz)}
       </h1>
-      <p className='flex items-center gap-2 text-muted' data-testid='appt-time'>
-        <Clock size={15} /> {formatIST(appt.start, 'h:mm a', tz)} – {formatIST(appt.end, 'h:mm a', tz)}
+      <p className='flex flex-wrap items-center gap-x-2 text-muted' data-testid='appt-time'>
+        <Clock size={15} /> {formatDateIn(tr.lang, appt.start, 'h:mm a', tz)} – {formatDateIn(tr.lang, appt.end, 'h:mm a', tz)}
         {appt.staff ? ` · ${tr('withName', { name: appt.staff.name })}` : ''}
       </p>
       {appt.design ? (
@@ -87,8 +121,10 @@ export default async function AppointmentPage({
           <p key={sv.id}>{sv.name}</p>
         ))}
         {appt.quotedTotal ? <p className='mt-2 font-medium'>{tr('estimated', { amount: formatINR(appt.quotedTotal) })}</p> : null}
-        {appt.depositRequired ? (
-          <p className='text-muted'>{tr('depositLine', { amount: formatINR(appt.depositRequired), state: appt.depositPaid ? tr('paid') : tr('pending') })}</p>
+        {depositText ? (
+          <p className='text-muted' data-testid='deposit-line'>
+            {depositText}
+          </p>
         ) : null}
       </div>
       {showGroup && appt.group ? (
@@ -107,12 +143,12 @@ export default async function AppointmentPage({
             </ul>
           </div>
           <div className='flex flex-wrap gap-2'>
-            <a className={buttonClass('secondary', 'sm')} href={`${base}/appointments/${appt.id}/ics`}>
-              <Calendar size={14} /> {tr('addToCalendar')}
+            <a className={buttonClass('secondary', 'md')} href={`${base}/appointments/${appt.id}/ics`}>
+              <Calendar size={16} /> {tr('addToCalendar')}
             </a>
             {salon.contact?.mapUrl ? (
-              <a className={buttonClass('secondary', 'sm')} href={salon.contact.mapUrl} rel='noopener' target='_blank'>
-                <MapPin size={14} /> {tr('directions')}
+              <a className={buttonClass('secondary', 'md')} href={salon.contact.mapUrl} rel='noopener' target='_blank'>
+                <MapPin size={16} /> {tr('directions')}
               </a>
             ) : null}
           </div>
@@ -121,21 +157,47 @@ export default async function AppointmentPage({
               <ParkingCircle size={15} /> {salon.contact.parking}
             </p>
           ) : null}
-          <AppointmentActions
-            id={appt.id}
-            labels={{
-              reschedule: tr('reschedule'),
-              cancel: tr('cancel'),
-              cancelTitle: tr('cancelTitle'),
-              cancelling: tr('cancelling'),
-              yesCancel: tr('yesCancel'),
-            }}
-            policy={policy}
-            slug={slug}
-          />
+          {cutoffHours > 0 ? <p className='text-xs text-muted'>{tr('changeCutoffNote', { hours: cutoffHours })}</p> : null}
+          <StickyBar testId='appt-actions'>
+            <AppointmentActions
+              deposit={
+                appt.depositRequired && depositPaid && deposit?.status !== 'refunded'
+                  ? hoursToStart >= refundHours
+                    ? tr('cancelRefundYes', { amount: depositAmount })
+                    : tr('cancelRefundNo', { amount: depositAmount, hours: refundHours })
+                  : null
+              }
+              id={appt.id}
+              labels={{
+                reschedule: tr('reschedule'),
+                cancel: tr('cancel'),
+                cancelTitle: tr('cancelTitle'),
+                cancelling: tr('cancelling'),
+                yesCancel: tr('yesCancel'),
+                keep: tr('keepAppointment'),
+              }}
+              policy={policy}
+              slug={slug}
+            />
+          </StickyBar>
         </div>
+      ) : lockedIn ? (
+        <div className='mt-5 rounded-card border border-line bg-surface p-4 text-sm' data-testid='change-closed'>
+          <p>{tr('changeClosed', { hours: cutoffHours })}</p>
+          {whatsapp ? (
+            <a className={buttonClass('secondary', 'md', 'mt-3 w-full')} href={`https://wa.me/${whatsapp}`} rel='noopener' target='_blank'>
+              <MessageCircle size={16} /> {tr('whatsapp')}
+            </a>
+          ) : null}
+        </div>
+      ) : cancelled ? (
+        <StickyBar testId='appt-actions'>
+          <Link className={buttonClass('primary', 'lg', 'w-full')} data-testid='book-again' href={rebookHref}>
+            <RotateCcw size={18} /> {tr('bookAgain')}
+          </Link>
+        </StickyBar>
       ) : null}
-      <Link className='mt-8 block text-center text-sm font-medium text-brand' href={`${base}/appointments`}>
+      <Link className='mt-6 flex min-h-11 items-center justify-center text-sm font-medium text-brand' href={`${base}/appointments`}>
         {tr('myAppointments')}
       </Link>
     </div>

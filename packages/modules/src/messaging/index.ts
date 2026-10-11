@@ -382,6 +382,8 @@ interface ApptDoc {
   staff?: ID | { id: ID } | null
   start: string
   status: string
+  depositRequired?: number | null
+  depositPaid?: boolean | null
 }
 
 /** True when the customer has an upcoming booking or visited after `since`. Used to stop journeys. */
@@ -416,6 +418,8 @@ export const messagingModule = defineModule({
         repo.findByID<CustomerDoc>('customers', event.payload.customerId),
       ])
       if (appt?.status !== 'requested') return
+      // Waiting for a deposit: say nothing yet. "You're booked" goes out (and the owner hears) once it is paid.
+      if ((appt.depositRequired ?? 0) > 0 && !appt.depositPaid) return
       const vars = { date: fmtDate(salon, appt.start), time: fmtTime(salon, appt.start) }
       await sendToCustomer(payload, event.tenant, event.payload.customerId, {
         template: 'booking_received',
@@ -434,6 +438,16 @@ export const messagingModule = defineModule({
       const salon = await getSalon(payload, event.tenant)
       const appt = await repo.findByID<ApptDoc>('appointments', event.payload.appointmentId)
       if (!appt) return
+      // The owner hasn't seen bookings that confirmed themselves (auto-confirm) or by paying a deposit.
+      const paidDeposit = (appt.depositRequired ?? 0) > 0 && Boolean(appt.depositPaid)
+      if (event.actorType !== 'staff' || paidDeposit) {
+        const customer = await repo.findByID<CustomerDoc>('customers', event.payload.customerId)
+        await sendToOwner(payload, event.tenant, {
+          template: 'owner_new_booking',
+          vars: { date: fmtDate(salon, appt.start), time: fmtTime(salon, appt.start), name: customer?.name ?? customer?.phone },
+          link: studioLink(salon.slug, '/today'),
+        })
+      }
       await sendToCustomer(payload, event.tenant, event.payload.customerId, {
         template: 'booking_confirmed',
         vars: { date: fmtDate(salon, appt.start), time: fmtTime(salon, appt.start), artist: await artistName(payload, idOf(appt.staff)) },

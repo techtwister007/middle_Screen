@@ -1,5 +1,5 @@
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { getSalonBySlug, salonFeatures, salonTheme } from '@/lib/salon'
 
@@ -10,7 +10,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ salon: str
   if (!salon) return new Response('Not found', { status: 404 })
   const { tokens } = salonTheme(salon)
   const logo = mediaUrl(salon.brand?.logo, 'original')
-  const tr = translator(await getLang())
+  const tr = translator(await getLang(null, salonLanguages(salon)))
   const features = salonFeatures(salon)
   const manifest = {
     name: salon.name,

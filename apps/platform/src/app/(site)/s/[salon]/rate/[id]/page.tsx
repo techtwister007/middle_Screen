@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { RateForm } from '@/components/site/RateForm'
 import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
@@ -13,7 +13,7 @@ export default async function RatePage({ params }: { params: Promise<{ salon: st
   const { salon: slug, id } = await params
   const salon = await loadSalon(slug)
   const customer = await requireCustomer(salon, `/s/${slug}/rate/${id}`)
-  const lang = await getLang(customer.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const visit = await (await repoFor(salon)).findByID<{ customer: unknown; staff?: { name: string } | null }>('visits', id, 1)
   if (!visit || String(idOf(visit.customer)) !== String(customer.id)) notFound()

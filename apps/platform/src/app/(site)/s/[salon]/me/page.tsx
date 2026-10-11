@@ -1,11 +1,11 @@
-import { formatINR, formatIST, type ID } from '@salon/core'
+import { formatINR, type ID } from '@salon/core'
 import { savedDesignIds } from '@salon/modules'
 import { buttonClass, EmptyState } from '@salon/ui'
 import { CalendarDays, Hand, Heart, HeartPulse, RotateCcw, Sparkles, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
 import { ProfileForm } from '@/components/site/ProfileForm'
-import { type DictKey, translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { type DictKey, formatDateIn, tn, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
 import { salonFeatures } from '@/lib/salon'
@@ -22,7 +22,7 @@ export default async function MePage({ params }: { params: Promise<{ salon: stri
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await requireCustomer(salon, `/s/${slug}/me`)
-  const lang = await getLang(customer.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const features = salonFeatures(salon)
   const repo = await repoFor(salon)
@@ -83,13 +83,13 @@ export default async function MePage({ params }: { params: Promise<{ salon: stri
   return (
     <div className='px-4 pt-5'>
       <h1 className='font-heading text-3xl'>{tr('myNails')}</h1>
-      <p className='text-sm text-muted'>{customer.visitCount ? tr('visitsSoFar', { n: customer.visitCount }) : tr('diaryStarts')}</p>
+      <p className='text-sm text-muted'>{customer.visitCount ? tn(lang, 'visitsSoFar', customer.visitCount) : tr('diaryStarts')}</p>
 
       {daysToDue !== null ? (
         <div className='mt-5 rounded-card border border-line bg-surface p-4' data-testid='refill'>
           <div className='flex items-center justify-between text-sm'>
-            <span className='font-medium'>{daysToDue <= 0 ? tr('refillDueNow') : tr('refillInDays', { n: daysToDue })}</span>
-            <span className='text-muted'>{formatIST(customer.nextDueDate!, 'd MMM', tz)}</span>
+            <span className='font-medium'>{daysToDue <= 0 ? tr('refillDueNow') : tn(lang, 'refillInDays', daysToDue)}</span>
+            <span className='text-muted'>{formatDateIn(lang, customer.nextDueDate!, 'd MMM', tz)}</span>
           </div>
           <div className='mt-3 h-2 overflow-hidden rounded-full bg-tint'>
             <div className='h-full rounded-full bg-brand' data-cycle={cycle} style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -149,10 +149,10 @@ export default async function MePage({ params }: { params: Promise<{ salon: stri
                 <div className='min-w-0 flex-1'>
                   <p className='truncate font-medium'>{v.designName ?? v.lines.map((l) => l.name).join(', ')}</p>
                   <p className='text-xs text-muted'>
-                    {formatIST(v.createdAt, 'd MMM yyyy', tz)}
+                    {formatDateIn(lang, v.createdAt, 'd MMM yyyy', tz)}
                     {v.staff ? ` · ${v.staff.name.split(' ')[0]}` : ''} · {formatINR(v.total)}
                   </p>
-                  <Link className='mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand' href={`${base}/book?repeat=${v.id}`}>
+                  <Link className='-ml-1 mt-1 inline-flex min-h-11 items-center gap-1 px-1 text-sm font-medium text-brand' href={`${base}/book?repeat=${v.id}`}>
                     <RotateCcw size={13} /> {tr('repeat')}
                   </Link>
                 </div>
@@ -231,6 +231,7 @@ export default async function MePage({ params }: { params: Promise<{ salon: stri
             ] as DictKey[]
           ).map((k) => [k, tr(k)]),
         )}
+        languages={salonLanguages(salon)}
         slug={slug}
       />
     </div>

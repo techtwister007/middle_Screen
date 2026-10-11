@@ -21,7 +21,7 @@ export const DayHoursRow = ({
   names: { open: string; start: string; end: string }
   openLabel?: string
 }) => (
-  <fieldset className='group rounded-btn border border-line p-3' data-day={day}>
+  <fieldset className='group min-w-0 rounded-btn border border-line p-2.5' data-day={day}>
     <legend className='sr-only'>{label}</legend>
     <div className='flex items-center justify-between gap-3'>
       <span className='font-medium'>{label}</span>
@@ -37,11 +37,11 @@ export const DayHoursRow = ({
     <div className='mt-2 grid grid-cols-2 gap-2 group-has-[input[data-open]:not(:checked)]:hidden'>
       <label className='block text-xs text-muted'>
         From
-        <input aria-label={`${label} from`} className={`${inputClass} mt-1`} defaultValue={start} name={names.start} type='time' />
+        <input aria-label={`${label} from`} className={`${inputClass} mt-1 px-2`} defaultValue={start} name={names.start} type='time' />
       </label>
       <label className='block text-xs text-muted'>
         To
-        <input aria-label={`${label} to`} className={`${inputClass} mt-1`} defaultValue={end} name={names.end} type='time' />
+        <input aria-label={`${label} to`} className={`${inputClass} mt-1 px-2`} defaultValue={end} name={names.end} type='time' />
       </label>
     </div>
     <p className='mt-1 hidden text-xs text-muted group-has-[input[data-open]:not(:checked)]:block'>Closed</p>

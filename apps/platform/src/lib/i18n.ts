@@ -1,3 +1,5 @@
+import { formatINR, formatIST } from '@salon/core'
+
 export type Lang = 'en' | 'hi' | 'gu'
 
 type Entry = Record<Lang, string>
@@ -715,6 +717,81 @@ const dict = {
   err_loginToVote: { en: 'Please log in to vote', hi: 'वोट के लिए लॉग इन करें', gu: 'વોટ માટે લૉગ ઇન કરો' },
   err_notYourVisit: { en: 'This visit is not on your account', hi: 'यह विज़िट आपके अकाउंट की नहीं है', gu: 'આ મુલાકાત તમારા એકાઉન્ટની નથી' },
   err_groupOff: { en: 'Group booking is not available at this salon', hi: 'इस सैलून में ग्रुप बुकिंग उपलब्ध नहीं है', gu: 'આ સલૂનમાં ગ્રુપ બુકિંગ ઉપલબ્ધ નથી' },
+  // Customer app UX pass
+  pickService: { en: 'Pick a service', hi: 'कोई सर्विस चुनें', gu: 'કોઈ સર્વિસ પસંદ કરો' },
+  fullyBookedTryAnother: { en: 'Try another day.', hi: 'कोई दूसरा दिन देखें।', gu: 'બીજો દિવસ જુઓ.' },
+  slotsError: { en: "Couldn't load the times.", hi: 'समय लोड नहीं हो पाए।', gu: 'સમય લોડ ન થઈ શક્યા.' },
+  retry: { en: 'Try again', hi: 'फिर से कोशिश करें', gu: 'ફરી પ્રયાસ કરો' },
+  uploading: { en: 'Uploading…', hi: 'अपलोड हो रहा है…', gu: 'અપલોડ થઈ રહ્યું છે…' },
+  rewardWillApply: { en: '{reward} will be applied at the salon', hi: '{reward} सैलून पर लग जाएगी', gu: '{reward} સલૂનમાં લાગુ થઈ જશે' },
+  rw_firstVisit: { en: '{amount} first-visit reward', hi: 'पहली विज़िट पर {amount} की छूट', gu: 'પહેલી મુલાકાત પર {amount} ની છૂટ' },
+  rw_referral: { en: '{amount} off from a friend', hi: 'दोस्त की ओर से {amount} की छूट', gu: 'મિત્ર તરફથી {amount} ની છૂટ' },
+  bookAgain: { en: 'Book again', hi: 'फिर से बुक करें', gu: 'ફરી બુક કરો' },
+  depositRefunded: { en: 'Deposit {amount} · refunded on {date}', hi: 'एडवांस {amount} · {date} को वापस कर दिया', gu: 'એડવાન્સ {amount} · {date} એ પરત કર્યું' },
+  depositRefundOnWay: {
+    en: 'Deposit {amount} · refund on its way (5–7 working days)',
+    hi: 'एडवांस {amount} · पैसे वापस आ रहे हैं (5–7 कामकाजी दिन)',
+    gu: 'એડવાન્સ {amount} · પૈસા પાછા આવી રહ્યા છે (5–7 કામકાજના દિવસ)',
+  },
+  depositKept: {
+    en: 'Deposit {amount} · not refunded (cancelled late)',
+    hi: 'एडवांस {amount} · वापस नहीं होगा (देर से रद्द किया)',
+    gu: 'એડવાન્સ {amount} · પરત નહીં થાય (મોડું રદ કર્યું)',
+  },
+  cancelRefundYes: {
+    en: 'Your {amount} deposit will be refunded in full.',
+    hi: 'आपका {amount} एडवांस पूरा वापस मिल जाएगा।',
+    gu: 'તમારું {amount} એડવાન્સ પૂરું પાછું મળી જશે.',
+  },
+  cancelRefundNo: {
+    en: "It's less than {hours} hours to your appointment, so the {amount} deposit won't be refunded.",
+    hi: 'अपॉइंटमेंट में {hours} घंटे से कम बचे हैं, इसलिए {amount} एडवांस वापस नहीं होगा।',
+    gu: 'એપોઇન્ટમેન્ટને {hours} કલાકથી ઓછો સમય બાકી છે, એટલે {amount} એડવાન્સ પાછું નહીં મળે.',
+  },
+  keepAppointment: { en: 'Keep my appointment', hi: 'अपॉइंटमेंट रखें', gu: 'એપોઇન્ટમેન્ટ રાખો' },
+  changeCutoffNote: {
+    en: 'You can move or cancel online up to {hours} hours before.',
+    hi: 'आप {hours} घंटे पहले तक ऑनलाइन समय बदल या रद्द कर सकती हैं।',
+    gu: 'તમે {hours} કલાક પહેલાં સુધી ઓનલાઇન સમય બદલી કે રદ કરી શકો છો.',
+  },
+  changeClosed: {
+    en: 'Online changes close {hours} hours before your appointment. Please call or WhatsApp the salon.',
+    hi: 'अपॉइंटमेंट से {hours} घंटे पहले ऑनलाइन बदलाव बंद हो जाते हैं। कृपया सैलून को कॉल या WhatsApp करें।',
+    gu: 'એપોઇન્ટમેન્ટના {hours} કલાક પહેલાં ઓનલાઇન ફેરફાર બંધ થઈ જાય છે. કૃપા કરી સલૂનને કૉલ કે WhatsApp કરો.',
+  },
+  visitsSoFar_one: { en: '1 visit so far', hi: 'अब तक 1 विज़िट', gu: 'અત્યાર સુધી 1 મુલાકાત' },
+  rewardsLower_one: { en: 'reward', hi: 'इनाम', gu: 'ઇનામ' },
+  points_one: { en: 'point', hi: 'पॉइंट', gu: 'પોઇન્ટ' },
+  stamps_one: { en: 'stamp', hi: 'स्टैम्प', gu: 'સ્ટેમ્પ' },
+  refillInDays_one: { en: 'Refill tomorrow', hi: 'कल रिफिल', gu: 'કાલે રિફિલ' },
+  refillDueInDays_one: { en: 'Refill due tomorrow', hi: 'कल रिफिल का समय', gu: 'કાલે રિફિલનો સમય' },
+  friendsN_one: { en: '1 friend', hi: '1 दोस्त', gu: '1 મિત્ર' },
+  buyFor: { en: 'Buy · {price}', hi: 'खरीदें · {price}', gu: 'ખરીદો · {price}' },
+  youVotedFor: { en: 'You voted for {name}', hi: 'आपने {name} को वोट दिया', gu: 'તમે {name} ને વોટ આપ્યો' },
+  votedTick: { en: 'Your vote ✓', hi: 'आपका वोट ✓', gu: 'તમારો વોટ ✓' },
+  contestTermsDefault: {
+    en: 'One vote per phone number. Winner is the entry with the most votes when voting closes. This contest is run by the salon and is not sponsored, endorsed or administered by Instagram or Meta.',
+    hi: 'हर फ़ोन नंबर से एक वोट। वोटिंग बंद होने पर सबसे ज़्यादा वोट वाली एंट्री जीतेगी। यह कॉन्टेस्ट सैलून चला रहा है, Instagram या Meta इसे स्पॉन्सर, समर्थन या संचालित नहीं करते।',
+    gu: 'દરેક ફોન નંબરથી એક વોટ. વોટિંગ બંધ થાય ત્યારે સૌથી વધુ વોટવાળી એન્ટ્રી જીતશે. આ કોન્ટેસ્ટ સલૂન ચલાવે છે, Instagram કે Meta તેને સ્પોન્સર, સમર્થન કે સંચાલન કરતા નથી.',
+  },
+  nf_title: { en: "We couldn't find that page", hi: 'यह पेज नहीं मिला', gu: 'આ પેજ મળ્યું નહીં' },
+  nf_body: {
+    en: 'The link may be old or mistyped. If a salon sent it, ask them for a fresh one.',
+    hi: 'लिंक पुराना या गलत हो सकता है। अगर सैलून ने भेजा है, तो उनसे नया लिंक माँग लें।',
+    gu: 'લિંક જૂની કે ખોટી હોઈ શકે. જો સલૂને મોકલી હોય, તો તેમની પાસે નવી લિંક માંગો.',
+  },
+  nf_home: { en: 'Go home', hi: 'होम पर जाएँ', gu: 'હોમ પર જાઓ' },
+  changeLanguage: { en: 'Language', hi: 'भाषा', gu: 'ભાષા' },
+  col_cherry: { en: 'Cherry red', hi: 'चेरी लाल', gu: 'ચેરી લાલ' },
+  col_nude: { en: 'Nude pink', hi: 'न्यूड पिंक', gu: 'ન્યૂડ પિંક' },
+  col_plum: { en: 'Plum', hi: 'प्लम', gu: 'પ્લમ' },
+  col_navy: { en: 'Navy blue', hi: 'नेवी ब्लू', gu: 'નેવી બ્લૂ' },
+  col_lilac: { en: 'Lilac', hi: 'लाइलैक', gu: 'લાઇલેક' },
+  col_peach: { en: 'Peach', hi: 'पीच', gu: 'પીચ' },
+  col_green: { en: 'Bottle green', hi: 'गहरा हरा', gu: 'ઘેરો લીલો' },
+  col_butter: { en: 'Butter yellow', hi: 'हल्का पीला', gu: 'આછો પીળો' },
+  col_black: { en: 'Black', hi: 'काला', gu: 'કાળો' },
+  col_coral: { en: 'Coral', hi: 'कोरल', gu: 'કોરલ' },
 } satisfies Record<string, Entry>
 
 export type DictKey = keyof typeof dict
@@ -756,3 +833,87 @@ export const formatDurationIn = (lang: string | undefined | null, minutes?: numb
 }
 
 export const LANG_LABELS: Record<Lang, string> = { en: 'English', hi: 'हिन्दी', gu: 'ગુજરાતી' }
+
+/** Singular/plural: uses `<key>_one` when n is 1 and that entry exists. `tn(lang, 'visitsSoFar', 3)` */
+export const tn = (lang: string | undefined | null, key: DictKey, n: number, vars?: Vars): string =>
+  n === 1 && `${key}_one` in dict ? t(lang, `${key}_one` as DictKey, { n, ...vars }) : t(lang, key, { n, ...vars })
+
+const MONTHS = {
+  hi: {
+    short: ['जन', 'फ़र', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुल', 'अग', 'सितं', 'अक्टू', 'नवं', 'दिसं'],
+    long: ['जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'],
+  },
+  gu: {
+    short: ['જાન્યુ', 'ફેબ્રુ', 'માર્ચ', 'એપ્રિલ', 'મે', 'જૂન', 'જુલાઈ', 'ઑગસ્ટ', 'સપ્ટે', 'ઑક્ટો', 'નવે', 'ડિસે'],
+    long: ['જાન્યુઆરી', 'ફેબ્રુઆરી', 'માર્ચ', 'એપ્રિલ', 'મે', 'જૂન', 'જુલાઈ', 'ઑગસ્ટ', 'સપ્ટેમ્બર', 'ઑક્ટોબર', 'નવેમ્બર', 'ડિસેમ્બર'],
+  },
+} as const
+// ISO weekday order (1 = Monday … 7 = Sunday)
+const WEEKDAYS = {
+  hi: {
+    short: ['सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि', 'रवि'],
+    long: ['सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार', 'रविवार'],
+  },
+  gu: {
+    short: ['સોમ', 'મંગળ', 'બુધ', 'ગુરુ', 'શુક્ર', 'શનિ', 'રવિ'],
+    long: ['સોમવાર', 'મંગળવાર', 'બુધવાર', 'ગુરુવાર', 'શુક્રવાર', 'શનિવાર', 'રવિવાર'],
+  },
+} as const
+/** How people say the time of day: "शाम 6:30", "સાંજે 6:30". */
+const dayPart = (lang: 'hi' | 'gu', hour: number) => {
+  const parts = lang === 'hi' ? ['सुबह', 'दोपहर', 'शाम', 'रात'] : ['સવારે', 'બપોરે', 'સાંજે', 'રાત્રે']
+  if (hour >= 4 && hour < 12) return parts[0]
+  if (hour >= 12 && hour < 16) return parts[1]
+  if (hour >= 16 && hour < 20) return parts[2]
+  return parts[3]
+}
+
+/**
+ * `formatIST` in the customer's language. Supports the patterns the customer app uses:
+ * EEEE / EEE (weekday), d, MMMM / MMM (month), yyyy, "h:mm a" and "h a". English is unchanged.
+ */
+export const formatDateIn = (lang: string | undefined | null, date: Date | string, pattern: string, tz = 'Asia/Kolkata'): string => {
+  const l = asLang(lang)
+  if (l === 'en') return formatIST(date, pattern, tz)
+  const [iso, day, month, year, hour, minute] = formatIST(date, 'i|d|M|yyyy|H|mm', tz).split('|')
+  const h = Number(hour)
+  const h12 = h % 12 || 12
+  return pattern.replace(/EEEE|EEE|MMMM|MMM|yyyy|h:mm a|h a|d/g, (tok) => {
+    switch (tok) {
+      case 'EEEE':
+        return WEEKDAYS[l].long[Number(iso) - 1]
+      case 'EEE':
+        return WEEKDAYS[l].short[Number(iso) - 1]
+      case 'MMMM':
+        return MONTHS[l].long[Number(month) - 1]
+      case 'MMM':
+        return MONTHS[l].short[Number(month) - 1]
+      case 'yyyy':
+        return year
+      case 'h:mm a':
+        return `${dayPart(l, h)} ${h12}:${minute}`
+      case 'h a':
+        return `${dayPart(l, h)} ${h12}`
+      default:
+        return day
+    }
+  })
+}
+
+/** A reward's name in the customer's language (module titles are stored in English). */
+export const rewardLabel = (lang: string | undefined | null, r: { kind?: string | null; title: string; valueType?: string | null; value?: number | null }) => {
+  if (r.valueType === 'amount' && r.value) {
+    if (r.kind === 'first-visit') return t(lang, 'rw_firstVisit', { amount: formatINR(r.value) })
+    if (r.kind === 'referral') return t(lang, 'rw_referral', { amount: formatINR(r.value) })
+  }
+  return r.title
+}
+
+/** A salon clock time ("20:00") as people say it: "8 pm", "रात 8", "રાત્રે 8". */
+export const formatClockIn = (lang: string | undefined | null, hhmm: string): string => {
+  const [h, m] = hhmm.split(':').map(Number)
+  const hour = h % 12 || 12
+  const time = m ? `${hour}:${String(m).padStart(2, '0')}` : `${hour}`
+  const l = asLang(lang)
+  return l === 'en' ? `${time} ${h >= 12 ? 'pm' : 'am'}` : `${dayPart(l, h)} ${time}`
+}

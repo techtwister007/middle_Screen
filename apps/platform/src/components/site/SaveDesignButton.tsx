@@ -72,7 +72,7 @@ export const SaveDesignButton = ({
         aria-label={label}
         aria-pressed={saved}
         className={cn(
-          'inline-flex h-auto flex-col items-center justify-center gap-1 rounded-btn border py-3 text-xs font-medium transition',
+          'inline-flex h-auto min-h-11 flex-col items-center justify-center gap-1 rounded-btn border py-3 text-xs font-medium transition',
           saved ? 'border-brand bg-brand/10 text-brand' : 'border-line bg-surface',
           className,
         )}
@@ -90,7 +90,7 @@ export const SaveDesignButton = ({
       aria-label={label}
       aria-pressed={saved}
       className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-full bg-white/85 shadow-sm backdrop-blur transition active:scale-90',
+        'flex h-11 w-11 items-center justify-center rounded-full bg-white/85 shadow-sm backdrop-blur transition active:scale-90',
         saved ? 'text-brand' : 'text-ink/70',
         className,
       )}

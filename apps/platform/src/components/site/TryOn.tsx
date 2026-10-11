@@ -6,7 +6,19 @@ import { useState, useTransition } from 'react'
 import { tryOnAi, uploadInspiration } from '@/app/(site)/s/[salon]/actions'
 import { type DictKey, type Lang, translator } from '@/lib/i18n'
 
-const COLORS = ['#B3132B', '#F3D9D3', '#7A1E8C', '#1E2A4A', '#C9B8E8', '#E8B7A6', '#0F3B2E', '#FFE066', '#1B1B24', '#F28C5B']
+const SWATCHES = [
+  { hex: '#B3132B', name: 'col_cherry' },
+  { hex: '#F3D9D3', name: 'col_nude' },
+  { hex: '#7A1E8C', name: 'col_plum' },
+  { hex: '#1E2A4A', name: 'col_navy' },
+  { hex: '#C9B8E8', name: 'col_lilac' },
+  { hex: '#E8B7A6', name: 'col_peach' },
+  { hex: '#0F3B2E', name: 'col_green' },
+  { hex: '#FFE066', name: 'col_butter' },
+  { hex: '#1B1B24', name: 'col_black' },
+  { hex: '#F28C5B', name: 'col_coral' },
+] as const
+const COLORS: string[] = SWATCHES.map((s) => s.hex)
 const SHAPES = { almond: 'almond', square: 'square', oval: 'oval', coffin: 'coffin' } as const
 type Shape = keyof typeof SHAPES
 
@@ -96,21 +108,28 @@ export const TryOn = ({
         )}
       </div>
       <div>
-        <p className='mb-2 text-sm font-medium'>{tr('colour')}</p>
+        <p className='mb-2 text-sm font-medium'>
+          {tr('colour')}
+          {SWATCHES.find((sw) => sw.hex === color) ? (
+            <span className='font-normal text-muted'> · {tr(SWATCHES.find((sw) => sw.hex === color)!.name)}</span>
+          ) : null}
+        </p>
         <div className='flex flex-wrap gap-2'>
-          {COLORS.map((c, i) => (
+          {SWATCHES.map(({ hex, name }) => (
             <button
-              aria-label={tr('colourN', { n: i + 1 })}
-              className={cn('h-9 w-9 rounded-full border-2', color === c ? 'border-ink' : 'border-transparent')}
-              key={c}
-              onClick={() => setColor(c)}
-              style={{ background: c }}
+              aria-label={tr(name)}
+              aria-pressed={color === hex}
+              className={cn('h-11 w-11 rounded-full border-2 ring-offset-2 ring-offset-bg', color === hex ? 'border-ink ring-2 ring-ink/30' : 'border-line/60')}
+              key={hex}
+              onClick={() => setColor(hex)}
+              style={{ background: hex }}
+              title={tr(name)}
               type='button'
             />
           ))}
           <input
             aria-label={tr('customColour')}
-            className='h-9 w-9 cursor-pointer rounded-full border border-line'
+            className='h-11 w-11 cursor-pointer rounded-full border border-line'
             onChange={(e) => setColor(e.target.value)}
             type='color'
             value={color}
@@ -121,16 +140,25 @@ export const TryOn = ({
         <p className='mb-2 text-sm font-medium'>{tr('shape')}</p>
         <div className='flex flex-wrap gap-2'>
           {(Object.keys(SHAPES) as Shape[]).map((s) => (
-            <Pill active={shape === s} key={s} onClick={() => setShape(s)}>
+            <Pill active={shape === s} aria-pressed={shape === s} className='h-11' key={s} onClick={() => setShape(s)}>
               {tr(`shape_${s}` as DictKey)}
             </Pill>
           ))}
         </div>
       </div>
       <div>
-        <p className='mb-2 text-sm font-medium'>{tr('length')}</p>
+        <label className='mb-2 block text-sm font-medium' htmlFor='tryon-length'>
+          {tr('length')}
+        </label>
         <input
-          className='w-full accent-[var(--t-primary)]'
+          className={cn(
+            'h-11 w-full cursor-pointer appearance-none bg-transparent',
+            '[&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-line',
+            '[&::-webkit-slider-thumb]:-mt-2.5 [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-brand [&::-webkit-slider-thumb]:shadow',
+            '[&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-line',
+            '[&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-brand',
+          )}
+          id='tryon-length'
           max={1.35}
           min={0.8}
           onChange={(e) => setLength(Number(e.target.value))}
@@ -157,7 +185,8 @@ export const TryOn = ({
           {loggedIn ? (
             <div className='mt-4 space-y-3'>
               <label className='flex h-12 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-line text-sm'>
-                <Camera size={16} /> {hand ? tr('changeHandPhoto') : tr('uploadHandPhoto')}
+                {pending && !hand ? <Loader2 className='animate-spin' size={16} /> : <Camera size={16} />}{' '}
+                {hand ? tr('changeHandPhoto') : tr('uploadHandPhoto')}
                 <input
                   accept='image/*'
                   capture='environment'
@@ -198,7 +227,7 @@ export const TryOn = ({
             </div>
           ) : (
             <Link
-              className='mt-3 block text-sm font-medium text-brand'
+              className='mt-3 flex min-h-11 items-center text-sm font-medium text-brand'
               href={`/s/${slug}/login?next=${encodeURIComponent(`/s/${slug}/try-on?design=${design.id}`)}`}
             >
               {tr('loginToTry')}

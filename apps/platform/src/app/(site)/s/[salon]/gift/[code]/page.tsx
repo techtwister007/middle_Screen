@@ -2,7 +2,7 @@ import { formatINR } from '@salon/core'
 import { notFound } from 'next/navigation'
 import { GiftReveal } from '@/components/site/GiftReveal'
 import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { currentCustomer, firstName, loadSalon, repoFor } from '@/lib/site'
 import { requireFeature } from '../../_lib/gate'
 
@@ -23,7 +23,7 @@ export default async function GiftPage({ params }: { params: Promise<{ salon: st
   )
   if (!card || card.status === 'pending') notFound()
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   return (
     <div className='px-6 pt-14 text-center'>
       <GiftReveal

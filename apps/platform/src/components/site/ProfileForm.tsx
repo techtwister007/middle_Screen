@@ -13,8 +13,11 @@ export const ProfileForm = ({
   slug,
   initial,
   labels: l,
+  languages,
 }: {
   slug: string
+  /** The salon's languages (all three when not given) */
+  languages?: Lang[]
   initial: { name: string; birthday: string; marketing: boolean; gallery: boolean; lang: Lang; shape: string; length: string; sensitivities: string }
   labels: Record<string, string>
 }) => {
@@ -40,25 +43,27 @@ export const ProfileForm = ({
       <div>
         <Label>{l.language}</Label>
         <div className='grid grid-cols-3 gap-2' data-testid='language-switch'>
-          {(Object.keys(LANG_LABELS) as Lang[]).map((lang) => (
-            <button
-              aria-pressed={v.lang === lang}
-              className={`rounded-btn border py-2.5 text-sm ${v.lang === lang ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface'}`}
-              key={lang}
-              lang={lang}
-              onClick={() => {
-                setV({ ...v, lang })
-                start(async () => {
-                  await setLanguage(slug, lang)
-                  // Every page (and the layout's nav) re-renders in the new language.
-                  router.refresh()
-                })
-              }}
-              type='button'
-            >
-              {LANG_LABELS[lang]}
-            </button>
-          ))}
+          {(Object.keys(LANG_LABELS) as Lang[])
+            .filter((lang) => !languages || languages.includes(lang) || lang === v.lang)
+            .map((lang) => (
+              <button
+                aria-pressed={v.lang === lang}
+                className={`min-h-11 rounded-btn border py-2.5 text-sm ${v.lang === lang ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface'}`}
+                key={lang}
+                lang={lang}
+                onClick={() => {
+                  setV({ ...v, lang })
+                  start(async () => {
+                    await setLanguage(slug, lang)
+                    // Every page (and the layout's nav) re-renders in the new language.
+                    router.refresh()
+                  })
+                }}
+                type='button'
+              >
+                {LANG_LABELS[lang]}
+              </button>
+            ))}
         </div>
       </div>
       <div>
@@ -111,18 +116,18 @@ export const ProfileForm = ({
         </div>
       </div>
       <div className='space-y-3 rounded-card border border-line bg-surface p-4 text-sm'>
-        <label className='flex items-start gap-3'>
+        <label className='flex min-h-11 items-start gap-3'>
           <input
             checked={v.marketing}
-            className='mt-1 h-4 w-4'
+            className='mt-0.5 h-5 w-5 shrink-0'
             data-testid='consent-marketing'
             onChange={(e) => setV({ ...v, marketing: e.target.checked })}
             type='checkbox'
           />
           <span>{l.consentMarketing}</span>
         </label>
-        <label className='flex items-start gap-3'>
-          <input checked={v.gallery} className='mt-1 h-4 w-4' onChange={(e) => setV({ ...v, gallery: e.target.checked })} type='checkbox' />
+        <label className='flex min-h-11 items-start gap-3'>
+          <input checked={v.gallery} className='mt-0.5 h-5 w-5 shrink-0' onChange={(e) => setV({ ...v, gallery: e.target.checked })} type='checkbox' />
           <span>{l.consentGallery}</span>
         </label>
       </div>
@@ -137,9 +142,10 @@ export const ProfileForm = ({
       >
         <Download size={15} /> {l.downloadData}
       </a>
-      <div className='flex items-center justify-between pt-2 text-sm'>
+      <div className='flex items-center justify-between gap-2 pt-2 text-sm'>
         <button
-          className='text-muted underline'
+          className='-ml-2 min-h-11 px-2 text-muted underline'
+          disabled={pending}
           onClick={() =>
             start(async () => {
               await logout(slug)
@@ -152,7 +158,8 @@ export const ProfileForm = ({
         </button>
         {confirmDelete ? (
           <button
-            className='text-red-700 underline'
+            className='-mr-2 min-h-11 px-2 text-red-700 underline'
+            disabled={pending}
             onClick={() =>
               start(async () => {
                 await deleteMyData(slug)
@@ -164,7 +171,7 @@ export const ProfileForm = ({
             {l.deleteConfirm}
           </button>
         ) : (
-          <button className='text-muted underline' onClick={() => setConfirmDelete(true)} type='button'>
+          <button className='-mr-2 min-h-11 px-2 text-muted underline' onClick={() => setConfirmDelete(true)} type='button'>
             {l.deleteData}
           </button>
         )}

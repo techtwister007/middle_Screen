@@ -212,6 +212,9 @@ export const Salons: CollectionConfig = {
                 { name: 'wifiPassword', type: 'text' },
                 { name: 'demoPhone', type: 'text', admin: { description: 'Sales demo only: the prospect’s phone' } },
                 { name: 'keepDemo', type: 'checkbox', defaultValue: false, admin: { description: 'Do not expire this demo after 7 days' } },
+                { name: 'demoExpiresAt', type: 'date', admin: { description: 'Demo salons are paused after this date unless "keep" is ticked' } },
+                { name: 'demoStartedAt', type: 'date', admin: { description: 'When the presenter last started a demo (reset clears what came after)' } },
+                { name: 'demoOriginalTheme', type: 'text', admin: { description: 'Theme to restore when the demo is reset' } },
               ],
             },
           ],
@@ -357,13 +360,26 @@ export const platformModule = defineModule({
       slug: 'platform-expire-demos',
       cron: '0 * * * *',
       handler: async ({ payload }) => {
-        const cutoff = new Date(Date.now() - 7 * 86_400_000).toISOString()
+        const now = new Date().toISOString()
+        // Demos carry their own expiry (set when built); older demos fall back to 7 days after creation.
+        const legacyCutoff = new Date(Date.now() - 7 * 86_400_000).toISOString()
         const old = await payload.find({
           collection: 'salons' as never,
           overrideAccess: true,
           depth: 0,
           limit: 200,
-          where: { and: [{ status: { equals: 'demo' } }, { createdAt: { less_than: cutoff } }, { 'settings.keepDemo': { not_equals: true } }] },
+          where: {
+            and: [
+              { status: { equals: 'demo' } },
+              { 'settings.keepDemo': { not_equals: true } },
+              {
+                or: [
+                  { 'settings.demoExpiresAt': { less_than: now } },
+                  { and: [{ 'settings.demoExpiresAt': { exists: false } }, { createdAt: { less_than: legacyCutoff } }] },
+                ],
+              },
+            ],
+          },
         })
         for (const s of old.docs as { id: string | number }[])
           await payload.update({ collection: 'salons' as never, id: s.id, overrideAccess: true, data: { status: 'suspended' } as never })

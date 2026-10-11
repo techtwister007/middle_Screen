@@ -1,9 +1,9 @@
 import { asId, type ID } from '@salon/core'
-import { customerCanChange, findGroupBooking } from '@salon/modules'
+import { activeRewards, customerCanChange, findGroupBooking } from '@salon/modules'
 import { redirect } from 'next/navigation'
 import { BookingFlow } from '@/components/site/BookingFlow'
-import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { rewardLabel, t, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
 import { salonFeatures } from '@/lib/salon'
@@ -12,7 +12,7 @@ import { artists, currentCustomer, type DesignRecord, firstName, idOf, loadSalon
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
-  return { title: translator(await getLang((await currentCustomer(salon))?.language))('book') }
+  return { title: translator(await salonLang(salon))('book') }
 }
 
 type SP = Promise<{
@@ -32,17 +32,21 @@ export default async function BookPage({ params, searchParams }: { params: Promi
   const sp = await searchParams
   const salon = await loadSalon(slug)
   const [customer, serviceList, artistList, repo] = await Promise.all([currentCustomer(salon), services(salon), artists(salon), repoFor(salon)])
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const features = salonFeatures(salon)
   let initial: ID[] = []
   let design: DesignRecord | null = null
-  let staff: ID | null = sp.staff ?? null
+  // staff=any: the customer picked "Anyone available" (kept so a reload does not re-pick the design's artist).
+  let staff: ID | null = sp.staff && sp.staff !== 'any' ? sp.staff : null
   let initialStart: string | null = sp.start ?? null
   if (sp.services) initial = sp.services.split(',').filter(Boolean)
   else if (sp.service) initial = [sp.service]
   if (sp.design) {
     design = await repo.findByID<DesignRecord>('designs', sp.design, 1)
     if (design && !initial.length) initial = [idOf(design.service), ...(design.addOns ?? []).map((a) => idOf(a))].filter(Boolean) as ID[]
+    // "Book this look" starts with the artist who did it (still changeable on the artist step).
+    const designArtist = design ? idOf(design.artist) : null
+    if (!sp.staff && designArtist && artistList.some((a) => String(a.id) === String(designArtist))) staff = designArtist
   }
   if (sp.repeat && customer) {
     const visit = await repo.findByID<{
@@ -99,13 +103,20 @@ export default async function BookPage({ params, searchParams }: { params: Promi
   // Services the appointment already has stay selectable even if one was later hidden from the menu.
   const valid = new Set(serviceList.map((s) => String(s.id)))
   if (!reschedule) initial = initial.filter((id) => valid.has(String(id)))
+  const rewards =
+    customer && !reschedule && features.has('loyalty')
+      ? (await activeRewards(await getPayloadClient(), salon.id, customer.id))
+          .filter((r) => !(r.scratch && !r.revealed))
+          .map((r) => t(lang, 'rewardWillApply', { reward: rewardLabel(lang, r) }))
+      : []
   const settings = (salon.settings ?? {}) as { depositMinMinutes?: number; depositPercent?: number; cancellationPolicy?: string }
   return (
     <BookingFlow
       artists={artistList.map((a) => ({ id: a.id, name: a.name, avatar: mediaUrl(a.avatar, 'thumb'), specialties: a.specialties }))}
       cancellationPolicy={settings.cancellationPolicy}
       depositRule={{ depositMinMinutes: settings.depositMinMinutes ?? 90, depositPercent: settings.depositPercent ?? 20 }}
-      depositsEnabled={features.has('deposits')}
+      // Demo salons book without deposits (the booking module charges none), so the summary shows none either.
+      depositsEnabled={features.has('deposits') && salon.status !== 'demo'}
       design={design ? { id: design.id, title: design.title, image: mediaUrl(design.images?.[0], 'thumb') } : null}
       group={group}
       groupBookingEnabled={features.has('groupBooking')}
@@ -119,6 +130,8 @@ export default async function BookPage({ params, searchParams }: { params: Promi
       mapUrl={salon.contact?.mapUrl}
       preBooked={sp.chair === '1'}
       reschedule={reschedule}
+      skipArtist={Boolean(sp.repeat && staff && initial.length)}
+      rewards={rewards}
       salonName={salon.name}
       services={serviceList.map((s) => ({
         id: s.id,

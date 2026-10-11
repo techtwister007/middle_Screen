@@ -19,17 +19,25 @@ Everything below runs locally against Postgres with fake WhatsApp, SMS, payments
 - Customers: segments, search, notes, follow-ups, one-tap WhatsApp, "remind all due", CSV import (no messages sent) and export
 - Campaigns: offers, festival packs, slot filler that picks the actual quietest window, tracking links
 - Insights + ROI story; monthly ROI report on WhatsApp
+- Gallery: styles (add, rename, reorder, hide, delete) used as customer filters, full design editor, copy looks from the design library
 - Settings: salon page & brand (theme, colours, logo, cover, hours, contact, Wi-Fi, languages), menu (one by one or paste a whole menu),
   gallery (upload, approve customer photos, feature), team (add staff with sign-in, bookable, deactivate), hours & time off,
   rules (deposits, refunds, change cutoff, rewards, message timing, caps), plan & billing (usage at cost), QR kit + printable posters
 - Artist "My stats" (clients, revenue, rating, pre-book rate, portfolio); kiosk; TV display
 
 **Console** (`/console`)
-- Salons list, onboarding / demo builder (their menu, logo, photos, colour), feature switches, status, plan, theme
+- Salons list with search, filters (status, plan, churn risk), paging and a "need attention" panel (quiet salons, failed messages, unpaid)
+- Onboarding: real salons get only what was entered (address, hours, menu with live preview, logo, own photos, optional design-library looks);
+  demos get their menu/photos plus labelled sample history and pause after 7 days; all-or-nothing with rollback; links can't be reused
+- Salon page: go-live checklist, demo controls (extend, keep, go live, delete), team logins with password reset, readable feature switches
+  (plan default vs override)
+- Design library (shared looks with licensed photos), content (festival packs, care articles), customer lookup across salons (reason logged)
 - Billing record per salon (price, setup fee, status, next bill, founding price, support minutes)
 - Message log per salon (works with the fake provider, so journeys can be checked on any salon)
 - Audit trail; audit-logged "open Studio" and full JSON data export
-- Demo presenter with live WhatsApp preview, ROI calculator; demo salons only message the prospect's phone
+- Demo presenter: numbered controls in script order, status at the top, sticky WhatsApp preview, app and chair-mode QR codes, full reset
+  (theme, language, contest, offers, sample people); ROI calculator prefilled from their menu with pricing reveal and setup-fee UPI QR;
+  demo salons only message the prospect's phone and skip deposits
 
 **Engine**
 - Event bus on Payload Jobs; refill journey; owner daily summary; alerts for new bookings, low ratings, customer cancellations, gallery submissions
@@ -55,6 +63,7 @@ Everything below runs locally against Postgres with fake WhatsApp, SMS, payments
 
 ## Not built yet (deliberately left for after launch)
 
+- Customer allergy notes, tips and split payments on bills, WhatsApp receipts (schema in place; Studio screens by the staff-side pass)
 - Multiple branches per salon (`multiBranch` switch exists, no branch model)
 - Custom per-salon theme editor (three built-in themes plus colours, logo and fonts cover pilots)
 - Web push notifications (WhatsApp covers reminders); 2-factor login for platform admins

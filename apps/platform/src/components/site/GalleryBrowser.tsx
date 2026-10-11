@@ -4,6 +4,7 @@ import { type DesignLike, rankByTaste, surpriseMe } from '@salon/modules/client'
 import { Button, cn, Pill } from '@salon/ui'
 import { Heart, Shuffle, Sparkles, X } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { formatDurationIn, type Lang, translator } from '@/lib/i18n'
 import { SaveDesignButton } from './SaveDesignButton'
@@ -54,9 +55,29 @@ export const GalleryBrowser = ({
   const tr = translator(lang)
   const saved = useMemo(() => new Set(savedIds.map(String)), [savedIds])
   const saveLabels = { save: tr('save'), saved: tr('saved'), unsave: tr('unsaveDesign') }
-  const [occasion, setOccasion] = useState<string | null>(initialOccasion ?? null)
-  const [style, setStyle] = useState<string | null>(initialStyle ?? null)
-  const [budget, setBudget] = useState<number | null>(null)
+  // Filters live in the URL (?style=&occasion=&budget=) so they survive opening a design and coming back.
+  const params = useSearchParams()
+  const [occasion, setOccasionState] = useState<string | null>(params.get('occasion') ?? initialOccasion ?? null)
+  const [style, setStyleState] = useState<string | null>(params.get('style') ?? initialStyle ?? null)
+  const [budget, setBudgetState] = useState<number | null>(Number(params.get('budget')) || null)
+  const syncUrl = (key: 'style' | 'occasion' | 'budget', value: string | null) => {
+    const url = new URL(window.location.href)
+    if (value) url.searchParams.set(key, value)
+    else url.searchParams.delete(key)
+    window.history.replaceState(null, '', url.toString())
+  }
+  const setOccasion = (v: string | null) => {
+    setOccasionState(v)
+    syncUrl('occasion', v)
+  }
+  const setStyle = (v: string | null) => {
+    setStyleState(v)
+    syncUrl('style', v)
+  }
+  const setBudget = (v: number | null) => {
+    setBudgetState(v)
+    syncUrl('budget', v ? String(v) : null)
+  }
   const [taste, setTaste] = useState<{ liked: DesignLike[]; skipped: DesignLike[] }>({ liked: [], skipped: [] })
   const [mode, setMode] = useState<'browse' | 'taste'>('browse')
   const [tasteIndex, setTasteIndex] = useState(0)
@@ -96,7 +117,7 @@ export const GalleryBrowser = ({
       <div className='px-4 pt-4'>
         <div className='mb-4 flex items-center justify-between'>
           <p className='font-heading text-2xl'>{tr('findYourStyle')}</p>
-          <button className='text-sm text-brand' onClick={() => setMode('browse')} type='button'>
+          <button className='min-h-11 px-2 text-sm font-medium text-brand' onClick={() => setMode('browse')} type='button'>
             {tr('done')}
           </button>
         </div>
@@ -152,22 +173,22 @@ export const GalleryBrowser = ({
     <div>
       {styles.length ? (
         <div className='no-scrollbar flex gap-2 overflow-x-auto px-4 pt-2' role='group' aria-label={tr('styleFilter')}>
-          <Pill active={!style} onClick={() => setStyle(null)}>
+          <Pill active={!style} aria-pressed={!style} className='h-11' onClick={() => setStyle(null)}>
             {tr('allStyles')}
           </Pill>
           {styles.map((st) => (
-            <Pill active={style === st.id} key={st.id} onClick={() => setStyle(style === st.id ? null : st.id)}>
+            <Pill active={style === st.id} aria-pressed={style === st.id} className='h-11' key={st.id} onClick={() => setStyle(style === st.id ? null : st.id)}>
               {st.name}
             </Pill>
           ))}
         </div>
       ) : null}
       <div className='no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 pt-2' role='group' aria-label={tr('occasionFilter')}>
-        <Pill active={!occasion} onClick={() => setOccasion(null)}>
+        <Pill active={!occasion} aria-pressed={!occasion} className='h-11' onClick={() => setOccasion(null)}>
           {tr('all')}
         </Pill>
         {occasions.map((o) => (
-          <Pill active={occasion === o} key={o} onClick={() => setOccasion(occasion === o ? null : o)}>
+          <Pill active={occasion === o} aria-pressed={occasion === o} className='h-11' key={o} onClick={() => setOccasion(occasion === o ? null : o)}>
             {tr.or(
               `occ_${o}`,
               tr.or(
@@ -180,7 +201,7 @@ export const GalleryBrowser = ({
       </div>
       <div className='flex gap-2 px-4 pb-4'>
         <button
-          className='flex flex-1 items-center justify-center gap-2 rounded-btn border border-line bg-surface py-2.5 text-sm'
+          className='flex min-h-11 flex-1 items-center justify-center gap-2 rounded-btn border border-line bg-surface py-2.5 text-sm'
           onClick={() => {
             setMode('taste')
             setTasteIndex(0)
@@ -191,7 +212,7 @@ export const GalleryBrowser = ({
         </button>
         <select
           aria-label={tr('surpriseAria')}
-          className='flex-1 rounded-btn border border-line bg-surface px-3 py-2.5 text-sm'
+          className='min-h-11 min-w-0 flex-1 rounded-btn border border-line bg-surface px-3 py-2.5 text-sm'
           onChange={(e) => setBudget(e.target.value ? Number(e.target.value) : null)}
           value={budget ?? ''}
         >
@@ -235,7 +256,7 @@ export const GalleryBrowser = ({
                 </p>
               </Link>
               <SaveDesignButton
-                className='absolute right-2 top-2'
+                className='absolute right-1.5 top-1.5'
                 designId={d.id}
                 labels={saveLabels}
                 loggedIn={loggedIn}

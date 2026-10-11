@@ -2,13 +2,31 @@
 import { formatINR, formatIST } from '@salon/core'
 import { quote } from '@salon/modules/client'
 import { Button, cn, Input, Label, Textarea } from '@salon/ui'
-import { ArrowLeft, ArrowRight, Calendar, Check, Copy, ImagePlus, Loader2, MapPin, Minus, Plus, Send, Share2, UserRound, Users } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Check,
+  Copy,
+  Gift,
+  ImagePlus,
+  Loader2,
+  MapPin,
+  Minus,
+  Plus,
+  RotateCcw,
+  Send,
+  Share2,
+  UserRound,
+  Users,
+} from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState, useTransition } from 'react'
-import { addToWaitlist, book, rescheduleAppointment, slotsFor, startGroup, uploadInspiration } from '@/app/(site)/s/[salon]/actions'
-import { formatDurationIn, type Lang, translator } from '@/lib/i18n'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { addToWaitlist, book, bookingRewards, rescheduleAppointment, slotsFor, startGroup, uploadInspiration } from '@/app/(site)/s/[salon]/actions'
+import { formatDateIn, formatDurationIn, type Lang, translator } from '@/lib/i18n'
 import { LoginForm } from './LoginForm'
+import { StickyBar } from './StickyBar'
 
 export interface FlowService {
   id: string | number
@@ -49,18 +67,24 @@ interface Props {
   mapUrl?: string | null
   /** Moving an existing appointment: services and artist stay, only the time changes. */
   reschedule?: { id: string | number; start: string } | null
+  /** Rewards that will be applied at the salon (logged-in customers; refreshed after login) */
+  rewards?: string[]
+  /** Rebooking a past visit: services and artist are prefilled, start at the time step (artist still changeable via back) */
+  skipArtist?: boolean
 }
 
 type Step = 'services' | 'artist' | 'time' | 'details' | 'confirm' | 'done'
 
-const nextDays = (n: number, tz: string, today: string, tomorrow: string) =>
+const STEPS: Step[] = ['services', 'artist', 'time', 'details', 'confirm', 'done']
+
+const nextDays = (n: number, tz: string, lang: Lang, today: string, tomorrow: string) =>
   Array.from({ length: n }, (_, i) => {
     const d = new Date(Date.now() + i * 86_400_000)
     return {
       iso: formatIST(d, 'yyyy-MM-dd', tz),
-      dow: i === 0 ? today : i === 1 ? tomorrow : formatIST(d, 'EEE', tz),
+      dow: i === 0 ? today : i === 1 ? tomorrow : formatDateIn(lang, d, 'EEE', tz),
       day: formatIST(d, 'd', tz),
-      month: formatIST(d, 'MMM', tz),
+      month: formatDateIn(lang, d, 'MMM', tz),
     }
   })
 
@@ -82,7 +106,7 @@ export const GroupShare = ({
   const tr = translator(lang)
   const [copied, setCopied] = useState(false)
   const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${slug}/book?group=${code}`
-  const text = tr('groupInviteText', { salon: salonName, date: start ? formatIST(start, 'EEE d MMM, h:mm a', timezone) : '', url })
+  const text = tr('groupInviteText', { salon: salonName, date: start ? formatDateIn(lang, start, 'EEE d MMM, h:mm a', timezone) : '', url })
   return (
     <div className='rounded-card border border-brand/40 bg-brand/5 p-4 text-left' data-testid='group-share'>
       <p className='flex items-center gap-2 font-medium'>
@@ -121,18 +145,23 @@ export const GroupShare = ({
 
 export const BookingFlow = (p: Props) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const tr = translator(p.lang)
   const rescheduling = Boolean(p.reschedule)
-  const [step, setStep] = useState<Step>(rescheduling ? 'time' : p.initialServiceIds.length ? (p.artists.length > 1 ? 'artist' : 'time') : 'services')
+  const firstStep: Step = rescheduling ? 'time' : p.initialServiceIds.length ? (p.artists.length > 1 && !p.skipArtist ? 'artist' : 'time') : 'services'
   const [serviceIds, setServiceIds] = useState<Set<string>>(new Set(p.initialServiceIds.map(String)))
   const [staffId, setStaffId] = useState<string | null>(p.initialStaffId ? String(p.initialStaffId) : null)
-  const days = useMemo(() => nextDays(21, p.timezone, tr('today'), tr('tomorrowShort')), [p.timezone, tr])
+  const days = useMemo(() => nextDays(21, p.timezone, p.lang, tr('today'), tr('tomorrowShort')), [p.timezone, p.lang, tr])
   const [date, setDate] = useState(p.initialStart ? formatIST(p.initialStart, 'yyyy-MM-dd', p.timezone) : days[0].iso)
   const [slots, setSlots] = useState<{ start: string; staffIds: (string | number)[] }[] | null>(null)
+  const [slotsFailed, setSlotsFailed] = useState(false)
+  const [slotsTry, setSlotsTry] = useState(0)
   const [start, setStart] = useState<string | null>(rescheduling ? null : (p.initialStart ?? null))
   const [notes, setNotes] = useState('')
   const [inspiration, setInspiration] = useState<{ id: string | number; url: string }[]>([])
+  const [uploading, setUploading] = useState(false)
   const [loggedIn, setLoggedIn] = useState(p.loggedIn)
+  const [rewards, setRewards] = useState<string[]>(p.rewards ?? [])
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ appointmentId: string | number; status: string } | null>(null)
   const [pending, startTransition] = useTransition()
@@ -143,6 +172,7 @@ export const BookingFlow = (p: Props) => {
   const [createdGroup, setCreatedGroup] = useState<string | null>(null)
 
   const selected = p.services.filter((s) => serviceIds.has(String(s.id)))
+  const hasMain = selected.some((s) => !s.isAddOn)
   const q = quote(selected, p.depositRule)
   const deposit = p.depositsEnabled && !rescheduling ? q.deposit : 0
   const mains = p.services.filter((s) => !s.isAddOn)
@@ -150,19 +180,89 @@ export const BookingFlow = (p: Props) => {
   const canGroup = Boolean(p.groupBookingEnabled && !p.groupCode && !rescheduling && !p.preBooked)
   const groupCode = p.groupCode ?? createdGroup
 
+  // The step lives in the URL (?step=…) so the phone's back button walks back through the flow.
+  const allowed = (s: string | null): s is Step => {
+    if (!s || !STEPS.includes(s as Step) || s === 'done') return false
+    if (rescheduling) return s === 'time' || (s === 'confirm' && Boolean(start))
+    if (s === 'services') return true
+    if (!hasMain) return false
+    if (s === 'artist') return p.artists.length > 1
+    if (s === 'time') return true
+    return Boolean(start)
+  }
+  const urlStep = searchParams.get('step')
+  const [step, setStep] = useState<Step>(() => (allowed(urlStep) ? urlStep : firstStep))
+  const pushed = useRef(0)
+  useEffect(() => {
+    const onPop = () => {
+      pushed.current = Math.max(0, pushed.current - 1)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  useEffect(() => {
+    if (result) {
+      // Back after booking: show the appointment instead of an old step that would book again.
+      if (urlStep !== 'done') router.replace(`/s/${p.slug}/appointments/${result.appointmentId}`)
+      return
+    }
+    const target = allowed(urlStep) ? urlStep : firstStep
+    if (target !== step) setStep(target)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlStep])
+
+  const go = (next: Step, params: Record<string, string | null> = {}, replace = false) => {
+    setStep(next)
+    const url = new URL(window.location.href)
+    url.searchParams.set('step', next)
+    for (const [k, v] of Object.entries(params)) {
+      if (v === null) url.searchParams.delete(k)
+      else url.searchParams.set(k, v)
+    }
+    if (replace) window.history.replaceState(null, '', url.toString())
+    else {
+      window.history.pushState(null, '', url.toString())
+      pushed.current += 1
+    }
+    window.scrollTo({ top: 0 })
+  }
+
   useEffect(() => {
     if (step !== 'time' || !selected.length) return
     let cancelled = false
     setSlots(null)
-    slotsFor(p.slug, { date, serviceIds: [...serviceIds], staffId }).then((res) => {
+    setSlotsFailed(false)
+    const failed = () => {
       if (cancelled) return
-      if (res.ok) setSlots(res.data?.slots ?? [])
-      else setError(res.error)
-    })
+      setSlots([])
+      setSlotsFailed(true)
+    }
+    slotsFor(p.slug, { date, serviceIds: [...serviceIds], staffId })
+      .then((res) => {
+        if (cancelled) return
+        if (res.ok) setSlots(res.data?.slots ?? [])
+        else failed()
+      })
+      .catch(failed)
     return () => {
       cancelled = true
     }
-  }, [step, date, staffId, p.slug, [...serviceIds].join(',')])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, date, staffId, p.slug, [...serviceIds].join(','), slotsTry])
+
+  // Rewards appear once the customer logs in on the confirm step.
+  useEffect(() => {
+    if (!loggedIn || rescheduling || step !== 'confirm') return
+    let cancelled = false
+    bookingRewards(p.slug, p.lang)
+      .then((r) => {
+        if (!cancelled) setRewards(r)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [loggedIn, step, rescheduling, p.slug, p.lang])
 
   const toggle = (id: string | number) =>
     setServiceIds((s) => {
@@ -189,7 +289,7 @@ export const BookingFlow = (p: Props) => {
         const res = await rescheduleAppointment(p.slug, p.reschedule.id, start)
         if (!res.ok) {
           setError(res.error)
-          if (res.code === 'slot-taken') setStep('time')
+          if (res.code === 'slot-taken') go('time')
           return
         }
         router.push(`/s/${p.slug}/appointments/${p.reschedule.id}?moved=1`)
@@ -208,7 +308,7 @@ export const BookingFlow = (p: Props) => {
       })
       if (!res.ok) {
         setError(res.error)
-        if (res.code === 'slot-taken') setStep('time')
+        if (res.code === 'slot-taken') go('time')
         return
       }
       if (res.data?.payUrl) {
@@ -216,13 +316,35 @@ export const BookingFlow = (p: Props) => {
         return
       }
       setResult({ appointmentId: res.data!.appointmentId, status: res.data!.status })
-      setStep('done')
+      go('done', {}, true)
       router.refresh()
     })
+
+  const upload = async (file: File) => {
+    const fd = new FormData()
+    fd.set('file', file)
+    setUploading(true)
+    setError(null)
+    try {
+      const res = await uploadInspiration(p.slug, fd)
+      if (res.ok && res.data) setInspiration((x) => [...x, res.data!])
+      else if (!res.ok) setError(res.error)
+    } catch {
+      setError(tr('err_generic'))
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const back: Partial<Record<Step, Step>> = rescheduling
     ? { confirm: 'time' }
     : { artist: 'services', time: p.artists.length > 1 ? 'artist' : 'services', details: 'time', confirm: 'details' }
+  const goBack = () => {
+    const prev = back[step]
+    if (!prev) return
+    if (pushed.current > 0) window.history.back()
+    else go(prev, {}, true)
+  }
   const title: Record<Step, string> = {
     services: tr('bkServices'),
     artist: tr('bkArtist'),
@@ -231,6 +353,8 @@ export const BookingFlow = (p: Props) => {
     confirm: rescheduling ? tr('bkRescheduleConfirm') : tr('bkConfirm'),
     done: result?.status === 'confirmed' ? tr('bkBooked') : tr('bkRequested'),
   }
+  const when = (iso: string) => formatDateIn(p.lang, iso, 'EEEE d MMM · h:mm a', p.timezone)
+  const roundBack = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface'
 
   const Summary = () => (
     <div className='rounded-card border border-line bg-surface p-4 text-sm'>
@@ -241,24 +365,32 @@ export const BookingFlow = (p: Props) => {
         </div>
       ) : null}
       {selected.map((s) => (
-        <div className='flex justify-between py-1' key={String(s.id)}>
+        <div className='flex justify-between gap-3 py-1' key={String(s.id)}>
           <span>{s.name}</span>
           <span className='tabular-nums'>{formatINR(s.price)}</span>
         </div>
       ))}
-      <div className='mt-2 flex justify-between border-t border-line pt-2 font-medium'>
+      <div className='mt-2 flex justify-between gap-3 border-t border-line pt-2 font-medium'>
         <span>{tr('totalWith', { duration: formatDurationIn(p.lang, q.durationMinutes) })}</span>
         <span className='tabular-nums'>{formatINR(q.subtotal)}</span>
       </div>
+      {!rescheduling && rewards.length ? (
+        <ul className='mt-3 space-y-1.5' data-testid='booking-rewards'>
+          {rewards.map((r) => (
+            <li className='flex items-start gap-2 rounded-btn bg-brand/8 px-3 py-2 text-[13px] text-brand' key={r}>
+              <Gift className='mt-0.5 shrink-0' size={14} /> {r}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {p.reschedule ? (
         <p className='mt-3 flex items-center gap-2 text-muted line-through'>
-          <Calendar size={14} /> {tr('currentTime', { when: formatIST(p.reschedule.start, 'EEEE d MMM · h:mm a', p.timezone) })}
+          <Calendar size={14} /> {tr('currentTime', { when: when(p.reschedule.start) })}
         </p>
       ) : null}
       {start ? (
         <p className={cn('flex items-center gap-2', p.reschedule ? 'mt-1 font-medium text-ink' : 'mt-3 text-muted')}>
-          <Calendar size={14} />{' '}
-          {p.reschedule ? tr('newTime', { when: formatIST(start, 'EEEE d MMM · h:mm a', p.timezone) }) : formatIST(start, 'EEEE d MMM · h:mm a', p.timezone)}
+          <Calendar size={14} /> {p.reschedule ? tr('newTime', { when: when(start) }) : when(start)}
         </p>
       ) : null}
       {staffId ? (
@@ -271,19 +403,18 @@ export const BookingFlow = (p: Props) => {
   )
 
   return (
-    <div className='px-4 pt-4'>
+    <div className='px-4 pt-4' data-step={step}>
       <div className='mb-5 flex items-center gap-3'>
-        {back[step] ? (
-          <button
-            aria-label={tr('back')}
-            className='flex h-10 w-10 items-center justify-center rounded-full border border-line'
-            onClick={() => setStep(back[step]!)}
-            type='button'
-          >
+        {rescheduling && step === 'time' ? (
+          <Link aria-label={tr('back')} className={roundBack} href={`/s/${p.slug}/appointments/${p.reschedule!.id}`}>
+            <ArrowLeft size={18} />
+          </Link>
+        ) : back[step] ? (
+          <button aria-label={tr('back')} className={roundBack} data-testid='step-back' onClick={goBack} type='button'>
             <ArrowLeft size={18} />
           </button>
         ) : null}
-        <h1 className='font-heading text-2xl'>{title[step]}</h1>
+        <h1 className='font-heading text-2xl leading-tight'>{title[step]}</h1>
       </div>
       {p.groupCode ? (
         <p className='mb-4 rounded-btn bg-brand/10 px-3 py-2 text-sm text-brand' data-testid='joining-group'>
@@ -292,8 +423,11 @@ export const BookingFlow = (p: Props) => {
         </p>
       ) : null}
       {p.reschedule && step === 'time' ? (
-        <p className='mb-4 rounded-btn bg-tint px-3 py-2 text-sm text-muted'>
-          {tr('currentTime', { when: formatIST(p.reschedule.start, 'EEEE d MMM · h:mm a', p.timezone) })}
+        <p className='mb-4 rounded-btn bg-tint px-3 py-2 text-sm text-muted'>{tr('currentTime', { when: when(p.reschedule.start) })}</p>
+      ) : null}
+      {error ? (
+        <p className='mb-4 rounded-btn bg-red-500/10 px-4 py-3 text-sm text-red-700' role='alert'>
+          {error}
         </p>
       ) : null}
 
@@ -303,19 +437,20 @@ export const BookingFlow = (p: Props) => {
             const on = serviceIds.has(String(s.id))
             return (
               <button
+                aria-pressed={on}
                 className={cn(
-                  'flex w-full items-center justify-between rounded-card border p-4 text-left transition',
+                  'flex w-full items-center justify-between gap-3 rounded-card border p-4 text-left transition',
                   on ? 'border-brand bg-brand/6' : 'border-line bg-surface',
                 )}
                 key={String(s.id)}
                 onClick={() => toggle(s.id)}
                 type='button'
               >
-                <span>
+                <span className='min-w-0'>
                   <span className='block font-medium'>{s.name}</span>
                   <span className='text-xs text-muted'>{formatDurationIn(p.lang, s.durationMinutes)}</span>
                 </span>
-                <span className='flex items-center gap-3'>
+                <span className='flex shrink-0 items-center gap-3'>
                   <span className='tabular-nums'>{formatINR(s.price)}</span>
                   <span
                     className={cn('flex h-6 w-6 items-center justify-center rounded-full border', on ? 'border-brand bg-brand text-on-brand' : 'border-line')}
@@ -330,8 +465,9 @@ export const BookingFlow = (p: Props) => {
           <div className='flex flex-wrap gap-2'>
             {addOns.map((s) => (
               <button
+                aria-pressed={serviceIds.has(String(s.id))}
                 className={cn(
-                  'rounded-full border px-3 py-2 text-sm',
+                  'min-h-11 rounded-full border px-4 py-2 text-sm',
                   serviceIds.has(String(s.id)) ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
                 )}
                 key={String(s.id)}
@@ -342,11 +478,19 @@ export const BookingFlow = (p: Props) => {
               </button>
             ))}
           </div>
-          <div className='sticky bottom-24 pt-4'>
-            <Button className='w-full' disabled={!selected.some((s) => !s.isAddOn)} onClick={() => setStep(p.artists.length > 1 ? 'artist' : 'time')} size='lg'>
-              {tr('continueWith', { price: formatINR(q.subtotal) })}
-            </Button>
-          </div>
+          <StickyBar testId='services-bar'>
+            {hasMain ? (
+              <Button
+                className='w-full'
+                onClick={() => go(p.artists.length > 1 ? 'artist' : 'time', { services: [...serviceIds].join(','), start: null })}
+                size='lg'
+              >
+                {tr('continueWith', { price: formatINR(q.subtotal) })}
+              </Button>
+            ) : (
+              <p className='flex h-14 items-center justify-center rounded-btn border border-dashed border-line text-[15px] text-muted'>{tr('pickService')}</p>
+            )}
+          </StickyBar>
         </div>
       ) : null}
 
@@ -356,11 +500,12 @@ export const BookingFlow = (p: Props) => {
             const on = (staffId ?? '') === String(a.id)
             return (
               <button
+                aria-pressed={on}
                 className={cn('flex w-full items-center gap-4 rounded-card border p-3 text-left', on ? 'border-brand bg-brand/6' : 'border-line bg-surface')}
                 key={String(a.id) || 'any'}
                 onClick={() => {
                   setStaffId(a.id ? String(a.id) : null)
-                  setStep('time')
+                  go('time', { staff: a.id ? String(a.id) : 'any' })
                 }}
                 type='button'
               >
@@ -369,10 +514,11 @@ export const BookingFlow = (p: Props) => {
                 ) : (
                   <span className='flex h-12 w-12 items-center justify-center rounded-full bg-tint font-heading text-brand'>{a.id ? a.name[0] : '★'}</span>
                 )}
-                <span>
+                <span className='min-w-0 flex-1'>
                   <span className='block font-medium'>{a.name}</span>
                   {a.specialties?.length ? <span className='text-xs text-muted'>{a.specialties.join(' · ')}</span> : null}
                 </span>
+                {on ? <Check className='shrink-0 text-brand' size={18} /> : null}
               </button>
             )
           })}
@@ -384,6 +530,7 @@ export const BookingFlow = (p: Props) => {
           <div className='no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2'>
             {days.map((d) => (
               <button
+                aria-pressed={date === d.iso}
                 className={cn(
                   'flex w-16 shrink-0 flex-col items-center rounded-card border py-2.5',
                   date === d.iso ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
@@ -404,21 +551,29 @@ export const BookingFlow = (p: Props) => {
           </div>
           <div className='mt-4 min-h-40'>
             {slots === null ? (
-              <div className='flex items-center justify-center py-10 text-muted'>
+              <div className='flex items-center justify-center py-10 text-muted' role='status'>
                 <Loader2 className='animate-spin' />
+              </div>
+            ) : slotsFailed ? (
+              <div className='rounded-card border border-dashed border-line p-6 text-center' data-testid='slots-error' role='alert'>
+                <p className='font-medium'>{tr('slotsError')}</p>
+                <Button className='mt-4' onClick={() => setSlotsTry((n) => n + 1)} variant='outline'>
+                  <RotateCcw size={16} /> {tr('retry')}
+                </Button>
               </div>
             ) : slots.length === 0 ? (
               <div className='rounded-card border border-dashed border-line p-6 text-center' data-testid='fully-booked'>
                 <p className='font-medium'>{tr('fullyBooked')}</p>
-                <p className='mt-1 text-sm text-muted'>{tr('fullyBookedBody')}</p>
+                <p className='mt-1 text-sm text-muted'>{rescheduling ? tr('fullyBookedTryAnother') : tr('fullyBookedBody')}</p>
                 {loggedIn && !rescheduling ? (
                   <Button
                     className='mt-4'
-                    disabled={waitlisted}
+                    disabled={waitlisted || pending}
                     onClick={() =>
                       startTransition(async () => {
                         const res = await addToWaitlist(p.slug, { serviceIds: [...serviceIds], date })
                         if (res.ok) setWaitlisted(true)
+                        else setError(res.error)
                       })
                     }
                     variant='outline'
@@ -432,56 +587,61 @@ export const BookingFlow = (p: Props) => {
                 {slots.map((s) => (
                   <button
                     className={cn(
-                      'rounded-btn border py-3 text-sm tabular-nums',
+                      'min-h-12 rounded-btn border px-1 py-3 text-sm tabular-nums',
                       start === s.start ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface',
                     )}
                     data-testid='slot'
                     key={s.start}
                     onClick={() => {
                       setStart(s.start)
-                      setStep(rescheduling ? 'confirm' : 'details')
+                      go(rescheduling ? 'confirm' : 'details', rescheduling ? {} : { start: s.start })
                     }}
                     type='button'
                   >
-                    {formatIST(s.start, 'h:mm a', p.timezone)}
+                    {formatDateIn(p.lang, s.start, 'h:mm a', p.timezone)}
                   </button>
                 ))}
               </div>
             )}
           </div>
-          {rescheduling ? (
-            <Link className='mt-4 block text-center text-sm text-muted underline' href={`/s/${p.slug}/appointments/${p.reschedule!.id}`}>
-              {tr('back')}
-            </Link>
-          ) : null}
         </div>
       ) : null}
 
       {step === 'details' ? (
-        <div className='space-y-4'>
+        <div className='space-y-5'>
           <div>
-            <p className='mb-2 text-sm font-medium'>{tr('inspirationTitle')}</p>
+            <p className='mb-1 text-sm font-medium'>{tr('inspirationTitle')}</p>
             <p className='mb-3 text-xs text-muted'>{tr('inspirationBody')}</p>
             <div className='flex flex-wrap gap-2'>
               {inspiration.map((i) => (
                 <img alt='' className='h-20 w-20 rounded-xl object-cover' key={String(i.id)} src={i.url} />
               ))}
-              <label className='flex h-20 w-20 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line text-muted'>
+              {uploading ? (
+                <span
+                  className='flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border border-line bg-tint text-muted'
+                  data-testid='inspiration-uploading'
+                  role='status'
+                >
+                  <Loader2 className='animate-spin' size={20} />
+                  <span className='text-[10px]'>{tr('uploading')}</span>
+                </span>
+              ) : null}
+              <label
+                className={cn(
+                  'flex h-20 w-20 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line text-muted',
+                  uploading ? 'pointer-events-none opacity-50' : '',
+                )}
+              >
                 <ImagePlus size={20} />
                 <span className='text-[10px]'>{tr('add')}</span>
                 <input
                   accept='image/*'
                   className='hidden'
+                  disabled={uploading}
                   onChange={(e) => {
                     const file = e.target.files?.[0]
-                    if (!file) return
-                    const fd = new FormData()
-                    fd.set('file', file)
-                    startTransition(async () => {
-                      const res = await uploadInspiration(p.slug, fd)
-                      if (res.ok && res.data) setInspiration((x) => [...x, res.data!])
-                      else if (!res.ok) setError(res.error)
-                    })
+                    e.target.value = ''
+                    if (file) void upload(file)
                   }}
                   type='file'
                 />
@@ -489,12 +649,23 @@ export const BookingFlow = (p: Props) => {
             </div>
           </div>
           <div>
-            <p className='mb-2 text-sm font-medium'>{tr('notesTitle')}</p>
-            <Textarea onChange={(e) => setNotes(e.target.value)} placeholder={tr('notesPlaceholder')} rows={3} value={notes} />
+            <label className='mb-2 block text-sm font-medium' htmlFor='bk-notes'>
+              {tr('notesTitle')}
+            </label>
+            <Textarea
+              className='rounded-card'
+              id='bk-notes'
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={tr('notesPlaceholder')}
+              rows={3}
+              value={notes}
+            />
           </div>
-          <Button className='w-full' onClick={() => setStep('confirm')} size='lg'>
-            {tr('reviewBooking')}
-          </Button>
+          <StickyBar>
+            <Button className='w-full' disabled={uploading} onClick={() => go('confirm')} size='lg'>
+              {uploading ? <Loader2 className='animate-spin' size={18} /> : null} {tr('reviewBooking')}
+            </Button>
+          </StickyBar>
         </div>
       ) : null}
 
@@ -509,39 +680,44 @@ export const BookingFlow = (p: Props) => {
                   <GroupShare code={createdGroup} lang={p.lang} salonName={p.salonName} slug={p.slug} start={start} timezone={p.timezone} />
                 ) : (
                   <div className='rounded-card border border-line bg-surface p-4'>
-                    <button className='flex w-full items-center gap-3 text-left' onClick={() => setGroupOpen((o) => !o)} type='button'>
+                    <button
+                      aria-expanded={groupOpen}
+                      className='flex min-h-11 w-full items-center gap-3 text-left'
+                      onClick={() => setGroupOpen((o) => !o)}
+                      type='button'
+                    >
                       <span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand'>
                         <Users size={18} />
                       </span>
-                      <span className='flex-1'>
+                      <span className='min-w-0 flex-1'>
                         <span className='block font-medium'>{tr('withFriends')}</span>
-                        <span className='text-xs text-muted'>{tr('withFriendsBody')}</span>
+                        <span className='mt-0.5 block text-xs leading-snug text-muted'>{tr('withFriendsBody')}</span>
                       </span>
-                      <ArrowRight className={cn('text-muted transition', groupOpen ? 'rotate-90' : '')} size={16} />
+                      <ArrowRight className={cn('shrink-0 text-muted transition', groupOpen ? 'rotate-90' : '')} size={16} />
                     </button>
                     {groupOpen ? (
                       <div className='mt-4 space-y-3'>
-                        <div className='flex items-center justify-between'>
+                        <div className='flex items-center justify-between gap-3'>
                           <Label className='mb-0'>{tr('groupSize')}</Label>
-                          <div className='flex items-center gap-3'>
+                          <div className='flex shrink-0 items-center gap-2'>
                             <button
                               aria-label='-'
-                              className='flex h-9 w-9 items-center justify-center rounded-full border border-line'
+                              className='flex h-11 w-11 items-center justify-center rounded-full border border-line'
                               onClick={() => setGroupSize((n) => Math.max(2, n - 1))}
                               type='button'
                             >
-                              <Minus size={14} />
+                              <Minus size={16} />
                             </button>
                             <span className='w-6 text-center font-heading text-xl tabular-nums' data-testid='group-size'>
                               {groupSize}
                             </span>
                             <button
                               aria-label='+'
-                              className='flex h-9 w-9 items-center justify-center rounded-full border border-line'
+                              className='flex h-11 w-11 items-center justify-center rounded-full border border-line'
                               onClick={() => setGroupSize((n) => Math.min(20, n + 1))}
                               type='button'
                             >
-                              <Plus size={14} />
+                              <Plus size={16} />
                             </button>
                           </div>
                         </div>
@@ -556,24 +732,27 @@ export const BookingFlow = (p: Props) => {
                           />
                         </div>
                         <Button className='w-full' disabled={pending} onClick={createGroup} variant='secondary'>
-                          <Users size={16} /> {tr('withFriends')}
+                          {pending ? <Loader2 className='animate-spin' size={16} /> : <Users size={16} />} {tr('withFriends')}
                         </Button>
                       </div>
                     ) : null}
                   </div>
                 )
               ) : null}
-              <Button className='w-full' disabled={pending} onClick={submit} size='lg'>
-                {rescheduling
-                  ? pending
-                    ? tr('moving')
-                    : tr('moveAppointment')
-                  : pending
-                    ? tr('booking')
-                    : deposit > 0
-                      ? tr('payDepositBook', { amount: formatINR(deposit) })
-                      : tr('confirmBooking')}
-              </Button>
+              <StickyBar>
+                <Button className='w-full' disabled={pending} onClick={submit} size='lg'>
+                  {pending ? <Loader2 className='animate-spin' size={18} /> : null}
+                  {rescheduling
+                    ? pending
+                      ? tr('moving')
+                      : tr('moveAppointment')
+                    : pending
+                      ? tr('booking')
+                      : deposit > 0
+                        ? tr('payDepositBook', { amount: formatINR(deposit) })
+                        : tr('confirmBooking')}
+                </Button>
+              </StickyBar>
             </>
           ) : (
             <div className='rounded-card border border-line bg-surface p-4'>
@@ -594,14 +773,14 @@ export const BookingFlow = (p: Props) => {
           {createdGroup ? <GroupShare code={createdGroup} lang={p.lang} salonName={p.salonName} slug={p.slug} start={start} timezone={p.timezone} /> : null}
           <div className='grid grid-cols-3 gap-2'>
             <a
-              className='flex flex-col items-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
+              className='flex min-h-16 flex-col items-center justify-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
               href={`/s/${p.slug}/appointments/${result.appointmentId}/ics`}
             >
               <Calendar size={18} /> {tr('calendar')}
             </a>
             {p.mapUrl ? (
               <a
-                className='flex flex-col items-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
+                className='flex min-h-16 flex-col items-center justify-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
                 href={p.mapUrl}
                 rel='noopener'
                 target='_blank'
@@ -610,7 +789,7 @@ export const BookingFlow = (p: Props) => {
               </a>
             ) : null}
             <a
-              className='flex flex-col items-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
+              className='flex min-h-16 flex-col items-center justify-center gap-1 rounded-card border border-line bg-surface py-3 text-xs'
               href={`https://wa.me/?text=${encodeURIComponent(tr('bringFriendText', { salon: p.salonName, url: `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${p.slug}` }))}`}
               rel='noopener'
               target='_blank'
@@ -618,13 +797,14 @@ export const BookingFlow = (p: Props) => {
               <Share2 size={18} /> {tr('bringFriend')}
             </a>
           </div>
-          <Link className='block text-sm font-medium text-brand' href={`/s/${p.slug}`}>
+          <Link className='flex min-h-11 items-center justify-center text-sm font-medium text-brand' href={`/s/${p.slug}/appointments/${result.appointmentId}`}>
+            {tr('yourAppointment')}
+          </Link>
+          <Link className='flex min-h-11 items-center justify-center text-sm font-medium text-muted' href={`/s/${p.slug}`}>
             {tr('backHome')}
           </Link>
         </div>
       ) : null}
-
-      {error ? <p className='mt-4 rounded-btn bg-red-500/10 px-4 py-3 text-sm text-red-700'>{error}</p> : null}
     </div>
   )
 }

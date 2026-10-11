@@ -3,14 +3,14 @@ import { buttonClass } from '@salon/ui'
 import { CalendarPlus, Gift, Smartphone, Sparkles, Trophy, Wifi } from 'lucide-react'
 import Link from 'next/link'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
 import { contestNow, currentCustomer, customerHome, designs, loadSalon } from '@/lib/site'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
-  return { title: translator(await getLang((await currentCustomer(await loadSalon(slug)))?.language))('inTheChair') }
+  return { title: translator(await salonLang(await loadSalon(slug)))('inTheChair') }
 }
 
 /** Opened from the mirror QR: what to do while sitting in the chair for 1–2 hours. */
@@ -18,7 +18,7 @@ export default async function ChairPage({ params }: { params: Promise<{ salon: s
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
-  const tr = translator(await getLang(customer?.language))
+  const tr = translator(await getLang(customer?.language, salonLanguages(salon)))
   const features = salonFeatures(salon)
   const base = `/s/${slug}`
   const [ideas, contest, me] = await Promise.all([

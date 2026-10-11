@@ -276,7 +276,8 @@ export const requestBooking = async (payload: Payload, tenant: ID, raw: RequestB
   const services = await loadServices(payload, tenant, input.serviceIds)
   const q = quote(services, {
     depositMinMinutes: salon.settings?.depositMinMinutes ?? 90,
-    depositPercent: salon.settings?.depositPercent ?? 20,
+    // Sales demos skip the deposit step so the prospect books in three taps.
+    depositPercent: (salon as { status?: string }).status === 'demo' ? 0 : (salon.settings?.depositPercent ?? 20),
   })
   const start = new Date(input.start)
   const end = new Date(start.getTime() + q.durationMinutes * MINUTE_MS)

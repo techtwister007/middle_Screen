@@ -1,10 +1,10 @@
-import { formatINR, formatIST } from '@salon/core'
+import { formatINR } from '@salon/core'
 import type { SectionProps, ThemeLayout } from '@salon/themes'
 import { Badge, buttonClass, cn, Reveal, SectionTitle } from '@salon/ui'
 
 import { ArrowRight, AtSign, CalendarCheck, Clock, Gift, Hand, HeartPulse, MapPin, Sparkles, Star, Trophy, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
-import { type DictKey, formatDurationIn, type Lang, translator } from '@/lib/i18n'
+import { type DictKey, formatDateIn, formatDurationIn, type Lang, tn, translator } from '@/lib/i18n'
 import { mediaUrl, srcSet } from '@/lib/media'
 import type { DesignRecord, ServiceRecord } from '@/lib/site'
 
@@ -76,7 +76,16 @@ export const Hero = ({ salon, base, customer, data }: P) => {
   if (layout.hero === 'editorial')
     return (
       <section className='px-4 pt-8'>
-        <h1 className='font-heading text-[56px] leading-[0.95] text-ink'>{greeting}</h1>
+        <h1 className='font-heading text-[clamp(40px,12vw,56px)] leading-[0.95] text-ink'>{greeting}</h1>
+        <p className='mt-4 text-sm text-muted'>{salon.openNow?.label ?? salon.area}</p>
+        <div className='mt-3 grid grid-cols-[1fr_auto] gap-2'>
+          <Link className={buttonClass('primary', 'lg', 'w-full')} href={`${base}/book`}>
+            <CalendarCheck size={18} /> {labels.book}
+          </Link>
+          <Link className={buttonClass('secondary', 'lg')} href={`${base}/designs`}>
+            {labels.designs}
+          </Link>
+        </div>
         <div className='mt-6 grid grid-cols-3 gap-1.5'>
           {data.designs.slice(0, 6).map((d, i) => (
             <Link
@@ -94,12 +103,6 @@ export const Hero = ({ salon, base, customer, data }: P) => {
               />
             </Link>
           ))}
-        </div>
-        <div className='mt-6 flex items-center justify-between border-y border-line py-4 text-sm'>
-          <span className='text-muted'>{salon.openNow?.label ?? salon.area}</span>
-          <Link className='inline-flex items-center gap-1 font-medium' href={`${base}/book`}>
-            {labels.book} <ArrowRight size={16} />
-          </Link>
         </div>
       </section>
     )
@@ -143,6 +146,7 @@ export const NextVisit = ({ base, data }: P) => {
   const scratch = me.rewards.find((r) => r.scratch && !r.revealed)
   const daysToDue = me.nextDueDate ? Math.ceil((new Date(me.nextDueDate).getTime() - Date.now()) / 86_400_000) : null
   const tr = translator(data.lang)
+  const openRewards = me.rewards.filter((r) => !r.scratch || r.revealed).length
   return (
     <Wrap className='mt-6 space-y-3' motion={data.layout.motion}>
       {scratch ? (
@@ -160,7 +164,7 @@ export const NextVisit = ({ base, data }: P) => {
       {appt ? (
         <Link className={cn('block p-4', cardClass(data.layout))} href={`${base}/appointments/${appt.id}`}>
           <p className='text-xs font-semibold uppercase tracking-wider text-brand'>{data.labels.nextVisit}</p>
-          <p className='mt-1 font-heading text-xl'>{formatIST(appt.start, 'EEEE d MMM · h:mm a', data.timezone)}</p>
+          <p className='mt-1 font-heading text-xl'>{formatDateIn(data.lang, appt.start, 'EEEE d MMM · h:mm a', data.timezone)}</p>
           <p className='text-sm text-muted'>
             {typeof appt.staff === 'object' && appt.staff?.name ? tr('withName', { name: appt.staff.name }) : ''}{' '}
             {appt.status === 'requested' ? `· ${tr('waitingConfirm')}` : ''}
@@ -173,8 +177,8 @@ export const NextVisit = ({ base, data }: P) => {
             <span className='text-[9px] uppercase'>{tr('daysShort')}</span>
           </div>
           <div className='flex-1'>
-            <p className='font-medium'>{daysToDue <= 0 ? tr('refillDueNowHome') : tr('refillDueInDays', { n: daysToDue })}</p>
-            <Link className='text-sm font-medium text-brand' href={`${base}/book?repeat=${me.lastVisit?.id ?? ''}`}>
+            <p className='font-medium'>{daysToDue <= 0 ? tr('refillDueNowHome') : tn(data.lang, 'refillDueInDays', daysToDue)}</p>
+            <Link className='inline-flex min-h-11 items-center text-sm font-medium text-brand' href={`${base}/book?repeat=${me.lastVisit?.id ?? ''}`}>
               {data.labels.repeatLast} →
             </Link>
           </div>
@@ -187,15 +191,15 @@ export const NextVisit = ({ base, data }: P) => {
               {me.account?.stamps ?? 0}
               <span className='text-sm text-muted'>/{me.stampsForReward}</span>
             </p>
-            <p className='text-[11px] text-muted'>{tr('stamps')}</p>
+            <p className='text-[11px] text-muted'>{tn(data.lang, 'stamps', me.account?.stamps ?? 0)}</p>
           </Link>
           <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
             <p className='font-heading text-2xl'>{me.account?.points ?? 0}</p>
-            <p className='text-[11px] text-muted'>{tr('points')}</p>
+            <p className='text-[11px] text-muted'>{tn(data.lang, 'points', me.account?.points ?? 0)}</p>
           </Link>
           <Link className={cn('p-3 text-center', cardClass(data.layout))} href={`${base}/rewards`}>
-            <p className='font-heading text-2xl'>{me.wallet ? formatINR(me.wallet) : me.rewards.filter((r) => !r.scratch || r.revealed).length}</p>
-            <p className='text-[11px] text-muted'>{me.wallet ? tr('wallet') : tr('rewardsLower')}</p>
+            <p className='font-heading text-2xl'>{me.wallet ? formatINR(me.wallet) : openRewards}</p>
+            <p className='text-[11px] text-muted'>{me.wallet ? tr('wallet') : tn(data.lang, 'rewardsLower', openRewards)}</p>
           </Link>
         </div>
       ) : null}
@@ -219,7 +223,9 @@ export const Offers = ({ base, data }: P) => {
             <div className='p-4'>
               <p className='font-heading text-lg leading-snug'>{o.title}</p>
               {o.endsAt ? (
-                <p className='mt-1 text-xs text-muted'>{translator(data.lang)('untilDate', { date: formatIST(o.endsAt, 'd MMM', data.timezone) })}</p>
+                <p className='mt-1 text-xs text-muted'>
+                  {translator(data.lang)('untilDate', { date: formatDateIn(data.lang, o.endsAt, 'd MMM', data.timezone) })}
+                </p>
               ) : null}
             </div>
           </Link>
@@ -263,7 +269,7 @@ export const NewDesigns = ({ base, data }: P) => {
     <Wrap className='mt-10' motion={data.layout.motion}>
       <SectionTitle
         action={
-          <Link className='text-sm font-medium text-brand' href={`${base}/designs`}>
+          <Link className='-mr-2 inline-flex min-h-11 shrink-0 items-center px-2 text-sm font-medium text-brand' href={`${base}/designs`}>
             {translator(data.lang)('seeAll')}
           </Link>
         }
@@ -302,7 +308,7 @@ export const Services = ({ base, data }: P) => {
     <Wrap className='mt-10' motion={data.layout.motion}>
       <SectionTitle
         action={
-          <Link className='text-sm font-medium text-brand' href={`${base}/menu`}>
+          <Link className='-mr-2 inline-flex min-h-11 shrink-0 items-center px-2 text-sm font-medium text-brand' href={`${base}/menu`}>
             {translator(data.lang)('fullMenu')}
           </Link>
         }
@@ -339,7 +345,7 @@ export const Loyalty = ({ base, data }: P) => {
           <p className='font-medium'>{translator(data.lang)('loyaltyPitch')}</p>
           <p className='text-sm text-muted'>{translator(data.lang)('loyaltyPitchBody')}</p>
         </div>
-        <Link className={buttonClass('outline', 'sm')} href={`${base}/login?next=${encodeURIComponent(`${base}/rewards`)}`}>
+        <Link className={buttonClass('outline', 'md', 'shrink-0')} href={`${base}/login?next=${encodeURIComponent(`${base}/rewards`)}`}>
           {translator(data.lang)('join')}
         </Link>
       </div>
@@ -454,17 +460,17 @@ export const Visit = ({ salon, data }: P) => (
       ) : null}
       <div className='flex flex-wrap gap-2'>
         {data.contact.mapUrl ? (
-          <a className={buttonClass('secondary', 'sm')} href={data.contact.mapUrl} rel='noopener' target='_blank'>
+          <a className={buttonClass('secondary', 'md')} href={data.contact.mapUrl} rel='noopener' target='_blank'>
             <MapPin size={14} /> {translator(data.lang)('directions')}
           </a>
         ) : null}
         {data.contact.whatsapp ? (
-          <a className={buttonClass('secondary', 'sm')} href={`https://wa.me/${data.contact.whatsapp.replace(/\D/g, '')}`} rel='noopener' target='_blank'>
+          <a className={buttonClass('secondary', 'md')} href={`https://wa.me/${data.contact.whatsapp.replace(/\D/g, '')}`} rel='noopener' target='_blank'>
             WhatsApp
           </a>
         ) : null}
         {salon.instagram ? (
-          <a className={buttonClass('secondary', 'sm')} href={`https://instagram.com/${salon.instagram}`} rel='noopener' target='_blank'>
+          <a className={buttonClass('secondary', 'md')} href={`https://instagram.com/${salon.instagram}`} rel='noopener' target='_blank'>
             <AtSign size={14} /> @{salon.instagram}
           </a>
         ) : null}

@@ -1,11 +1,11 @@
-import { formatINR, formatIST } from '@salon/core'
+import { formatINR } from '@salon/core'
 import { googleWalletSaveUrl } from '@salon/integrations'
 import { Badge, cn } from '@salon/ui'
 import { Gift, Sparkles, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import { BuyPackageButton } from '@/components/site/BuyButton'
-import { type DictKey, translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { type DictKey, formatDateIn, rewardLabel, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
 import { customerHome, loadSalon, repoFor, requireCustomer } from '@/lib/site'
@@ -21,6 +21,8 @@ interface HistoryReward {
   title: string
   kind: string
   status: string
+  valueType?: string | null
+  value?: number | null
   scratch?: boolean | null
   revealed?: boolean | null
   createdAt: string
@@ -42,7 +44,7 @@ export default async function RewardsPage({
   // The stamp card lives here; wallet and packages too, so either feature keeps the page.
   requireFeature(salon, 'loyalty', 'wallet')
   const customer = await requireCustomer(salon, `/s/${slug}/rewards`)
-  const tr = translator(await getLang(customer.language))
+  const tr = translator(await getLang(customer?.language, salonLanguages(salon)))
   const tierLabel = (tier?: string | null) => tr.or(`tier_${tier ?? 'member'}`, tier ?? 'member')
   const { account, rewards, wallet } = await customerHome(salon, customer)
   const repo = await repoFor(salon)
@@ -98,11 +100,12 @@ export default async function RewardsPage({
   return (
     <div className='px-4 pt-5'>
       {sp.package ? <p className='mb-4 rounded-btn bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800'>{tr('packagePaid')}</p> : null}
+      {features.has('loyalty') ? null : <h1 className='mb-4 font-heading text-3xl'>{tr('rewards')}</h1>}
       {features.has('loyalty') ? (
         <div className='relative overflow-hidden rounded-card bg-brand p-5 text-on-brand'>
           <Sparkles className='absolute -right-3 -top-3 opacity-20' size={110} />
           <div className='flex items-center justify-between'>
-            <p className='font-heading text-2xl'>{tr('rewardsTitle', { salon: salon.name })}</p>
+            <h1 className='font-heading text-2xl leading-tight'>{tr('rewardsTitle', { salon: salon.name })}</h1>
             <Badge className='bg-white/20 text-current'>{tierLabel(account?.tier)}</Badge>
           </div>
           <p className='mt-1 text-sm opacity-85'>{customer.name ?? customer.phone}</p>
@@ -168,9 +171,9 @@ export default async function RewardsPage({
                 <div className='flex items-center gap-4 rounded-card border border-line bg-surface p-4' key={String(r.id)}>
                   <Gift className='text-brand' />
                   <div className='flex-1'>
-                    <p className='font-medium'>{r.title}</p>
+                    <p className='font-medium'>{rewardLabel(tr.lang, r)}</p>
                     <p className='text-xs text-muted'>
-                      {r.validTo ? tr('validTill', { date: formatIST(r.validTo, 'd MMM', tz) }) : ''}
+                      {r.validTo ? tr('validTill', { date: formatDateIn(tr.lang, r.validTo, 'd MMM', tz) }) : ''}
                       {r.code ? ` · ${tr('showCode', { code: r.code })}` : ''}
                     </p>
                   </div>
@@ -203,14 +206,17 @@ export default async function RewardsPage({
           <div className='space-y-3'>
             {packages.map((p) => (
               <div
-                className={cn('flex items-center justify-between gap-4 rounded-card border p-4', sp.buy === p.id ? 'border-brand' : 'border-line bg-surface')}
+                className={cn(
+                  'flex flex-wrap items-center justify-between gap-3 rounded-card border p-4',
+                  sp.buy === p.id ? 'border-brand' : 'border-line bg-surface',
+                )}
                 key={p.id}
               >
-                <div>
+                <div className='min-w-0 flex-1 basis-40'>
                   <p className='font-medium'>{p.name}</p>
                   {p.description ? <p className='text-sm text-muted'>{p.description}</p> : null}
                 </div>
-                <BuyPackageButton label={formatINR(p.price)} lang={tr.lang} packageId={p.id} slug={slug} />
+                <BuyPackageButton label={tr('buyFor', { price: formatINR(p.price) })} lang={tr.lang} packageId={p.id} slug={slug} />
               </div>
             ))}
           </div>
@@ -225,8 +231,8 @@ export default async function RewardsPage({
               {pastRewards.map((r) => (
                 <li className='flex items-center justify-between gap-3 px-4 py-3 text-sm' key={r.id}>
                   <span className='min-w-0'>
-                    <span className='block truncate font-medium'>{r.title}</span>
-                    <span className='text-xs text-muted'>{tr('earnedOn', { date: formatIST(r.createdAt, 'd MMM yyyy', tz) })}</span>
+                    <span className='block truncate font-medium'>{rewardLabel(tr.lang, r)}</span>
+                    <span className='text-xs text-muted'>{tr('earnedOn', { date: formatDateIn(tr.lang, r.createdAt, 'd MMM yyyy', tz) })}</span>
                   </span>
                   <Badge tone={r.status === 'active' ? 'success' : r.status === 'redeemed' ? 'brand' : 'muted'}>{tr.or(`st_${r.status}`, r.status)}</Badge>
                 </li>
@@ -247,7 +253,7 @@ export default async function RewardsPage({
                 <li className='flex items-center justify-between gap-3 px-4 py-3 text-sm' key={w.id}>
                   <span>
                     <span className='block font-medium'>{tr.or(`wr_${w.reason}` as DictKey, w.reason)}</span>
-                    <span className='text-xs text-muted'>{formatIST(w.createdAt, 'd MMM yyyy', tz)}</span>
+                    <span className='text-xs text-muted'>{formatDateIn(tr.lang, w.createdAt, 'd MMM yyyy', tz)}</span>
                   </span>
                   <span className={cn('font-medium tabular-nums', w.amount >= 0 ? 'text-emerald-700' : 'text-ink')}>
                     {w.amount >= 0 ? '+' : '−'}

@@ -98,7 +98,7 @@ export const ApptActions = ({
   if (status === 'completed') return null
 
   return (
-    <div className='flex flex-wrap items-center gap-2'>
+    <div className='flex flex-wrap items-center gap-1.5'>
       {status === 'requested' ? (
         confirming ? (
           <span className='inline-flex min-h-11 items-center gap-2 text-sm text-emerald-800'>
@@ -290,14 +290,21 @@ export const RescheduleSheet = ({
 }) => {
   const [date, setDate] = useState(formatIST(appt.start, 'yyyy-MM-dd', timezone))
   const [artist, setArtist] = useState<string | number | null>(appt.staffId ?? null)
-  const [slots, setSlots] = useState<{ start: string }[] | null>(null)
+  const [loaded, setLoaded] = useState<{ key: string; list: { start: string }[] } | null>(null)
+  const slotKey = `${date}|${artist ?? ''}`
+  const slots = loaded?.key === slotKey ? loaded.list : null
   const [picked, setPicked] = useState<string | null>(null)
   const [pending, start] = useTransition()
   useEffect(() => {
-    setSlots(null)
     setPicked(null)
-    staffSlots(slug, { date, serviceIds: appt.serviceIds, staffId: artist }).then((r) => setSlots(r.ok ? (r.data ?? []) : []))
-  }, [date, artist, slug, appt.serviceIds])
+    let live = true
+    staffSlots(slug, { date, serviceIds: appt.serviceIds, staffId: artist }).then((r) => {
+      if (live) setLoaded({ key: slotKey, list: r.ok ? (r.data ?? []) : [] })
+    })
+    return () => {
+      live = false
+    }
+  }, [date, artist, slug, appt.serviceIds, slotKey])
   const today = formatIST(new Date(), 'yyyy-MM-dd', timezone)
   return (
     <Sheet onOpenChange={(o: boolean) => (o ? undefined : onClose())} open title='Move to another time'>

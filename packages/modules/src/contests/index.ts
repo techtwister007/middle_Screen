@@ -2,6 +2,10 @@ import { defineModule, emit, forTenant, type ID, idOf } from '@salon/core'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonConfig, salonData, staffOnly } from '../_shared/access'
 
+/** The default contest terms (the customer app shows a translation when a contest still uses them). */
+export const DEFAULT_CONTEST_TERMS =
+  'One vote per phone number. Winner is the entry with the most votes when voting closes. This contest is run by the salon and is not sponsored, endorsed or administered by Instagram or Meta.'
+
 export const Contests: CollectionConfig = {
   slug: 'contests',
   admin: { useAsTitle: 'title', defaultColumns: ['title', 'status', 'endsAt'] },
@@ -16,8 +20,7 @@ export const Contests: CollectionConfig = {
     {
       name: 'terms',
       type: 'textarea',
-      defaultValue:
-        'One vote per phone number. Winner is the entry with the most votes when voting closes. This contest is run by the salon and is not sponsored, endorsed or administered by Instagram or Meta.',
+      defaultValue: DEFAULT_CONTEST_TERMS,
     },
     { name: 'winner', type: 'relationship', relationTo: 'contest-entries' },
   ],

@@ -120,30 +120,32 @@ export const roiStory = async (payload: Payload, tenant: ID, range: Range, planP
   const visits = await all<VisitRow>(payload, tenant, 'visits', inRange(range))
   const apptIds = visits.map((v) => idOf(v.appointment)).filter((x): x is ID => x != null)
   const appts = apptIds.length ? (await repo.find<{ id: ID; source?: string }>('appointments', { where: { id: { in: apptIds } }, limit: 5000 })).docs : []
-  const appBooked = new Set(appts.filter((a) => APP_SOURCES.includes(a.source ?? 'app')).map((a) => String(a.id)))
+  const sourceOf = new Map(appts.map((a) => [String(a.id), a.source ?? 'app']))
+  const viaApp = visits.filter((v) => APP_SOURCES.includes(sourceOf.get(String(idOf(v.appointment))) ?? '')).length
+
+  // Conservative on purpose: only count money the app can reasonably claim, never every booking made in the app.
+  //  1. a returning customer who came within 21 days of a reminder or offer message,
+  //  2. a friend's first visit through a referral,
+  //  3. a visit booked from an offer.
   const influenced = new Map<string, Paise>()
-  let viaApp = 0
+  const reminders = await all<{ customer: ID | { id: ID }; createdAt: string }>(payload, tenant, 'messages', {
+    and: [
+      { template: { in: REMINDER_TEMPLATES } },
+      { status: { equals: 'sent' } },
+      { createdAt: { greater_than_equal: new Date(range.from.getTime() - 21 * DAY_MS).toISOString() } },
+      { createdAt: { less_than: range.to.toISOString() } },
+    ],
+  })
+  const remindedAt = new Map<string, number[]>()
+  for (const m of reminders) {
+    const key = String(idOf(m.customer))
+    remindedAt.set(key, [...(remindedAt.get(key) ?? []), new Date(m.createdAt).getTime()])
+  }
   let fromReminders = 0
   for (const v of visits) {
-    const apptId = idOf(v.appointment)
-    if (apptId && appBooked.has(String(apptId))) {
-      viaApp++
-      influenced.set(String(v.id), v.total)
-    }
-  }
-  for (const v of visits) {
     if (v.isFirstVisit) continue
-    const since = new Date(new Date(v.createdAt).getTime() - 21 * DAY_MS).toISOString()
-    const reminded = await repo.count('messages', {
-      and: [
-        { customer: { equals: idOf(v.customer) } },
-        { template: { in: REMINDER_TEMPLATES } },
-        { status: { equals: 'sent' } },
-        { createdAt: { greater_than_equal: since } },
-        { createdAt: { less_than: v.createdAt } },
-      ],
-    })
-    if (reminded) {
+    const at = new Date(v.createdAt).getTime()
+    if ((remindedAt.get(String(idOf(v.customer))) ?? []).some((t) => t < at && at - t <= 21 * DAY_MS)) {
       fromReminders++
       influenced.set(String(v.id), v.total)
     }
@@ -157,6 +159,8 @@ export const roiStory = async (payload: Payload, tenant: ID, range: Range, planP
   })
   const inviteeIds = new Set(referralVisits.map((r) => String(idOf(r.invitee))))
   for (const v of visits) if (v.isFirstVisit && inviteeIds.has(String(idOf(v.customer)))) influenced.set(String(v.id), v.total)
+  for (const v of visits) if (sourceOf.get(String(idOf(v.appointment))) === 'offer') influenced.set(String(v.id), v.total)
+
   const shares = await repo.count('photo-tasks', { and: [inRange(range), { status: { in: ['shared', 'verified'] } }] })
   const messages = await all<{ cost: number }>(payload, tenant, 'messages', inRange(range))
   const revenueInfluenced = [...influenced.values()].reduce((n, x) => n + x, 0)
@@ -335,6 +339,8 @@ export const salonHealth = async (payload: Payload, salon: { id: ID; createdAt: 
   const bookingsThisMonth = await repo.count('appointments', { createdAt: { greater_than_equal: monthStart.toISOString() } })
   const visitsThisMonth = await repo.count('visits', { createdAt: { greater_than_equal: monthStart.toISOString() } })
   const costs = await all<{ total: number }>(payload, salon.id, 'cost-ledger', { period: { equals: monthStart.toISOString().slice(0, 7) } })
+  const failedMessages = await repo.count('messages', { and: [{ status: { equals: 'failed' } }, { createdAt: { greater_than_equal: monthStart.toISOString() } }] })
+  const subscription = await repo.findOne<{ status?: string }>('subscriptions', {})
   const lastEvent = await repo.find<{ createdAt: string }>('events', { sort: '-createdAt', limit: 1 })
   const lastActivity = lastEvent.docs[0]?.createdAt ?? null
   const daysQuiet = lastActivity ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / DAY_MS) : null
@@ -346,6 +352,8 @@ export const salonHealth = async (payload: Payload, salon: { id: ID; createdAt: 
     visitsThisMonth,
     passThroughCost: costs.reduce((n, c) => n + (c.total ?? 0), 0),
     lastActivity,
+    failedMessages,
+    billingStatus: subscription?.status ?? null,
     churnRisk: daysQuiet == null || daysQuiet > 7 ? 'high' : visitsThisMonth < 10 ? 'medium' : 'low',
   }
 }

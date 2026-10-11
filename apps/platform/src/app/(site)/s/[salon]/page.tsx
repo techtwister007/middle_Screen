@@ -2,7 +2,7 @@ import { formatINR } from '@salon/core'
 import type { SectionKey } from '@salon/themes'
 import { DEFAULT_SECTIONS_MAP, type HomeData, QuickLinks, SeasonBanner } from '@/components/site/sections'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { homeSectionOrder, salonFeatures, salonTheme, sectionSalon } from '@/lib/salon'
 import { artists, contestNow, currentCustomer, customerHome, designs, firstName, liveOffers, loadSalon, recentRatings, services } from '@/lib/site'
@@ -12,7 +12,7 @@ export default async function SalonHome({ params }: { params: Promise<{ salon: s
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const features = salonFeatures(salon)
   const { theme } = salonTheme(salon)

@@ -233,6 +233,8 @@ export interface SeedSalonOptions {
   customers?: number
   now?: Date
   log?: (msg: string) => void
+  /** Called as soon as the salon row exists (lets callers roll back a half-built salon) */
+  onCreated?: (id: ID) => void
 }
 
 /** Creates (or recreates) a salon with brand, team, menu, gallery and 90 days of history. */
@@ -284,11 +286,14 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
         googleReviewUrl: `https://search.google.com/local/writereview?placeid=DEMO_${def.slug.toUpperCase()}`,
         aiTryOnCredits: 50,
         stampsForReward: 6,
+        // History is backdated 120 days, so a demo's 7-day life is counted from today, not from createdAt.
+        ...(def.status === 'demo' ? { demoExpiresAt: new Date(now.getTime() + 7 * DAY_MS).toISOString(), demoOriginalTheme: def.theme } : {}),
       },
       createdAt: new Date(now.getTime() - 120 * DAY_MS).toISOString(),
     } as never,
   })) as unknown as { id: ID; slug: string; name: string }
   const tenant = salon.id
+  opts.onCreated?.(tenant)
   const repo = forTenant(payload, tenant)
 
   const logo = await upload(
@@ -356,7 +361,7 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
       price: rupees(s.price),
       durationMinutes: s.minutes,
       cycleDays: s.cycleDays,
-      isAddOn: Boolean(s.isAddOn),
+      isAddOn: Boolean(s.isAddOn) || s.category === 'add-on',
       lastsDays: s.lastsDays,
       aftercare: s.aftercare,
       order: i,
@@ -364,7 +369,9 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
     })
     serviceIds.set(s.name, { id: doc.id, price: rupees(s.price), minutes: s.minutes, category: s.category, cycleDays: s.cycleDays })
   }
-  const mains = [...serviceIds.entries()].filter(([, s]) => s.category !== 'add-on' && s.category !== 'removal' && s.category !== 'bridal')
+  const mainOnly = [...serviceIds.entries()].filter(([, s]) => s.category !== 'add-on' && s.category !== 'removal' && s.category !== 'bridal')
+  // A pasted menu may have only add-ons/removals in odd categories: fall back to everything rather than crash.
+  const mains = mainOnly.length ? mainOnly : [...serviceIds.entries()]
   await repo.create('packages', {
     name: 'Prepaid ₹5,000 → ₹6,000',
     description: 'Pay ₹5,000 today, get ₹6,000 to spend over six months.',
@@ -492,7 +499,26 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
       const hour = 11 + Math.floor(r() * 8)
       const start = new Date(at)
       start.setUTCHours(hour - 6, 0, 0, 0) // ~IST afternoon
-      const apptSource = visitIndex === 0 ? (source === 'walk-in' ? 'walk-in' : source) : r() < 0.55 ? 'reminder' : r() < 0.5 ? 'app' : 'walk-in'
+      // Believable, not best-case: most repeat visits are walk-ins or direct bookings; some follow a reminder.
+      const apptSource = visitIndex === 0 ? (source === 'walk-in' ? 'walk-in' : source) : r() < 0.3 ? 'reminder' : r() < 0.45 ? 'app' : 'walk-in'
+      // Real salons lose some bookings: about 1 in 14 is cancelled or a no-show, with no visit.
+      if (visitIndex > 0 && r() < 0.07) {
+        const lostStart = new Date(at)
+        lostStart.setUTCHours(hour - 6, 0, 0, 0)
+        await repo.create('appointments', {
+          customer: c.id,
+          staff: artist.id,
+          services: [svc.id],
+          start: lostStart.toISOString(),
+          end: new Date(lostStart.getTime() + svc.minutes * 60_000).toISOString(),
+          status: r() < 0.6 ? 'cancelled' : 'no-show',
+          quotedTotal: svc.price,
+          source: 'app',
+          createdAt: new Date(lostStart.getTime() - 3 * DAY_MS).toISOString(),
+        })
+        at = addDays(at, 7)
+        continue
+      }
       const appt = await repo.create<{ id: ID }>('appointments', {
         customer: c.id,
         staff: artist.id,
@@ -506,7 +532,8 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
         preBooked: visitIndex > 0 && r() < 0.35,
         createdAt: new Date(start.getTime() - Math.floor(1 + r() * 6) * DAY_MS).toISOString(),
       })
-      const discount = visitIndex === 0 && r() < 0.5 ? rupees(200) : 0
+      // First-visit reward, never more than the bill (cheap add-on lines exist in pasted menus).
+      const discount = visitIndex === 0 && r() < 0.5 ? Math.min(rupees(200), price) : 0
       const visit = await repo.create<{ id: ID }>('visits', {
         customer: c.id,
         appointment: appt.id,
@@ -541,8 +568,10 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
           sharedTo: ['whatsapp-status'],
           createdAt: start.toISOString(),
         })
-      if (r() < 0.55) {
-        const score = r() < 0.85 ? 5 : r() < 0.6 ? 4 : 2
+      if (r() < 0.35) {
+        // Mostly happy, as nail salons are, but not suspiciously perfect.
+        const x = r()
+        const score = x < 0.58 ? 5 : x < 0.84 ? 4 : x < 0.93 ? 3 : x < 0.98 ? 2 : 1
         await repo.create('ratings', {
           visit: visit.id,
           customer: c.id,
@@ -604,6 +633,7 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
       const [, svc] = pick(r, mains)
       const start = zonedDateTime(date, `${String(11 + k * 2).padStart(2, '0')}:00`, 'Asia/Kolkata')
       if (start.getTime() < now.getTime() + 30 * 60_000 && d === 0) continue
+      if (!customers.length) break
       const customer = pick(r, customers)
       await repo.create('appointments', {
         customer: customer.id,
@@ -657,7 +687,7 @@ export const seedSalon = async (payload: Payload, def: SalonSeed, opts: SeedSalo
       endsAt: new Date(now.getTime() + 20 * DAY_MS).toISOString(),
       status: 'open',
     })
-    for (const [i, d] of designIds.slice(0, 6).entries()) {
+    for (const [i, d] of (customers.length ? designIds.slice(0, 6) : []).entries()) {
       const design = await repo.findByID<{ images: ID[] }>('designs', d.id)
       await repo.create('contest-entries', {
         contest: contest.id,

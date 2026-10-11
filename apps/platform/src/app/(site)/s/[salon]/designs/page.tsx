@@ -1,7 +1,7 @@
 import { salonStyles, savedDesignIds } from '@salon/modules'
 import { GalleryBrowser, type GalleryItem } from '@/components/site/GalleryBrowser'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl, srcSet } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
 import { currentCustomer, designs, loadSalon } from '@/lib/site'
@@ -9,7 +9,7 @@ import { currentCustomer, designs, loadSalon } from '@/lib/site'
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
-  return { title: translator(await getLang((await currentCustomer(salon))?.language))('designs') }
+  return { title: translator(await salonLang(salon))('designs') }
 }
 
 export default async function DesignsPage({
@@ -23,7 +23,7 @@ export default async function DesignsPage({
   const sp = await searchParams
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const payload = await getPayloadClient()
   const [list, saved, styles] = await Promise.all([

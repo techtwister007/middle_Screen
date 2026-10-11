@@ -39,8 +39,12 @@ test('owner adds services one by one and by pasting a menu', async ({ page }) =>
 
   const t = tag()
   await page.getByText('Paste your whole menu').click()
-  await page.getByLabel('Menu', { exact: true }).fill(`Ombre ${t}, 1400, 75\nPedicure spa ${t} - ₹900 - 1 hr`)
-  await page.getByRole('button', { name: 'Add these services' }).click()
+  await page.getByLabel('Menu', { exact: true }).fill(`Ombre ${t}, 1400, 75\nPedicure spa ${t} - ₹900 - 1 hr\nnot a service line`)
+  await page.getByRole('button', { name: 'Check what was read' }).click()
+  // Preview first: two rows read, the bad line reported, nothing created yet.
+  await expect(page.getByTestId('menu-preview-row')).toHaveCount(2)
+  await expect(page.getByText('not a service line')).toBeVisible()
+  await page.getByRole('button', { name: 'Add 2 services' }).click()
   await expect(page.getByText('2 services added')).toBeVisible()
   await page.reload()
   await expect(page.getByText(`Pedicure spa ${t}`)).toBeVisible()
@@ -61,18 +65,21 @@ test('owner uploads a design, adds an artist and sets time off', async ({ page }
   await expect(page.getByText(title).first()).toBeVisible()
 
   await page.goto(`/studio/${SLUG}/settings/team`)
+  await page.getByText('+ Add a team member').click()
   const email = `artist-${tag()}@${SLUG}.test`
   await page.getByLabel('Name').fill('Test Artist')
   await page.getByLabel('Email (for sign-in)').fill(email)
   await page.getByRole('button', { name: 'Add to team' }).click()
   await expect(page.getByText(new RegExp(`${email} / `))).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Copy' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Send on WhatsApp' })).toBeVisible()
 
   await page.getByText('Test Artist').first().locator('xpath=ancestor::div[2]').getByRole('link', { name: 'Hours & time off' }).click()
   await expect(page.getByRole('heading', { name: /Test's hours/ })).toBeVisible()
   const d = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10)
   await page.getByLabel('Add time off from').fill(d)
   await page.getByLabel('Reason (optional)').fill('Holiday')
-  await page.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: 'Save hours' }).click()
   await expect(page.getByText(/time off saved/i)).toBeVisible()
 })
 

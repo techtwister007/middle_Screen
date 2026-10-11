@@ -1,5 +1,6 @@
 'use client'
 import { Button } from '@salon/ui'
+import { Loader2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { buyPackage, claim } from '@/app/(site)/s/[salon]/actions'
 import { type Lang, translator } from '@/lib/i18n'
@@ -18,9 +19,9 @@ export const BuyPackageButton = ({ slug, packageId, label, lang }: { slug: strin
             window.location.href = res.data!.payUrl
           })
         }
-        size='sm'
         variant='secondary'
       >
+        {pending ? <Loader2 className='animate-spin' size={16} /> : null}
         {pending ? translator(lang)('opening') : label}
       </Button>
       {error ? <p className='mt-2 text-xs'>{error}</p> : null}

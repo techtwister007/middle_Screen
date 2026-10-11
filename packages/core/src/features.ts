@@ -38,6 +38,8 @@ export type Plan = (typeof PLANS)[number]
 
 /** Monthly subscription price per plan, in paise (WhatsApp/AI usage is billed on top at cost). */
 export const PLAN_PRICES: Record<Plan, number> = { starter: 49900, studio: 99900, growth: 249900 }
+/** One-time setup fee per plan, in paise (DEMO.md pricing). */
+export const PLAN_SETUP_FEES: Record<Plan, number> = { starter: 99900, studio: 299900, growth: 499900 }
 export const PLAN_LABELS: Record<Plan, string> = { starter: 'Starter', studio: 'Studio', growth: 'Growth' }
 
 const STARTER: FeatureKey[] = ['catalog', 'gallery', 'booking', 'customers', 'visits', 'loyalty', 'reports', 'tryOn']

@@ -1,4 +1,5 @@
 const CATEGORY_HINTS: [RegExp, string][] = [
+  [/per nail|add[- ]?on|extra|each nail/i, 'add-on'],
   [/extension|acrylic|overlay|tips?\b/i, 'extensions'],
   [/art|design|chrome|french|ombre|3d|stone/i, 'nail-art'],
   [/bridal|wedding/i, 'bridal'],

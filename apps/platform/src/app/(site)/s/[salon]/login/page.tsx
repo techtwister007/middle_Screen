@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation'
 import { LoginForm } from '@/components/site/LoginForm'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { currentCustomer, loadSalon } from '@/lib/site'
 
-export async function generateMetadata() {
-  return { title: translator(await getLang())('login') }
+export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
+  const { salon: slug } = await params
+  return { title: translator(await salonLang(await loadSalon(slug)))('login') }
 }
 
 export default async function LoginPage({ params, searchParams }: { params: Promise<{ salon: string }>; searchParams: Promise<{ next?: string }> }) {
@@ -14,7 +15,7 @@ export default async function LoginPage({ params, searchParams }: { params: Prom
   const salon = await loadSalon(slug)
   const target = next?.startsWith(`/s/${slug}`) ? next : `/s/${slug}`
   if (await currentCustomer(salon)) redirect(target)
-  const lang = await getLang()
+  const lang = await getLang(null, salonLanguages(salon))
   const tr = translator(lang)
   return (
     <div className='px-5 pt-10'>

@@ -26,16 +26,22 @@ test('walk-in checkout, pre-book and photo corner', async ({ page }) => {
   const phone = `8${Math.floor(100000000 + Math.random() * 899999999)}`
   await page.getByPlaceholder('Phone number or name').fill(phone)
   await page.getByPlaceholder('Name (optional)').fill('Walk In')
-  await page.getByRole('button', { name: /\+ Gel polish/ }).click()
+  await page.getByRole('radiogroup', { name: 'Artist' }).getByRole('radio').first().click()
+  await page
+    .getByRole('button', { name: /\+ Gel polish/ })
+    .first()
+    .click()
   await page.getByRole('button', { name: 'Cash' }).click()
   await page.getByRole('button', { name: /complete/i }).click()
   await expect(page.getByText('Visit complete')).toBeVisible()
 
-  // Pre-book: pick the first slot offered.
-  const slot = page.locator('button.tabular-nums').first()
+  // Pre-book: pick the first slot offered, confirm, and let the undo window pass.
+  const slot = page.locator('button[data-slot]').first()
   await expect(slot).toBeVisible()
   await slot.click()
-  await expect(page.getByText(/booked for/i)).toBeVisible()
+  await page.getByRole('button', { name: 'Book it' }).click()
+  await expect(page.getByRole('button', { name: /undo/i })).toBeVisible()
+  await expect(page.getByText(/booked for/i)).toBeVisible({ timeout: 20_000 })
 
   // Photo corner
   await page.getByRole('link', { name: /photo corner/i }).click()

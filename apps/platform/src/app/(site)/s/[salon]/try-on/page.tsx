@@ -2,7 +2,7 @@ import { buttonClass } from '@salon/ui'
 import Link from 'next/link'
 import { TryOn } from '@/components/site/TryOn'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
 import { currentCustomer, type DesignRecord, loadSalon, repoFor, tryOnAllowance } from '@/lib/site'
@@ -10,7 +10,7 @@ import { requireFeature } from '../_lib/gate'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
-  return { title: translator(await getLang((await currentCustomer(await loadSalon(slug)))?.language))('tryOn') }
+  return { title: translator(await salonLang(await loadSalon(slug)))('tryOn') }
 }
 
 export default async function TryOnPage({ params, searchParams }: { params: Promise<{ salon: string }>; searchParams: Promise<{ design?: string }> }) {
@@ -19,7 +19,7 @@ export default async function TryOnPage({ params, searchParams }: { params: Prom
   const salon = await loadSalon(slug)
   requireFeature(salon, 'tryOn')
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const design = designId ? await (await repoFor(salon)).findByID<DesignRecord>('designs', designId, 1) : null
   const aiOn = salonFeatures(salon).has('aiTryOn')

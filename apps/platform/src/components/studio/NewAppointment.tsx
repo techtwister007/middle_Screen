@@ -62,7 +62,7 @@ export const NewAppointment = ({
   const [picked, setPicked] = useState<(string | number)[]>([])
   const [artist, setArtist] = useState<string | number | null>(initialStaff)
   const [date, setDate] = useState(initialDate)
-  const [slots, setSlots] = useState<{ start: string }[] | null>(null)
+  const [loaded, setLoaded] = useState<{ key: string; list: { start: string }[] } | null>(null)
   const [slot, setSlot] = useState<string | null>(null)
   const [walkIn, setWalkIn] = useState(false)
   const [notes, setNotes] = useState('')
@@ -78,18 +78,25 @@ export const NewAppointment = ({
   }, [query, slug])
 
   const mainIds = picked.filter((id) => !services.find((s) => String(s.id) === String(id))?.isAddOn)
+  // Slots belong to one day/artist/service choice; older answers are never shown for a newer choice.
+  const key = `${date}|${artist ?? ''}|${picked.join(',')}`
+  const slots = loaded?.key === key ? loaded.list : null
   useEffect(() => {
     setSlot(null)
-    if (!picked.length) return setSlots(null)
-    setSlots(null)
+    if (!picked.length) return
+    let live = true
     staffSlots(slug, { date, serviceIds: picked, staffId: artist }).then((r) => {
+      if (!live) return
       const list = r.ok ? (r.data ?? []) : []
-      setSlots(list)
+      setLoaded({ key, list })
       if (initialTime && date === initialDate) {
         const match = list.find((s) => formatIST(s.start, 'HH:mm', timezone) >= initialTime)
         if (match) setSlot(match.start)
       }
     })
+    return () => {
+      live = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, artist, picked.join(','), slug])
 

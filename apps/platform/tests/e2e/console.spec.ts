@@ -13,7 +13,7 @@ test('platform admin runs the sales demo time machine', async ({ page }) => {
   await expect(page.getByText('Glam Nails Studio')).toBeVisible()
 
   await page.goto(`/console/demo/${SLUG}`)
-  await page.getByPlaceholder('98250 12345').fill(`9${Math.floor(100000000 + Math.random() * 899999999)}`)
+  await page.getByLabel("Owner's phone").fill(`9${Math.floor(100000000 + Math.random() * 899999999)}`)
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByText(/demo customer ready/i)).toBeVisible()
 
@@ -25,15 +25,16 @@ test('platform admin runs the sales demo time machine', async ({ page }) => {
     ['Friend accepts invite', /both rewards issued/i],
     ['Low rating arrives', /owner alerted/i],
   ] as const) {
-    await page.getByRole('button', { name: new RegExp(`^${button}`) }).click()
+    await page.getByRole('button', { name: new RegExp(button) }).click()
     await expect(page.getByText(expected).first()).toBeVisible({ timeout: 60_000 })
   }
   // The on-screen phone shows what was sent.
   await expect(page.getByText(/photos are ready/i).first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(/rated their visit 2\/5/i).first()).toBeVisible()
 
-  await page.getByRole('button', { name: /^Reset demo/ }).click()
-  await expect(page.getByText(/demo customer reset/i)).toBeVisible()
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: /reset demo for the next meeting/i }).click()
+  await expect(page.getByText(/demo reset/i)).toBeVisible({ timeout: 60_000 })
 
   await page.goto(`/console/demo/${SLUG}/roi`)
   await expect(page.getByText(/one refill at/i)).toBeVisible()

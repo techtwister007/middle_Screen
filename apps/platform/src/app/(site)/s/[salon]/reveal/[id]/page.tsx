@@ -7,21 +7,21 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { RevealShare } from '@/components/site/RevealShare'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl } from '@/lib/media'
 import { salonFeatures } from '@/lib/salon'
-import { contestNow, currentCustomer, idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
+import { contestNow, idOf, loadSalon, repoFor, requireCustomer } from '@/lib/site'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
-  return { title: translator(await getLang((await currentCustomer(await loadSalon(slug)))?.language))('yourNewSet') }
+  return { title: translator(await salonLang(await loadSalon(slug)))('yourNewSet') }
 }
 
 export default async function RevealPage({ params }: { params: Promise<{ salon: string; id: string }> }) {
   const { salon: slug, id } = await params
   const salon = await loadSalon(slug)
   const customer = await requireCustomer(salon, `/s/${slug}/reveal/${id}`)
-  const lang = await getLang(customer.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const features = salonFeatures(salon)
   const repo = await repoFor(salon)

@@ -1,0 +1,31 @@
+import type { FeatureKey } from '@salon/core'
+
+/** Plain-language names for feature switches (console, billing). */
+export const FEATURE_LABELS: Record<FeatureKey, string> = {
+  catalog: 'Menu & prices',
+  gallery: 'Design gallery',
+  booking: 'Online booking',
+  deposits: 'Booking deposits',
+  customers: 'Customer list',
+  visits: 'Checkout & visits',
+  payments: 'Online payments',
+  wallet: 'Customer wallet',
+  giftCards: 'Gift cards',
+  messaging: 'WhatsApp messages',
+  loyalty: 'Points & rewards',
+  tiers: 'Silver / Gold tiers',
+  walletPass: 'Google Wallet card',
+  referrals: 'Gift-a-friend referrals',
+  reviews: 'Ratings & Google reviews',
+  campaigns: 'Offers & campaigns',
+  festivalPacks: 'Festival packs',
+  contests: 'Monthly contests',
+  contentEngine: 'Photo corner & share kit',
+  reports: 'Insights & ROI report',
+  tryOn: 'Try-on (colour preview)',
+  aiTryOn: 'AI try-on (paid per image)',
+  discovery: 'City discovery listing',
+  groupBooking: 'Group bookings',
+  multiBranch: 'Multiple branches',
+  customTheme: 'Custom theme',
+}

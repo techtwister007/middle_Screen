@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation'
 import { PriceBuilder } from '@/components/site/PriceBuilder'
 import { SaveDesignButton } from '@/components/site/SaveDesignButton'
 import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
+import { getLang, salonLanguages } from '@/lib/lang'
 import { mediaUrl, srcSet } from '@/lib/media'
 import { getPayloadClient } from '@/lib/payload'
 import { salonFeatures } from '@/lib/salon'
@@ -35,7 +35,7 @@ export default async function DesignPage({ params, searchParams }: { params: Par
   const sp = await searchParams
   const { salon, design } = await load(slug, id)
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const saved = customer ? (await savedDesignIds(await getPayloadClient(), salon.id, customer.id)).some((d) => String(d) === String(design.id)) : false
   const base = `/s/${slug}`
@@ -57,7 +57,7 @@ export default async function DesignPage({ params, searchParams }: { params: Par
         {(design.images ?? []).map((img, i) => (
           <img
             alt={design.title}
-            className='aspect-[4/5] w-full object-cover'
+            className='aspect-[4/5] max-h-[55vh] w-full object-cover'
             key={i}
             sizes='100vw'
             src={mediaUrl(img, 'large') ?? undefined}

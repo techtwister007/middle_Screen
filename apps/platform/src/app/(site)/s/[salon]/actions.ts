@@ -2,6 +2,7 @@
 
 import { asId, forTenant, type ID, idOf, normalizePhone } from '@salon/core'
 import {
+  activeRewards,
   aiTryOn,
   BookingError,
   cancelBooking,
@@ -34,7 +35,7 @@ import {
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
-import { type DictKey, t } from '@/lib/i18n'
+import { type DictKey, type Lang, rewardLabel, t } from '@/lib/i18n'
 import { getLang } from '@/lib/lang'
 import { getPayloadClient } from '@/lib/payload'
 import { getSalonBySlug, salonFeatures } from '@/lib/salon'
@@ -164,6 +165,20 @@ export async function slotsFor(slug: string, input: { date: string; serviceIds: 
     return { ok: true as const, data: { durationMinutes, slots: slots.map((s) => ({ start: s.start.toISOString(), staffIds: s.staffIds })) } }
   } catch (err) {
     return fail(err)
+  }
+}
+
+/** Rewards that will be taken off this booking at the salon (shown on the confirm step). Empty when logged out. */
+export async function bookingRewards(slug: string, lang: Lang): Promise<string[]> {
+  try {
+    const salon = await getSalonBySlug(slug)
+    if (!salon || !salonFeatures(salon).has('loyalty')) return []
+    const session = await getCustomerSession(slug, salon.id)
+    if (!session) return []
+    const rewards = await activeRewards(await getPayloadClient(), salon.id, session.customerId)
+    return rewards.filter((r) => !(r.scratch && !r.revealed)).map((r) => t(lang, 'rewardWillApply', { reward: rewardLabel(lang, r) }))
+  } catch {
+    return []
   }
 }
 

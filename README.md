@@ -33,7 +33,7 @@ Open:
 
 - Customer apps: http://localhost:3000/s/glamnails · /s/aura · /s/riddhi (login code is `OTP_FIXED_CODE` in development)
 - Studio: http://localhost:3000/studio/login — `owner@glamnails.test` / `owner-demo-123`
-- Console: http://localhost:3000/console — `admin@platform.test` / `admin-demo-123`
+- Console: http://localhost:3000/console — `admin@platform.test` / `admin-demo-123` (salons, demo presenter, design library, content, customer lookup)
 - Admin: http://localhost:3000/admin
 
 Seed passwords are for local development only (override with `SEED_ADMIN_PASSWORD`, `SEED_OWNER_PASSWORD`).

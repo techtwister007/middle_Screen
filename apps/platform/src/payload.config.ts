@@ -51,6 +51,7 @@ export default buildConfig({
     user: 'users',
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · Salon Platform' },
+    components: { beforeNavLinks: ['@/components/admin/BackToConsole#BackToConsole'] },
   },
   collections: allCollections(),
   editor: lexicalEditor(),

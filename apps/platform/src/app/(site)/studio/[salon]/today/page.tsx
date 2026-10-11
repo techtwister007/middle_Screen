@@ -39,7 +39,25 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
       limit: 100,
     }),
     repo.find<ApptRow>('appointments', {
-      where: { and: [{ status: { equals: 'requested' } }, { start: { greater_than_equal: dayEnd.toISOString() } }, ...mine] },
+      // Just-confirmed requests stay in the list (marked confirmed) so the card doesn't vanish under the thumb.
+      where: {
+        and: [
+          {
+            or: [
+              { status: { equals: 'requested' } },
+              {
+                and: [
+                  { status: { equals: 'confirmed' } },
+                  { updatedAt: { greater_than: new Date(now.getTime() - 30 * 60_000).toISOString() } },
+                  { source: { not_equals: 'chair' } },
+                ],
+              },
+            ],
+          },
+          { start: { greater_than_equal: dayEnd.toISOString() } },
+          ...mine,
+        ],
+      },
       sort: 'start',
       depth: 1,
       limit: 20,

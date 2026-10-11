@@ -1,16 +1,15 @@
-import { formatIST } from '@salon/core'
 import { Badge, buttonClass, EmptyState } from '@salon/ui'
 import { CalendarDays, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { translator } from '@/lib/i18n'
-import { getLang } from '@/lib/lang'
-import { currentCustomer, loadSalon, repoFor, requireCustomer } from '@/lib/site'
+import { formatDateIn, translator } from '@/lib/i18n'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
+import { loadSalon, repoFor, requireCustomer } from '@/lib/site'
 import { STATUS_TONE } from '../_lib/status'
 
 export async function generateMetadata({ params }: { params: Promise<{ salon: string }> }) {
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
-  return { title: translator(await getLang((await currentCustomer(salon))?.language))('myAppointments') }
+  return { title: translator(await salonLang(salon))('myAppointments') }
 }
 
 interface Row {
@@ -26,7 +25,7 @@ export default async function AppointmentsPage({ params }: { params: Promise<{ s
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await requireCustomer(salon, `/s/${slug}/appointments`)
-  const tr = translator(await getLang(customer.language))
+  const tr = translator(await getLang(customer?.language, salonLanguages(salon)))
   const repo = await repoFor(salon)
   const tz = salon.timezone ?? 'Asia/Kolkata'
   const base = `/s/${slug}`
@@ -54,8 +53,8 @@ export default async function AppointmentsPage({ params }: { params: Promise<{ s
       href={`${base}/appointments/${a.id}`}
     >
       <span className='flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-tint text-brand'>
-        <span className='font-heading text-lg leading-none'>{formatIST(a.start, 'd', tz)}</span>
-        <span className='text-[10px] uppercase'>{formatIST(a.start, 'MMM', tz)}</span>
+        <span className='font-heading text-lg leading-none'>{formatDateIn(tr.lang, a.start, 'd', tz)}</span>
+        <span className='text-[10px] uppercase'>{formatDateIn(tr.lang, a.start, 'MMM', tz)}</span>
       </span>
       <span className='min-w-0 flex-1'>
         <span className='block truncate font-medium'>
@@ -65,7 +64,7 @@ export default async function AppointmentsPage({ params }: { params: Promise<{ s
             .join(', ')}
         </span>
         <span className='block text-xs text-muted'>
-          {formatIST(a.start, 'EEE, h:mm a', tz)}
+          {formatDateIn(tr.lang, a.start, 'EEE, h:mm a', tz)}
           {a.staff && typeof a.staff === 'object' && a.staff.name ? ` · ${tr('withName', { name: a.staff.name.split(' ')[0] })}` : ''}
         </span>
       </span>

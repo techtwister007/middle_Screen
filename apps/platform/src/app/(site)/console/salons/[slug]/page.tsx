@@ -1,4 +1,4 @@
-import { FEATURES, formatINR, formatIST, forTenant, PLAN_PRICES } from '@salon/core'
+import { FEATURES, formatINR, formatIST, forTenant, type ID, PLAN_FEATURES, PLAN_PRICES } from '@salon/core'
 import { salonHealth } from '@salon/modules'
 import { buttonClass, Stat } from '@salon/ui'
 import Link from 'next/link'
@@ -7,13 +7,17 @@ import { FeatureToggle, FieldSelect } from '@/components/console/SalonControls'
 import { ActionForm } from '@/components/studio/ActionForm'
 import { Field, inputClass } from '@/components/studio/Field'
 import { getPayloadClient } from '@/lib/payload'
+import { FlagButton } from '@/components/studio/FlagButton'
+import { ResetPasswordButton } from '@/components/console/ResetPasswordButton'
+import { FEATURE_LABELS } from '@/lib/featureLabels'
 import { getSalonAnyStatus, salonFeatures } from '@/lib/salon'
-import { saveSubscription } from '../../actions'
+import { demoLifecycle, saveSubscription } from '../../actions'
 
 export const metadata = { title: 'Salon' }
 
-export default async function SalonDetail({ params }: { params: Promise<{ slug: string }> }) {
+export default async function SalonDetail({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ messages?: string }> }) {
   const { slug } = await params
+  const { messages: messageFilter } = await searchParams
   const salon = await getSalonAnyStatus(slug)
   if (!salon) notFound()
   const payload = await getPayloadClient()
@@ -37,6 +41,7 @@ export default async function SalonDetail({ params }: { params: Promise<{ slug: 
         sort: '-createdAt',
         limit: 30,
         depth: 0,
+        where: messageFilter && ['failed', 'skipped', 'sent'].includes(messageFilter) ? { status: { equals: messageFilter } } : undefined,
       },
     ),
     payload
@@ -45,6 +50,28 @@ export default async function SalonDetail({ params }: { params: Promise<{ slug: 
   ])
   const byKind = new Map<string, number>()
   for (const c of costs) byKind.set(`${c.period} · ${c.kind}`, (byKind.get(`${c.period} · ${c.kind}`) ?? 0) + c.total)
+  const settings = (salon.settings ?? {}) as Record<string, unknown>
+  const team = (
+    await payload.find({ collection: 'users', overrideAccess: true, depth: 0, limit: 50, where: { 'tenants.tenant': { equals: salon.id } } })
+  ).docs as unknown as { id: ID; name: string; role: string; email: string }[]
+  const [serviceCount, designCount, linkScans] = await Promise.all([
+    repo.count('services', { active: { equals: true } }),
+    repo.count('designs', { published: { equals: true } }),
+    repo.find<{ clicks?: number }>('tracking-links', { limit: 50 }).then((r) => r.docs.reduce((n, l) => n + (l.clicks ?? 0), 0)),
+  ])
+  const c = salon.contact ?? {}
+  const checklist = [
+    { label: 'Menu with real prices', done: serviceCount > 0, hint: 'Studio → More → Menu & prices' },
+    { label: 'At least 6 designs in the gallery', done: designCount >= 6, hint: 'Their photos, or copy looks from the design library' },
+    { label: 'Logo and colours', done: Boolean(salon.brand?.logo), hint: 'Studio → More → Salon page & brand' },
+    { label: 'Address and opening hours', done: Boolean(c.address && salon.hours?.length), hint: 'Studio → More → Salon page & brand' },
+    { label: 'WhatsApp number for owner alerts', done: Boolean(c.whatsapp || c.phone) },
+    { label: 'Google review link', done: Boolean(settings.googleReviewUrl), hint: 'Studio → More → Rules' },
+    { label: 'Payments: Razorpay account or UPI ID', done: Boolean((salon as { razorpayAccountId?: string }).razorpayAccountId || salon.upiVpa), hint: 'Set in /admin → Salons → Payments & messaging' },
+    { label: 'Staff invited (owner plus artists)', done: team.length >= 2 },
+    { label: 'Billing record', done: Boolean(sub?.status && sub.status !== 'pending') },
+    { label: 'QR kit printed and scanned', done: linkScans > 0, hint: 'Studio → More → QR kit → printable posters' },
+  ]
   return (
     <div>
       <div className='flex flex-wrap items-center justify-between gap-3'>
@@ -75,21 +102,96 @@ export default async function SalonDetail({ params }: { params: Promise<{ slug: 
       <div className='mt-8 flex flex-wrap gap-6'>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Status</span>
-          <FieldSelect field='status' options={['trial', 'active', 'suspended', 'demo']} slug={slug} value={salon.status} />
+          <FieldSelect field='status' options={[
+              ['trial', 'Trial'],
+              ['active', 'Live'],
+              ['suspended', 'Paused'],
+              ['demo', 'Demo'],
+            ]} slug={slug} value={salon.status} />
         </label>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Plan</span>
-          <FieldSelect field='plan' options={['starter', 'studio', 'growth']} slug={slug} value={salon.plan} />
+          <FieldSelect field='plan' options={[
+              ['starter', 'Starter'],
+              ['studio', 'Studio'],
+              ['growth', 'Growth'],
+            ]} slug={slug} value={salon.plan} />
         </label>
         <label className='text-sm'>
           <span className='mb-1 block text-muted'>Theme</span>
-          <FieldSelect field='theme' options={['default', 'luxe', 'minimal']} slug={slug} value={salon.theme ?? 'default'} />
+          <FieldSelect field='theme' options={[
+              ['default', 'Blush'],
+              ['luxe', 'Noir & Gold'],
+              ['minimal', 'Studio White'],
+            ]} slug={slug} value={salon.theme ?? 'default'} />
         </label>
       </div>
+      {salon.status === 'demo' ? (
+        <section className='mt-8 rounded-card border border-brand/40 bg-brand/5 p-4'>
+          <h2 className='font-heading text-xl'>Demo</h2>
+          <p className='mt-1 text-sm text-muted'>
+            {settings.keepDemo
+              ? 'Kept: this demo does not pause.'
+              : settings.demoExpiresAt
+                ? `Pauses itself on ${formatIST(String(settings.demoExpiresAt), 'd MMM yyyy')}.`
+                : 'Pauses itself 7 days after it was built.'}
+          </p>
+          <div className='mt-3 flex flex-wrap gap-2'>
+            <Link className={buttonClass('primary', 'sm')} href={`/console/demo/${slug}`}>
+              Present
+            </Link>
+            <FlagButton run={demoLifecycle.bind(null, slug, 'extend')}>Extend 7 days</FlagButton>
+            <FlagButton run={demoLifecycle.bind(null, slug, 'keep')}>Keep (never pause)</FlagButton>
+            <FlagButton confirm='Make this demo a live salon? Sample customers and history stay until you remove them.' run={demoLifecycle.bind(null, slug, 'go-live')}>
+              They said yes: go live
+            </FlagButton>
+            <FlagButton className='text-red-700' confirm='Delete this demo and everything in it?' run={demoLifecycle.bind(null, slug, 'delete')} then='/console'>
+              Delete demo
+            </FlagButton>
+          </div>
+        </section>
+      ) : null}
+
+      {salon.status !== 'demo' ? (
+        <section className='mt-8 rounded-card border border-line bg-surface p-4'>
+          <h2 className='font-heading text-xl'>Go-live checklist</h2>
+          <ul className='mt-3 space-y-2 text-sm'>
+            {checklist.map((c) => (
+              <li className='flex items-start gap-2' key={c.label}>
+                <span aria-hidden className={c.done ? 'text-green-700' : 'text-amber-700'}>
+                  {c.done ? '✓' : '○'}
+                </span>
+                <span>
+                  <span className={c.done ? 'text-muted' : ''}>{c.label}</span>
+                  {!c.done && c.hint ? <span className='block text-xs text-muted'>{c.hint}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className='mt-3 text-xs text-muted'>
+            {checklist.filter((c) => c.done).length} of {checklist.length} done
+          </p>
+        </section>
+      ) : null}
+
+      <section className='mt-8'>
+        <h2 className='mb-3 font-heading text-xl'>Team logins</h2>
+        <div className='divide-y divide-line rounded-card border border-line bg-surface text-sm'>
+          {team.map((u) => (
+            <div className='flex flex-wrap items-center justify-between gap-2 px-4 py-2' key={String(u.id)}>
+              <span>
+                {u.name} <span className='text-muted'>· {u.role} · {u.email}</span>
+              </span>
+              <ResetPasswordButton slug={slug} userId={u.id} />
+            </div>
+          ))}
+        </div>
+      </section>
+
       <h2 className='mb-3 mt-10 font-heading text-xl'>Features</h2>
       <div className='grid grid-cols-2 gap-2 md:grid-cols-4'>
         {FEATURES.map((f) => (
-          <FeatureToggle enabled={features.has(f)} feature={f} key={f} slug={slug} />
+          <FeatureToggle enabled={features.has(f)} feature={f} key={f} label={FEATURE_LABELS[f]} planDefault={(PLAN_FEATURES[salon.plan] ?? []).includes(f)} slug={slug} />
         ))}
       </div>
       <h2 className='mb-3 mt-10 font-heading text-xl'>Billing</h2>
@@ -135,6 +237,23 @@ export default async function SalonDetail({ params }: { params: Promise<{ slug: 
 
       <h2 className='mb-3 mt-10 font-heading text-xl'>Messages (latest 30)</h2>
       <p className='mb-3 text-sm text-muted'>Everything the platform sent or skipped for this salon, including with the fake provider in development.</p>
+      <nav className='mb-3 flex flex-wrap gap-2 text-sm'>
+        {[
+          ['', 'All'],
+          ['failed', 'Failed'],
+          ['skipped', 'Not sent'],
+          ['sent', 'Sent'],
+        ].map(([k, label]) => (
+          <Link
+            className={`inline-flex min-h-10 items-center rounded-full border px-3 ${(messageFilter ?? '') === k ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface'}`}
+            href={k ? `?messages=${k}` : '?'}
+            key={k || 'all'}
+            scroll={false}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
       <div className='divide-y divide-line rounded-card border border-line bg-surface text-sm'>
         {messages.docs.map((m) => (
           <details className='px-4 py-2' key={m.id}>

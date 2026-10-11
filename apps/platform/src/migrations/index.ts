@@ -4,6 +4,7 @@ import * as migration_20261011_041047_change_cutoff from './20261011_041047_chan
 import * as migration_20261011_042500_refunds from './20261011_042500_refunds';
 import * as migration_20261011_044647_design_styles_library from './20261011_044647_design_styles_library';
 import * as migration_20261011_045743_allergies_tips_receipts from './20261011_045743_allergies_tips_receipts';
+import * as migration_20261011_052902_demo_lifecycle from './20261011_052902_demo_lifecycle';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20261011_045743_allergies_tips_receipts.up,
     down: migration_20261011_045743_allergies_tips_receipts.down,
-    name: '20261011_045743_allergies_tips_receipts'
+    name: '20261011_045743_allergies_tips_receipts',
+  },
+  {
+    up: migration_20261011_052902_demo_lifecycle.up,
+    down: migration_20261011_052902_demo_lifecycle.down,
+    name: '20261011_052902_demo_lifecycle'
   },
 ];

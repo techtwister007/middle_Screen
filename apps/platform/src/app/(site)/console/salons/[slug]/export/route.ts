@@ -2,7 +2,7 @@ import { forTenant } from '@salon/core'
 import { tenantCollections } from '@salon/modules'
 import { getPayloadClient } from '@/lib/payload'
 import { getSalonAnyStatus } from '@/lib/salon'
-import { requirePlatformAdmin } from '@/lib/staff'
+import { getStaffUser } from '@/lib/staff'
 
 // Secrets never leave the platform, even in an export.
 const DROP = new Set(['hash', 'salt', 'codeHash', 'password', 'resetPasswordToken', 'apiKey'])
@@ -20,7 +20,10 @@ const clean = (v: unknown): unknown =>
 /** Everything one salon owns, as JSON: for a salon leaving, a data request or a migration. Audit-logged. */
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const user = await requirePlatformAdmin()
+  // An API response, not a page: answer 401/403 instead of redirecting to the login page.
+  const user = await getStaffUser()
+  if (!user) return new Response('Sign in as a platform admin', { status: 401 })
+  if (user.role !== 'platform-admin') return new Response('Forbidden', { status: 403 })
   const salon = await getSalonAnyStatus(slug)
   if (!salon) return new Response('Not found', { status: 404 })
   const payload = await getPayloadClient()

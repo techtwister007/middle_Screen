@@ -1,5 +1,5 @@
 import { translator } from '@/lib/i18n'
-import { getLang, salonLang } from '@/lib/lang'
+import { getLang, salonLang, salonLanguages } from '@/lib/lang'
 import { getPayloadClient } from '@/lib/payload'
 import { currentCustomer, loadSalon, repoFor } from '@/lib/site'
 
@@ -12,7 +12,7 @@ export default async function CarePage({ params }: { params: Promise<{ salon: st
   const { salon: slug } = await params
   const salon = await loadSalon(slug)
   const customer = await currentCustomer(salon)
-  const lang = await getLang(customer?.language)
+  const lang = await getLang(customer?.language, salonLanguages(salon))
   const tr = translator(lang)
   const payload = await getPayloadClient()
   // Platform content library (not salon data). Prefer articles in the customer's language, else English.
