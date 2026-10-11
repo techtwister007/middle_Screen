@@ -594,6 +594,7 @@ defineTheme({
 - Cost ledger: WhatsApp, SMS and AI per salon per month, exported for billing.
 - Global content: campaign packs, frames, articles, message templates.
 - Feature rollout per salon; discovery page per city.
+- **Sales demo kit** (see `DEMO.md`): demo builder (a prospect's salon from logo, menu and photos in about 30 minutes), demo mode (sample data with labels, 7-day expiry, test payments, WhatsApp limited to approved numbers), presenter controls (fast-forward, complete visit, send reveal, friend accepts invite, low rating, festival pack, jump to day 90, switch theme and language, reset), ROI calculator, automatic 3-minute recording, demo analytics.
 
 ---
 

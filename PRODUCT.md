@@ -630,6 +630,7 @@ Every feature belongs to one module, and all of them ship in the same release. "
 | Data export per salon |
 | City-level trends (most-booked designs in each city) |
 | Discovery page management per city |
+| Sales demo kit: demo builder, demo mode with sample data, presenter controls, ROI calculator (see `DEMO.md`) |
 
 ### Developer
 
