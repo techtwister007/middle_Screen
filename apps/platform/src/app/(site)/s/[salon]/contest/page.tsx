@@ -66,7 +66,7 @@ export default async function ContestPage({ params }: { params: Promise<{ salon:
                 alt={e.designName ?? tr('untitled')}
                 className='aspect-square w-full rounded-[calc(var(--t-radius)-6px)] object-cover'
                 loading='lazy'
-                src={mediaUrl(e.photo, 'card') ?? ''}
+                src={mediaUrl(e.photo, 'card') ?? undefined}
               />
               {i === 0 && e.votes > 0 ? (
                 <span className='absolute left-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-ink'>{tr('leading')}</span>

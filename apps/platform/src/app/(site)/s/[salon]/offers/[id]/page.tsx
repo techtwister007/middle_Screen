@@ -36,7 +36,7 @@ export default async function OfferPage({ params }: { params: Promise<{ salon: s
   return (
     <div>
       {mediaUrl(offer.image, 'large') ? (
-        <img alt='' className='aspect-[4/3] w-full object-cover' src={mediaUrl(offer.image, 'large') ?? ''} />
+        <img alt='' className='aspect-[4/3] w-full object-cover' src={mediaUrl(offer.image, 'large') ?? undefined} />
       ) : (
         <div className='aspect-[4/3] w-full bg-gradient-to-br from-brand to-accent' />
       )}

@@ -101,6 +101,17 @@ export const NewSalonForm = ({ defaultDemo }: { defaultDemo: boolean }) => {
           </div>
         </div>
         <div>
+          <Label htmlFor='menu'>Their menu (optional)</Label>
+          <Textarea id='menu' name='menu' placeholder={'Gel polish, 800, 45\nAcrylic extensions, 1800, 120'} rows={4} />
+          <p className='mt-1 text-xs text-muted'>
+            One per line: name, price, minutes. Copy it from their price list or Instagram highlight. Empty uses a standard nail menu.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor='logo'>Their logo (optional)</Label>
+          <Input accept='image/*' className='h-auto py-3' id='logo' name='logo' type='file' />
+        </div>
+        <div>
           <Label htmlFor='photos'>Their work photos (up to 24, private demo only)</Label>
           <Input accept='image/*' className='h-auto py-3' id='photos' multiple name='photos' type='file' />
           <p className='mt-1 text-xs text-muted'>Without photos we use generated nail art. Delete a demo if the salon does not go ahead.</p>

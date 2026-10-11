@@ -4,7 +4,7 @@ import { activeRewards, aiTryOnAllowance, currentContest, walletBalance } from '
 import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
 import { getPayloadClient } from './payload'
-import { getSalonBySlug, type SalonRecord, salonFeatures } from './salon'
+import { getSalonAnyStatus, getSalonBySlug, type SalonRecord, salonFeatures } from './salon'
 import { getCustomerSession } from './session'
 
 export interface CustomerRecord {
@@ -27,7 +27,11 @@ export interface CustomerRecord {
 /** Loads the salon for a route or 404s. */
 export const loadSalon = cache(async (slug: string) => {
   const salon = await getSalonBySlug(slug)
-  if (!salon) notFound()
+  if (!salon) {
+    // A paused salon keeps its link alive with a friendly page instead of a 404.
+    if ((await getSalonAnyStatus(slug))?.status === 'suspended') redirect(`/paused/${slug}`)
+    notFound()
+  }
   return salon
 })
 

@@ -19,9 +19,18 @@ export interface PaymentLink {
   status: 'created' | 'paid' | 'expired' | 'cancelled'
 }
 
+export interface RefundInput {
+  providerPaymentId: string
+  amount: number // paise
+  accountId?: string | null
+  reason?: string
+}
+
 export interface PaymentProvider {
   name: string
   createLink(input: PaymentLinkInput): Promise<PaymentLink>
+  /** Refunds a captured payment back to the customer, from the salon's own account. */
+  refund(input: RefundInput): Promise<{ id: string; status: 'processed' | 'pending' | 'failed'; error?: string }>
   verifyWebhook(rawBody: string, signature: string | null): boolean
 }
 
@@ -39,6 +48,12 @@ export class FakePayments implements PaymentProvider {
     }
     FakePayments.links.set(id, { ...link, input })
     return link
+  }
+  static refunds: (RefundInput & { id: string })[] = []
+  async refund(input: RefundInput) {
+    const id = `rfnd_fake_${Date.now()}`
+    FakePayments.refunds.push({ ...input, id })
+    return { id, status: 'processed' as const }
   }
   verifyWebhook() {
     return true
@@ -78,6 +93,25 @@ export class RazorpayPayments implements PaymentProvider {
     if (!res.ok) throw new Error(`Razorpay error ${res.status}: ${await res.text()}`)
     const json = (await res.json()) as { id: string; short_url: string; status: string }
     return { id: json.id, url: json.short_url, status: json.status === 'paid' ? 'paid' : 'created' }
+  }
+  async refund(input: RefundInput) {
+    const headers: Record<string, string> = {
+      'content-type': 'application/json',
+      authorization: `Basic ${Buffer.from(`${this.keyId}:${this.keySecret}`).toString('base64')}`,
+    }
+    if (input.accountId) headers['X-Razorpay-Account'] = input.accountId
+    try {
+      const res = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(input.providerPaymentId)}/refund`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ amount: input.amount, speed: 'normal', notes: input.reason ? { reason: input.reason } : undefined }),
+      })
+      const json = (await res.json().catch(() => ({}))) as { id?: string; status?: string; error?: { description?: string } }
+      if (!res.ok) return { id: '', status: 'failed' as const, error: json.error?.description ?? `HTTP ${res.status}` }
+      return { id: json.id ?? '', status: json.status === 'processed' ? ('processed' as const) : ('pending' as const) }
+    } catch (err) {
+      return { id: '', status: 'failed' as const, error: (err as Error).message }
+    }
   }
   verifyWebhook(rawBody: string, signature: string | null) {
     if (!signature || !this.webhookSecret) return false

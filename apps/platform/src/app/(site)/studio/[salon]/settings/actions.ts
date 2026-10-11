@@ -130,6 +130,8 @@ const RULE_NUMBERS = [
   'bookingHorizonDays',
   'depositMinMinutes',
   'depositPercent',
+  'changeCutoffHours',
+  'depositRefundHours',
   'stampsForReward',
   'pointsPer100',
   'silverAfterVisits',
@@ -330,7 +332,7 @@ export async function addTeamMember(slug: string, _prev: FormState, f: FormData)
     await payload.create({
       collection: 'audit-log',
       overrideAccess: true,
-      data: { actor: user.id, action: 'team.added', details: { salon: salon.slug, user: created.id, role } } as never,
+      data: { actor: user.id, action: 'team.added', details: { slug: salon.slug, user: created.id, role } } as never,
     })
     revalidatePath(`/studio/${slug}/settings/team`)
     return { ok: true, message: `${name.split(' ')[0]} can now sign in at /studio/login`, secret: `${email} / ${password}` }

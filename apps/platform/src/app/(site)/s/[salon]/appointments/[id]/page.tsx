@@ -46,10 +46,10 @@ export default async function AppointmentPage({
     design?: { title: string; images?: unknown[] } | null
     inspiration?: unknown[]
     group?: { code: string; status: string; organiser: string | { id: string } } | null
-  }>('appointments', id, 1)
+  }>('appointments', id, 2)
   if (!appt || String(idOf(appt.customer)) !== String(customer.id)) notFound()
   const tz = salon.timezone ?? 'Asia/Kolkata'
-  const upcoming = customerCanChange(appt)
+  const upcoming = customerCanChange(appt, new Date(), Number(salon.settings?.changeCutoffHours ?? 4) || 0)
   const policy = (salon.settings as { cancellationPolicy?: string } | null)?.cancellationPolicy
   const base = `/s/${slug}`
   const showGroup = upcoming && salonFeatures(salon).has('groupBooking') && appt.group && typeof appt.group === 'object' && appt.group.status === 'open'
@@ -71,7 +71,11 @@ export default async function AppointmentPage({
       </p>
       {appt.design ? (
         <div className='mt-5 flex items-center gap-3 rounded-card border border-line bg-surface p-3'>
-          <img alt='' className='h-16 w-16 rounded-xl object-cover' src={mediaUrl(appt.design.images?.[0], 'thumb') ?? ''} />
+          {mediaUrl(appt.design.images?.[0], 'thumb') ? (
+            <img alt='' className='h-16 w-16 rounded-xl object-cover' src={mediaUrl(appt.design.images?.[0], 'thumb') ?? undefined} />
+          ) : (
+            <span className='h-16 w-16 rounded-xl bg-tint' />
+          )}
           <div>
             <p className='text-xs text-muted'>{tr('yourDesign')}</p>
             <p className='font-medium'>{appt.design.title}</p>

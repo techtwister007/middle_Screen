@@ -3,7 +3,7 @@ import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
 import { type PricedItem, quote } from '../_shared/pricing'
-import { computeSlots, isFree, pickStaff, type Slot, type StaffDay } from './slots'
+import { computeSlots, isFree, pickStaff, quietestWindow, type Slot, type StaffDay } from './slots'
 
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
@@ -478,3 +478,34 @@ export const bookingModule = defineModule({
 })
 
 export * from './slots'
+
+/** Tomorrow's (or any day's) quietest 3-hour window, from the salon's hours and live bookings. */
+export const quietWindowOn = async (payload: Payload, tenant: ID, date: string) => {
+  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as {
+    timezone?: string | null
+    hours?: { day: string; open?: string | null; close?: string | null; closed?: boolean | null }[] | null
+  }
+  const tz = salon.timezone ?? 'Asia/Kolkata'
+  const day = WEEKDAYS[localWeekday(zonedDateTime(date, '12:00', tz), tz)]
+  const h = salon.hours?.find((x) => x.day === day)
+  if (h?.closed) return null
+  const dayStart = zonedDateTime(date, '00:00', tz)
+  const appts = await forTenant(payload, tenant).find<{ start: string; end: string }>('appointments', {
+    where: {
+      and: [
+        { start: { greater_than_equal: dayStart.toISOString() } },
+        { start: { less_than: new Date(dayStart.getTime() + 86_400_000).toISOString() } },
+        { status: { in: ['requested', 'confirmed'] } },
+      ],
+    },
+    limit: 500,
+    depth: 0,
+  })
+  return quietestWindow(
+    date,
+    tz,
+    h?.open ?? '10:00',
+    h?.close ?? '20:00',
+    appts.docs.map((a) => ({ start: new Date(a.start), end: new Date(a.end) })),
+  )
+}

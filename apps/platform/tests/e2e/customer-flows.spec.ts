@@ -144,9 +144,21 @@ test('book with friends creates a group link that a friend can join', async ({ p
 })
 
 test('seeded customer sees appointments, reward history and can download their data', async ({ page }) => {
-  await page.goto(`${base}/login?next=${encodeURIComponent(`${base}/me`)}`)
-  await page.getByLabel(/mobile number/i).fill('9811100060')
-  await page.getByRole('button', { name: /send code/i }).click()
+  // Seeded customers with visit history. Login codes are rate-limited per phone, so try a few.
+  const candidates = ['9811100004', '9811100034', '9811100040', '9811100006', '9811100020', '9811100011', '9811100060']
+  let phone = ''
+  for (const p of candidates.sort(() => Math.random() - 0.5)) {
+    await page.goto(`${base}/login?next=${encodeURIComponent(`${base}/me`)}`)
+    await page.getByLabel(/mobile number/i).fill(p)
+    await page.getByRole('button', { name: /send code/i }).click()
+    const code = page.getByLabel(/enter the code/i)
+    await expect(code.or(page.getByRole('alert').filter({ hasText: /.+/ }))).toBeVisible()
+    if (await code.isVisible()) {
+      phone = p
+      break
+    }
+  }
+  expect(phone, 'every candidate is rate-limited').not.toBe('')
   await page.getByLabel(/enter the code/i).fill(CODE)
   await page.getByRole('button', { name: /^continue$/i }).click()
   await page.waitForURL(/\/me/)
@@ -158,7 +170,7 @@ test('seeded customer sees appointments, reward history and can download their d
   const res = await page.request.get(`${base}/me/data`)
   expect(res.status()).toBe(200)
   const data = await res.json()
-  expect(data.customer.phone).toContain('9811100060')
+  expect(data.customer.phone).toContain(phone)
   expect(Array.isArray(data.visits)).toBe(true)
 })
 

@@ -240,13 +240,16 @@ export async function book(
   }
 }
 
+/** Hours before an appointment after which the customer must call instead (salon rule). */
+const changeCutoff = (salon: { settings?: Record<string, unknown> | null }) => Number(salon.settings?.changeCutoffHours ?? 4) || 0
+
 export async function cancelAppointment(slug: string, rawId: ID, reason?: string): Promise<Result> {
   const appointmentId = asId(rawId)
   try {
     const { salon, payload, repo, customerId } = await sessionCustomer(slug)
     const appt = await repo.findByID<{ customer: ID | { id: ID }; start: string; status: string }>('appointments', appointmentId)
     if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: await errorIn('err_apptNotFound') }
-    if (!customerCanChange(appt)) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
+    if (!customerCanChange(appt, new Date(), changeCutoff(salon))) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
     await cancelBooking(payload, salon.id, appointmentId, reason, 'customer')
     revalidatePath(`/s/${slug}`)
     return { ok: true }
@@ -262,7 +265,7 @@ export async function rescheduleAppointment(slug: string, rawId: ID, start: stri
     const appt = await repo.findByID<{ customer: ID | { id: ID }; start: string; status: string }>('appointments', appointmentId)
     if (!appt || String(idOf(appt.customer)) !== String(customerId)) return { ok: false, error: await errorIn('err_apptNotFound') }
     // Same rules as cancelling: only upcoming, active appointments can be moved by the customer.
-    if (!customerCanChange(appt)) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
+    if (!customerCanChange(appt, new Date(), changeCutoff(salon))) return { ok: false, error: await errorIn('err_cannotChange'), code: 'cannot-change' }
     const when = new Date(start)
     if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) return { ok: false, error: await errorIn('err_future') }
     const horizon = Number((salon.settings as { bookingHorizonDays?: number } | null)?.bookingHorizonDays ?? 30)

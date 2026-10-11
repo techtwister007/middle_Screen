@@ -61,6 +61,13 @@ export const getSalonBySlug = cache(async (slug: string): Promise<SalonRecord | 
   return salon
 })
 
+/** Same lookup without hiding suspended salons (for the "temporarily unavailable" page). */
+export const getSalonAnyStatus = cache(async (slug: string): Promise<SalonRecord | null> => {
+  const payload = await getPayloadClient()
+  const res = await payload.find({ collection: 'salons', overrideAccess: true, depth: 1, limit: 1, where: { slug: { equals: slug } } })
+  return (res.docs[0] as unknown as SalonRecord | undefined) ?? null
+})
+
 export const salonFeatures = (salon: SalonRecord) => enabledFeatures({ plan: salon.plan, featureOverrides: salon.featureOverrides })
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']

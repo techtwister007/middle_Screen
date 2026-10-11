@@ -245,3 +245,17 @@ describe('gallery discovery', () => {
     expect(surpriseMe(designs, 160000, 90).map((d) => d.id)).toEqual([2, 1])
   })
 })
+
+describe('quietestWindow', () => {
+  it('finds the emptiest 3-hour stretch of the day', async () => {
+    const { quietestWindow } = await import('../booking/slots')
+    const at = (hhmm: string) => new Date(`2026-10-20T${hhmm}:00+05:30`)
+    const busy = [
+      { start: at('10:00'), end: at('13:00') },
+      { start: at('16:00'), end: at('20:00') },
+      { start: at('13:30'), end: at('14:00') },
+    ]
+    expect(quietestWindow('2026-10-20', 'Asia/Kolkata', '10:00', '20:00', busy)).toEqual({ from: '13:00', to: '16:00', bookedMinutes: 30 })
+    expect(quietestWindow('2026-10-20', 'Asia/Kolkata', '10:00', '12:00', busy)).toBeNull()
+  })
+})

@@ -24,7 +24,7 @@ export default async function DiscoverPage({ params }: { params: Promise<{ city:
           const s = l.salon as unknown as { slug: string; name: string; tagline?: string; brand?: { logo?: unknown } }
           return (
             <Link className='flex items-center gap-4 rounded-card border border-line bg-surface p-4' href={`/s/${s.slug}?src=discovery`} key={s.slug}>
-              {mediaUrl(s.brand?.logo, 'thumb') ? <img alt='' className='h-14 w-14 rounded-full' src={mediaUrl(s.brand?.logo, 'thumb') ?? ''} /> : null}
+              {mediaUrl(s.brand?.logo, 'thumb') ? <img alt='' className='h-14 w-14 rounded-full' src={mediaUrl(s.brand?.logo, 'thumb') ?? undefined} /> : null}
               <div>
                 <p className='font-medium'>{s.name}</p>
                 <p className='text-sm text-muted'>

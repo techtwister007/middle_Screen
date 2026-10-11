@@ -68,7 +68,7 @@ export default async function RevealPage({ params }: { params: Promise<{ salon: 
       <div className='mt-5 overflow-hidden rounded-card'>
         <Carousel>
           {[task.story, ...(task.photos ?? [])].filter(Boolean).map((m, i) => (
-            <img alt='' className='aspect-[4/5] w-full object-cover' key={i} src={mediaUrl(m, 'large') ?? mediaUrl(m, 'original') ?? ''} />
+            <img alt='' className='aspect-[4/5] w-full object-cover' key={i} src={mediaUrl(m, 'large') ?? mediaUrl(m, 'original') ?? undefined} />
           ))}
         </Carousel>
       </div>

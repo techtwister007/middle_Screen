@@ -34,14 +34,19 @@ const ROLES = [
   { name: 'visitor', seeds: ['/', `/s/${SLUG}`, `/s/aura`, `/s/riddhi`, '/discover/ahmedabad'], scope: /^\/(s\/|discover|$)/ },
   {
     name: 'customer',
-    login: customerLogin(process.env.CRAWL_PHONE ?? '9811100060'),
+    login: customerLogin(process.env.CRAWL_PHONE ?? ['9811100003', '9811100045', '9811100019', '9811100041', '9811100016'][Math.floor(Math.random() * 5)]),
     seeds: [`/s/${SLUG}`, `/s/${SLUG}/me`, `/s/${SLUG}/rewards`, `/s/${SLUG}/invite`],
     scope: new RegExp(`^/s/${SLUG}`),
   },
-  { name: 'owner', login: staffLogin(`owner@${SLUG}.test`, 'owner-demo-123'), seeds: ['/studio', `/studio/${SLUG}/today`], scope: /^\/studio/ },
+  {
+    name: 'owner',
+    login: staffLogin(`owner@${SLUG}.test`, 'owner-demo-123'),
+    seeds: ['/studio', `/studio/${SLUG}/today`, `/studio/${SLUG}/settings`, `/studio/${SLUG}/photos?tab=collage`],
+    scope: /^\/studio/,
+  },
   { name: 'admin', login: staffLogin('admin@platform.test', 'admin-demo-123'), seeds: ['/console', '/admin'], scope: /^\/(console|admin$)/ },
 ]
-const SKIP = /logout|sign-?out|\.ics$|\/api\/|\/l\/|\/r\/|\/kiosk$|\/display$|^\/admin\/./
+const SKIP = /logout|sign-?out|\.ics$|\/api\/|\/l\/|\/r\/|\/kiosk$|\/display$|^\/admin\/.|\/export$|\/open$|\/me\/data$/
 
 const report = []
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH })

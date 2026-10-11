@@ -15,7 +15,7 @@ import {
   studioLink,
   zonedDateTime,
 } from '@salon/core'
-import { clickToChat, getMessaging } from '@salon/integrations'
+import { clickToChat, getMessaging, getSms } from '@salon/integrations'
 import type { CollectionConfig, Payload } from 'payload'
 import { managersOnly, salonConfig, salonData } from '../_shared/access'
 import { moneyField } from '../_shared/fields'
@@ -315,14 +315,33 @@ export const sendToOwner = async (payload: Payload, tenant: ID, input: SendInput
   })
 }
 
-/** Delivers a login code. Falls back to nothing in dev (code is also logged). */
+/** Delivers a login code on WhatsApp, falling back to SMS when WhatsApp can't deliver. The code is also logged in dev. */
 export const sendOtp = async (payload: Payload, tenant: ID, phone: string, code: string) => {
   const salon = await getSalon(payload, tenant)
   const body = render(TEMPLATES.otp.text.en, { code, salon: salon.name })
   if (process.env.NODE_ENV !== 'production') console.info(`[otp] ${phone}: ${code}`)
   const result = await getMessaging().send({ to: phone, template: 'otp', category: 'authentication', language: 'en', body, variables: { code } })
-  await recordCost(payload, tenant, 'authentication', result.cost, 'otp')
-  return result
+  if (result.status !== 'failed') {
+    await recordCost(payload, tenant, 'authentication', result.cost, 'otp')
+    return result
+  }
+  const sms = await getSms().sendOtp(phone, code, salon.name)
+  if (sms.status === 'sent' && sms.cost) {
+    await forTenant(payload, tenant).create('cost-ledger', {
+      kind: 'sms',
+      units: 1,
+      unitCost: sms.cost,
+      total: sms.cost,
+      period: new Date().toISOString().slice(0, 7),
+      reference: 'otp-sms',
+    })
+  }
+  return {
+    providerId: sms.providerId ?? '',
+    status: sms.status,
+    cost: sms.cost,
+    error: sms.status === 'failed' ? `${result.error}; sms: ${sms.error}` : undefined,
+  }
 }
 
 /** A one-tap prefilled WhatsApp link staff can use when the API is unavailable. */

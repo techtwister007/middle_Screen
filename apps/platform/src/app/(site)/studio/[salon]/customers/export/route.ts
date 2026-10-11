@@ -51,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ salon: 
   await payload.create({
     collection: 'audit-log',
     overrideAccess: true,
-    data: { actor: user.id, action: 'customers.exported', details: { salon: slug, rows: rows.length } } as never,
+    data: { actor: user.id, action: 'customers.exported', details: { slug, rows: rows.length } } as never,
   })
   return new Response(`﻿${[head.map(cell).join(','), ...lines].join('\r\n')}`, {
     headers: {

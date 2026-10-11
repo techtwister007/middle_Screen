@@ -359,6 +359,14 @@ export interface Salon {
     depositMinMinutes?: number | null;
     depositPercent?: number | null;
     cancellationPolicy?: string | null;
+    /**
+     * Deposits are refunded automatically when the customer cancels at least this many hours before
+     */
+    depositRefundHours?: number | null;
+    /**
+     * Customers cannot cancel or move a booking online within this many hours of it
+     */
+    changeCutoffHours?: number | null;
     stampsForReward?: number | null;
     /**
      * Points earned per ₹100 spent
@@ -906,6 +914,9 @@ export interface Payment {
   linkUrl?: string | null;
   upiUri?: string | null;
   capturedAt?: string | null;
+  refundId?: string | null;
+  refundedAt?: string | null;
+  refundNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1877,6 +1888,8 @@ export interface SalonsSelect<T extends boolean = true> {
         depositMinMinutes?: T;
         depositPercent?: T;
         cancellationPolicy?: T;
+        depositRefundHours?: T;
+        changeCutoffHours?: T;
         stampsForReward?: T;
         pointsPer100?: T;
         silverAfterVisits?: T;
@@ -2347,6 +2360,9 @@ export interface PaymentsSelect<T extends boolean = true> {
   linkUrl?: T;
   upiUri?: T;
   capturedAt?: T;
+  refundId?: T;
+  refundedAt?: T;
+  refundNote?: T;
   updatedAt?: T;
   createdAt?: T;
 }

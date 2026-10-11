@@ -132,7 +132,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ salon
         <div className='space-y-2'>
           {visits.docs.map((v) => (
             <div className='flex items-center gap-3 rounded-card border border-line bg-surface p-3' key={v.id}>
-              {v.photos?.[0] ? <img alt='' className='h-12 w-12 rounded-lg object-cover' src={mediaUrl(v.photos[0], 'thumb') ?? ''} /> : null}
+              {v.photos?.[0] ? <img alt='' className='h-12 w-12 rounded-lg object-cover' src={mediaUrl(v.photos[0], 'thumb') ?? undefined} /> : null}
               <div className='flex-1 text-sm'>
                 <p className='font-medium'>{v.designName ?? v.lines.map((l) => l.name).join(', ')}</p>
                 <p className='text-xs text-muted'>

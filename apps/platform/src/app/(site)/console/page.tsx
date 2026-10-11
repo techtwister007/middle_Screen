@@ -78,7 +78,7 @@ export default async function ConsoleHome() {
                       Present
                     </Link>
                   ) : (
-                    <Link className='text-brand' href={`/studio/${s.slug}/today`}>
+                    <Link className='text-brand' href={`/console/salons/${s.slug}/open`}>
                       Studio
                     </Link>
                   )}

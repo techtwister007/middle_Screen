@@ -1,4 +1,5 @@
 import { messagePrice } from '@salon/integrations'
+import { quietWindowOn } from '@salon/modules'
 import { OfferBuilder } from '@/components/studio/OfferBuilder'
 import { getPayloadClient } from '@/lib/payload'
 import { requireFeature } from '@/lib/salon'
@@ -18,13 +19,23 @@ export default async function NewOfferPage({
   const { salon } = await requireStaff(slug, { manager: true })
   requireFeature(salon, 'campaigns')
   let initial: Parameters<typeof OfferBuilder>[0]['initial'] = { kind: sp.kind === 'slot-filler' ? 'slot-filler' : 'offer' }
-  if (sp.kind === 'slot-filler')
+  if (sp.kind === 'slot-filler') {
+    // Suggest the stretch that is actually empty, not a fixed afternoon.
+    const date = sp.date ?? new Date(Date.now() + 86_400_000).toLocaleDateString('en-CA', { timeZone: salon.timezone ?? 'Asia/Kolkata' })
+    const quiet = await quietWindowOn(await getPayloadClient(), salon.id, date)
+    const from = quiet?.from ?? '14:00'
+    const to = quiet?.to ?? '17:00'
+    const label = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number)
+      return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''}${h >= 12 ? ' pm' : ' am'}`
+    }
     initial = {
       ...initial,
-      title: `${sp.date ? 'Tomorrow' : 'This week'} 2–5 pm: 20% off gel polish`,
-      slot: { date: sp.date, from: '14:00', to: '17:00' },
-      endsAt: sp.date,
+      title: `${sp.date ? 'Tomorrow' : 'This week'} ${label(from)}–${label(to)}: 20% off gel polish`,
+      slot: { date, from, to },
+      endsAt: date,
     }
+  }
   if (sp.pack) {
     const pack = (await (await getPayloadClient()).findByID({ collection: 'campaign-packs', id: sp.pack, overrideAccess: true })) as unknown as {
       id: string

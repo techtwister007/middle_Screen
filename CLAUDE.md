@@ -13,6 +13,9 @@ Read `README.md` first. Product decisions live in `PRODUCT.md`, `BUILD_PLAN.md`,
 - **No salon-specific code paths.** Differences belong in settings, feature switches or themes.
 - **Messaging rules:** marketing needs consent and respects weekly/monthly caps; reminders are utility messages; never reward Google reviews, never gate the review link.
 - **Payments settle in the salon's own Razorpay account.** We never hold customer money.
+- **Scheduled jobs** iterate `liveSalons(payload, feature)` so suspended salons and switched-off features are skipped.
+- **Demo salons** never message sample customers; owner alerts go to the prospect's phone (`settings.demoPhone`).
+- **Client components:** never export plain values (class strings, constants) from a `'use client'` file for server components to use; put them in a shared file.
 - **Server actions:** don't call `redirect()` after changing cookies in the same action (the cookie change can be dropped). Return and let the client navigate.
 
 ## After changing collections
@@ -21,6 +24,7 @@ Read `README.md` first. Product decisions live in `PRODUCT.md`, `BUILD_PLAN.md`,
 cd apps/platform
 pnpm generate:types
 pnpm migrate:create <short_name>   # also fixes Payload's type imports for Vitest
+# New job slugs, message templates and select options are Postgres enums: they need a migration as well.
 pnpm migrate
 ```
 

@@ -1,4 +1,5 @@
 export * from './imageAi'
 export * from './messaging'
 export * from './payments'
+export * from './sms'
 export * from './walletPass'

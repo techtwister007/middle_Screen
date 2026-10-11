@@ -78,7 +78,7 @@ export default async function ChairPage({ params }: { params: Promise<{ salon: s
       <div className='no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4'>
         {ideas.map((d) => (
           <Link className='w-36 shrink-0' href={`${base}/designs/${d.id}`} key={String(d.id)}>
-            <img alt={d.title} className='aspect-square w-full rounded-card object-cover' loading='lazy' src={mediaUrl(d.images?.[0], 'thumb') ?? ''} />
+            <img alt={d.title} className='aspect-square w-full rounded-card object-cover' loading='lazy' src={mediaUrl(d.images?.[0], 'thumb') ?? undefined} />
             <p className='mt-1.5 truncate text-sm'>{d.title}</p>
           </Link>
         ))}

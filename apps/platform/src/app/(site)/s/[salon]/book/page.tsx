@@ -71,7 +71,12 @@ export default async function BookPage({ params, searchParams }: { params: Promi
       start: string
       status: string
     }>('appointments', asId(sp.reschedule))
-    if (!appt || String(idOf(appt.customer)) !== String(customer.id) || !customerCanChange(appt)) redirect(`/s/${slug}/appointments/${sp.reschedule}`)
+    if (
+      !appt ||
+      String(idOf(appt.customer)) !== String(customer.id) ||
+      !customerCanChange(appt, new Date(), Number(salon.settings?.changeCutoffHours ?? 4) || 0)
+    )
+      redirect(`/s/${slug}/appointments/${sp.reschedule}`)
     reschedule = { id: appt.id, start: appt.start }
     initial = appt.services.map((s) => idOf(s)).filter(Boolean) as ID[]
     staff = idOf(appt.staff)

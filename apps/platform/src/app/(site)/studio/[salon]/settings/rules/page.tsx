@@ -17,6 +17,8 @@ const SECTIONS: { title: string; body: string; fields: N[] }[] = [
       ['bookingHorizonDays', 'Book up to (days ahead)'],
       ['depositMinMinutes', 'Deposit for services of (minutes) or longer'],
       ['depositPercent', 'Deposit (%)', 'Paid online when booking; settles in your account'],
+      ['depositRefundHours', 'Refund deposit if cancelled (hours) before', 'Refunds go back automatically from your Razorpay account'],
+      ['changeCutoffHours', 'No online changes within (hours)', 'Inside this window customers call you to cancel or move'],
     ],
   },
   {

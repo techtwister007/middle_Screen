@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (slug && !path.startsWith('/s/')) {
+  if (slug && !path.startsWith('/s/') && !path.startsWith('/paused/')) {
     const rewritten = url.clone()
     rewritten.pathname = `/s/${slug}${path === '/' ? '' : path}`
     return NextResponse.rewrite(rewritten)

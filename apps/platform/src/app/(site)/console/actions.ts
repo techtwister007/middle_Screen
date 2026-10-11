@@ -1,6 +1,6 @@
 'use server'
 
-import { asId, forTenant, getEventBus, type ID, idOf, rupees, slugify } from '@salon/core'
+import { asId, forTenant, getEventBus, type ID, idOf, PLAN_PRICES, type Plan, rupees, slugify } from '@salon/core'
 import {
   closeContest,
   completePhotoTask,
@@ -14,6 +14,8 @@ import {
   submitRating,
 } from '@salon/modules'
 import { revalidatePath } from 'next/cache'
+import type { FormState } from '@/app/(site)/studio/[salon]/settings/actions'
+import { parseMenuText } from '@/lib/menuText'
 import { getPayloadClient } from '@/lib/payload'
 import { requirePlatformAdmin } from '@/lib/staff'
 import { NAIL_SERVICES } from '@/seed/content'
@@ -49,6 +51,14 @@ export async function createSalonFromForm(_: unknown, form: FormData): Promise<R
         .slice(0, 24)
         .map(async (f) => ({ buffer: Buffer.from(await f.arrayBuffer()), mimetype: f.type, title: f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') })),
     )
+    // The prospect's own menu, pasted from their price list, makes the demo feel like theirs.
+    const menuServices = parseMenuText(String(form.get('menu') ?? '')).parsed.map((m) => ({
+      name: m.name,
+      category: m.category,
+      price: m.price,
+      minutes: m.minutes,
+      cycleDays: ['gel', 'extensions', 'refill', 'nail-art'].includes(m.category) ? 21 : undefined,
+    }))
     const def: SalonSeed = {
       name,
       slug,
@@ -65,7 +75,7 @@ export async function createSalonFromForm(_: unknown, form: FormData): Promise<R
         .map((n) => n.trim())
         .filter(Boolean)
         .map((n, i) => ({ name: n, specialties: [], color: ['#B4537A', '#8E6BBF', '#D98C6C', '#5E8C7A'][i % 4] })),
-      services: NAIL_SERVICES,
+      services: menuServices.length ? menuServices : NAIL_SERVICES,
       designCount: designImages.length || 12,
       customers: isDemo ? 120 : 0,
       ownerEmail: String(form.get('ownerEmail') || `owner@${slug}.test`),
@@ -75,11 +85,22 @@ export async function createSalonFromForm(_: unknown, form: FormData): Promise<R
     }
     const payload = await getPayloadClient()
     const salon = await seedSalon(payload, def, { ownerPassword: String(form.get('ownerPassword') || 'change-me-now'), designImages })
-    if (form.get('primary')) {
-      await payload
-        .update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { brand: { primaryColor: String(form.get('primary')) } } as never, depth: 0 })
-        .catch(() => null)
+    const logoFile = form.get('logo')
+    const current = (await payload.findByID({ collection: 'salons', id: salon.id, overrideAccess: true, depth: 0 })) as unknown as {
+      brand?: Record<string, unknown>
     }
+    const brand: Record<string, unknown> = { ...(current.brand ?? {}) }
+    if (form.get('primary')) brand.primaryColor = String(form.get('primary'))
+    if (logoFile instanceof File && logoFile.size > 0 && logoFile.type.startsWith('image/')) {
+      const media = (await payload.create({
+        collection: 'media',
+        overrideAccess: true,
+        data: { alt: `${name} logo`, kind: 'brand', tenant: salon.id } as never,
+        file: { data: Buffer.from(await logoFile.arrayBuffer()), mimetype: logoFile.type, name: logoFile.name || 'logo.png', size: logoFile.size },
+      })) as unknown as { id: ID }
+      brand.logo = media.id
+    }
+    await payload.update({ collection: 'salons', id: salon.id, overrideAccess: true, data: { brand } as never, depth: 0 })
     if (!isDemo) {
       // Real salons start clean: remove the sample offers/contest history the seeder adds.
       const repo = forTenant(payload, salon.id)
@@ -272,10 +293,9 @@ export async function presenter(slug: string, action: string): Promise<Result> {
         return { ok: true, message: 'Ananya opened the gift, booked and visited. Both rewards issued.' }
       }
       case 'low-rating': {
-        const victim = await repo.findOne<{ id: ID }>('customers', { segment: { equals: 'regular' } })
-        if (!victim) throw new Error('No sample customer')
+        // A dedicated sample persona, so no real or sample customer gets renamed.
+        const { customer: victim } = await findOrCreateCustomer(payload, salon.id, { phone: '+919000000002', name: 'Hetal Desai', source: 'import' })
         const visit = await latestVisit(repo, victim.id)
-        await repo.update('customers', victim.id, { name: 'Hetal Desai' })
         await submitRating(payload, salon.id, {
           customerId: victim.id,
           visitId: undefined,
@@ -363,4 +383,44 @@ export async function demoMessages(slug: string) {
     limit: 30,
   })
   return res.docs.map((m) => ({ id: m.id, audience: m.audience ?? 'customer', body: m.body, link: m.link, status: m.status, at: m.createdAt }))
+}
+
+// ---------------------------------------------------------------------------
+// Billing record for a salon (our subscription with them)
+// ---------------------------------------------------------------------------
+
+export async function saveSubscription(slug: string, _prev: FormState, f: FormData): Promise<FormState> {
+  try {
+    await requirePlatformAdmin()
+    const payload = await getPayloadClient()
+    const salon = (await payload.find({ collection: 'salons', overrideAccess: true, where: { slug: { equals: slug } }, limit: 1, depth: 0 }))
+      .docs[0] as unknown as { id: ID; plan: Plan } | undefined
+    if (!salon) return { ok: false, error: 'Salon not found' }
+    const money = (k: string) => {
+      const v = String(f.get(k) ?? '').trim()
+      return v === '' ? undefined : rupees(Number(v))
+    }
+    const status = String(f.get('status') ?? 'pending')
+    const next = String(f.get('nextBillingDate') ?? '')
+    const addMinutes = Number(f.get('addSupportMinutes') ?? 0) || 0
+    const repo = forTenant(payload, salon.id)
+    const existing = await repo.findOne<{ id: ID; supportMinutesThisMonth?: number }>('subscriptions', {})
+    const data = {
+      plan: salon.plan,
+      monthlyPrice: money('monthlyPrice') ?? PLAN_PRICES[salon.plan],
+      setupFee: money('setupFee') ?? 0,
+      status,
+      billingCycle: f.get('billingCycle') === 'annual' ? 'annual' : 'monthly',
+      foundingCustomer: f.get('foundingCustomer') === 'on',
+      nextBillingDate: next ? new Date(`${next}T00:00:00+05:30`).toISOString() : null,
+      supportMinutesThisMonth: (existing?.supportMinutesThisMonth ?? 0) + addMinutes,
+    }
+    if (existing) await repo.update('subscriptions', existing.id, data)
+    else await repo.create('subscriptions', data)
+    await audit('subscription.saved', { slug, status, monthlyPrice: data.monthlyPrice })
+    revalidatePath(`/console/salons/${slug}`)
+    return { ok: true, message: 'Billing saved' }
+  } catch (err) {
+    return fail(err)
+  }
 }

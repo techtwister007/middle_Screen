@@ -59,7 +59,7 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
         <div className='mt-5 grid gap-4 sm:grid-cols-2'>
           {collages.map((c) => (
             <figure className='overflow-hidden rounded-card border border-line bg-surface' key={c.id}>
-              <img alt='Weekly collage' className='w-full' src={mediaUrl(c, 'large') ?? c.url ?? ''} />
+              <img alt='Weekly collage' className='w-full' src={mediaUrl(c, 'large') ?? c.url ?? undefined} />
               <figcaption className='flex items-center justify-between p-3 text-sm'>
                 {formatIST(c.createdAt, 'd MMM', tz)}
                 <a className='text-brand' download href={c.url ?? ''}>
@@ -86,7 +86,7 @@ export default async function PhotosPage({ params, searchParams }: { params: Pro
           tasks.map((t) =>
             tab === 'verify' ? (
               <div className='flex items-center gap-3 rounded-card border border-line bg-surface p-3' key={t.id}>
-                <img alt='' className='h-14 w-14 rounded-xl object-cover' src={mediaUrl(t.story ?? t.photos?.[0], 'thumb') ?? ''} />
+                <img alt='' className='h-14 w-14 rounded-xl object-cover' src={mediaUrl(t.story ?? t.photos?.[0], 'thumb') ?? undefined} />
                 <div className='flex-1'>
                   <p className='font-medium'>{t.customer?.name ?? t.customer?.phone}</p>
                   <p className='text-xs text-muted'>Shared to {(t.sharedTo ?? []).join(', ')} · check the tag on Instagram</p>

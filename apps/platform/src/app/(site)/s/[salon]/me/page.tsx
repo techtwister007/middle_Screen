@@ -168,7 +168,12 @@ export default async function MePage({ params }: { params: Promise<{ salon: stri
           <div className='grid grid-cols-3 gap-2'>
             {saved.map((d) => (
               <Link data-testid='saved-design' href={`${base}/designs/${d.id}`} key={String(d.id)}>
-                <img alt={d.title} className='aspect-square w-full rounded-xl object-cover' loading='lazy' src={mediaUrl(d.images?.[0], 'thumb') ?? ''} />
+                <img
+                  alt={d.title}
+                  className='aspect-square w-full rounded-xl object-cover'
+                  loading='lazy'
+                  src={mediaUrl(d.images?.[0], 'thumb') ?? undefined}
+                />
                 <p className='mt-1 truncate text-xs'>{d.title}</p>
               </Link>
             ))}

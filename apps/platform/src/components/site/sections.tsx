@@ -89,7 +89,7 @@ export const Hero = ({ salon, base, customer, data }: P) => {
                 className='h-full w-full object-cover'
                 loading={i < 3 ? 'eager' : 'lazy'}
                 sizes='(max-width: 512px) 66vw, 340px'
-                src={mediaUrl(d.images?.[0], 'card') ?? ''}
+                src={mediaUrl(d.images?.[0], 'card') ?? undefined}
                 srcSet={srcSet(d.images?.[0])}
               />
             </Link>
@@ -212,7 +212,7 @@ export const Offers = ({ base, data }: P) => {
         {data.offers.map((o) => (
           <Link className={cn('w-[78%] shrink-0 snap-start overflow-hidden', cardClass(data.layout))} href={`${base}/offers/${o.id}`} key={String(o.id)}>
             {mediaUrl(o.image) ? (
-              <img alt='' className='aspect-[16/9] w-full object-cover' src={mediaUrl(o.image) ?? ''} />
+              <img alt='' className='aspect-[16/9] w-full object-cover' src={mediaUrl(o.image) ?? undefined} />
             ) : (
               <div className='aspect-[16/9] w-full bg-gradient-to-br from-brand/80 to-accent/80' />
             )}
@@ -237,7 +237,7 @@ export const DesignTile = ({ design, base, tall, lang }: { design: DesignRecord;
         className='h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]'
         loading='lazy'
         sizes='(max-width: 512px) 50vw, 256px'
-        src={mediaUrl(design.images?.[0], 'card') ?? ''}
+        src={mediaUrl(design.images?.[0], 'card') ?? undefined}
         srcSet={srcSet(design.images?.[0])}
       />
       {design.source === 'customer' ? (
@@ -387,7 +387,7 @@ export const Artists = ({ data }: P) => {
         {data.artists.map((a) => (
           <div className='w-28 shrink-0 text-center' key={String(a.id)}>
             {mediaUrl(a.avatar, 'thumb') ? (
-              <img alt={a.name} className='mx-auto h-20 w-20 rounded-full object-cover' src={mediaUrl(a.avatar, 'thumb') ?? ''} />
+              <img alt={a.name} className='mx-auto h-20 w-20 rounded-full object-cover' src={mediaUrl(a.avatar, 'thumb') ?? undefined} />
             ) : (
               <span className='mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tint font-heading text-2xl text-brand'>
                 {a.name.slice(0, 1)}

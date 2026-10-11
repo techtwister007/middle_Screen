@@ -96,3 +96,30 @@ export const isFree = (day: StaffDay, date: string, timezone: string, start: Dat
   ]
   return !blocks.some((b) => overlaps({ start, end }, b))
 }
+
+/**
+ * The quietest `windowMinutes` stretch of a day (on the hour), measured in booked minutes across all artists.
+ * Used to suggest slot-filler deals at a time that is actually empty.
+ */
+export const quietestWindow = (
+  date: string,
+  timezone: string,
+  open: string,
+  close: string,
+  bookings: TimeRange[],
+  windowMinutes = 180,
+): { from: string; to: string; bookedMinutes: number } | null => {
+  const openMin = minutesFromHHMM(open)
+  const closeMin = minutesFromHHMM(close)
+  if (closeMin - openMin < windowMinutes) return null
+  const dayStart = zonedDateTime(date, '00:00', timezone).getTime()
+  const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+  let best: { from: string; to: string; bookedMinutes: number } | null = null
+  for (let start = Math.ceil(openMin / 60) * 60; start + windowMinutes <= closeMin; start += 60) {
+    const ws = dayStart + start * MINUTE_MS
+    const we = ws + windowMinutes * MINUTE_MS
+    const booked = bookings.reduce((n, b) => n + Math.max(0, Math.min(we, b.end.getTime()) - Math.max(ws, b.start.getTime())) / MINUTE_MS, 0)
+    if (!best || booked < best.bookedMinutes) best = { from: fmt(start), to: fmt(start + windowMinutes), bookedMinutes: Math.round(booked) }
+  }
+  return best
+}

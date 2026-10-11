@@ -22,14 +22,12 @@ One codebase that gives every salon its own branded customer app, a staff/owner 
 Requirements: Node 22, pnpm 10, PostgreSQL 16.
 
 ```bash
-pnpm install
-createdb salon_dev && createdb salon_test
-cp apps/platform/.env.example apps/platform/.env   # then set PAYLOAD_SECRET and CUSTOMER_SESSION_SECRET
-cd apps/platform
-pnpm migrate          # create the schema
-pnpm seed             # platform admin, festival packs, articles and 3 demo salons with 90 days of history
-pnpm dev              # http://localhost:3000
+./scripts/setup-local.sh          # install, create .env with random secrets, create databases, migrate, seed
+cd apps/platform && pnpm dev      # http://localhost:3000
 ```
+
+`./scripts/setup-local.sh --fresh` drops and reseeds the dev database. Doing it by hand: `pnpm install`, `createdb salon_dev salon_test`,
+copy `apps/platform/.env.example` to `.env` (set `PAYLOAD_SECRET`, `CUSTOMER_SESSION_SECRET`), then `pnpm migrate && pnpm seed` in `apps/platform`.
 
 Open:
 
@@ -49,13 +47,14 @@ pnpm -r exec tsc --noEmit                   # types
 pnpm --filter @salon/core --filter @salon/modules --filter @salon/themes test   # unit tests
 pnpm --filter @salon/platform test          # integration tests on Postgres (salon_test)
 cd apps/platform && E2E_BASE_URL=http://localhost:3000 npx playwright test       # browser tests
+cd apps/platform && node scripts/crawl.mjs   # logs in as visitor, customer, owner and admin, follows every link, reports errors
 ```
 
 ## Adding a feature module
 
 1. Create `packages/modules/src/<name>/index.ts` exporting `defineModule({ key, feature, collections, tenantCollections, on, steps, recurring })`.
 2. Add it to `packages/modules/src/registry.ts`.
-3. `cd apps/platform && pnpm generate:types && pnpm migrate:create <name> && pnpm migrate`.
+3. `cd apps/platform && pnpm generate:types && pnpm migrate:create <name> && pnpm migrate` (new recurring jobs and message templates need a migration too: they are database enums).
 4. Talk to other modules only through events (`packages/core/src/events.ts`). `pnpm boundaries` fails the build otherwise.
 
 ## Deploy (Vercel + Supabase)

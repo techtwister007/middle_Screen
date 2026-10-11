@@ -55,7 +55,14 @@ export default async function DesignPage({ params, searchParams }: { params: Par
     <div className='pb-6'>
       <Carousel>
         {(design.images ?? []).map((img, i) => (
-          <img alt={design.title} className='aspect-[4/5] w-full object-cover' key={i} sizes='100vw' src={mediaUrl(img, 'large') ?? ''} srcSet={srcSet(img)} />
+          <img
+            alt={design.title}
+            className='aspect-[4/5] w-full object-cover'
+            key={i}
+            sizes='100vw'
+            src={mediaUrl(img, 'large') ?? undefined}
+            srcSet={srcSet(img)}
+          />
         ))}
       </Carousel>
       <div className='px-4 pt-4'>
@@ -133,7 +140,12 @@ export default async function DesignPage({ params, searchParams }: { params: Par
           <div className='grid grid-cols-2 gap-3'>
             {similar.map((d) => (
               <Link href={`${base}/designs/${d.id}`} key={String(d.id)}>
-                <img alt={d.title} className='aspect-square w-full rounded-card object-cover' loading='lazy' src={mediaUrl(d.images?.[0], 'card') ?? ''} />
+                <img
+                  alt={d.title}
+                  className='aspect-square w-full rounded-card object-cover'
+                  loading='lazy'
+                  src={mediaUrl(d.images?.[0], 'card') ?? undefined}
+                />
                 <p className='mt-1.5 truncate text-sm'>{d.title}</p>
               </Link>
             ))}

@@ -27,7 +27,34 @@ export const Payments: CollectionConfig = {
     { name: 'linkUrl', type: 'text' },
     { name: 'upiUri', type: 'text' },
     { name: 'capturedAt', type: 'date' },
+    { name: 'refundId', type: 'text' },
+    { name: 'refundedAt', type: 'date' },
+    { name: 'refundNote', type: 'text' },
   ],
+}
+
+/**
+ * Refunds a captured payment in full through the salon's own gateway account. Idempotent: a payment that is
+ * already refunded is left alone. Returns the updated payment, or null if there was nothing to refund.
+ */
+export const refundPayment = async (payload: Payload, tenant: ID, paymentId: ID, reason: string) => {
+  const repo = forTenant(payload, tenant)
+  const payment = await repo.findByID<PaymentDoc & { providerPaymentId?: string | null }>('payments', paymentId)
+  if (!payment || payment.status !== 'captured') return null
+  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as {
+    razorpayAccountId?: string | null
+  }
+  const result = await getPayments().refund({
+    providerPaymentId: payment.providerPaymentId ?? String(payment.id),
+    amount: payment.amount,
+    accountId: salon.razorpayAccountId,
+    reason,
+  })
+  if (result.status === 'failed') {
+    await repo.update('payments', payment.id, { refundNote: `Refund failed: ${result.error ?? 'unknown'}` })
+    return null
+  }
+  return repo.update('payments', payment.id, { status: 'refunded', refundId: result.id, refundedAt: new Date().toISOString(), refundNote: reason })
 }
 
 /** Append-only wallet ledger. Balance = sum of entries. */
@@ -241,6 +268,21 @@ export const paymentsModule = defineModule({
   collections: [Payments, WalletEntries, GiftCards, CustomerPackages],
   tenantCollections: ['payments', 'wallet-entries', 'gift-cards', 'customer-packages'],
   on: {
+    'booking.cancelled': async ({ payload, event }) => {
+      // Deposits come back in full when the salon cancels, or when the customer cancels early enough.
+      const repo = forTenant(payload, event.tenant)
+      const deposit = await repo.findOne<{ id: ID }>('payments', {
+        and: [{ appointment: { equals: event.payload.appointmentId } }, { kind: { equals: 'deposit' } }, { status: { equals: 'captured' } }],
+      })
+      if (!deposit) return
+      const salon = (await payload.findByID({ collection: 'salons' as never, id: event.tenant, depth: 0, overrideAccess: true })) as unknown as {
+        settings?: { depositRefundHours?: number | null } | null
+      }
+      const windowHours = salon.settings?.depositRefundHours ?? 24
+      const hoursBefore = (new Date(event.payload.start).getTime() - new Date(event.occurredAt).getTime()) / 3_600_000
+      if (event.actorType === 'customer' && hoursBefore < windowHours) return
+      await refundPayment(payload, event.tenant, deposit.id, event.actorType === 'customer' ? 'Cancelled by customer in time' : 'Cancelled by salon')
+    },
     'payment.captured': async ({ payload, event }) => {
       const repo = forTenant(payload, event.tenant)
       const payment = await repo.findByID<PaymentDoc>('payments', event.payload.paymentId)

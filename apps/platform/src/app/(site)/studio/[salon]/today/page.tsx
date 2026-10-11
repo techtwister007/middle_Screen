@@ -84,13 +84,13 @@ export default async function TodayPage({ params }: { params: Promise<{ salon: s
           </p>
           {a.design ? (
             <p className='mt-1 flex items-center gap-2 text-xs'>
-              <img alt='' className='h-6 w-6 rounded object-cover' src={mediaUrl(a.design.images?.[0], 'thumb') ?? ''} /> {a.design.title}
+              <img alt='' className='h-6 w-6 rounded object-cover' src={mediaUrl(a.design.images?.[0], 'thumb') ?? undefined} /> {a.design.title}
             </p>
           ) : null}
           {a.inspiration?.length ? (
             <div className='mt-1 flex gap-1'>
               {a.inspiration.map((m, i) => (
-                <img alt='Inspiration' className='h-10 w-10 rounded object-cover' key={i} src={mediaUrl(m, 'thumb') ?? ''} />
+                <img alt='Inspiration' className='h-10 w-10 rounded object-cover' key={i} src={mediaUrl(m, 'thumb') ?? undefined} />
               ))}
             </div>
           ) : null}
