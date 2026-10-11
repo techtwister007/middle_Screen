@@ -53,8 +53,10 @@ EaseSeat, Salos and Basil sell operations software (billing, inventory, scheduli
 
 | Area | Decision |
 | --- | --- |
-| Backend + admin | Payload CMS 3 with the multi-tenant plugin; Postgres on Neon |
-| Hosting | Vercel |
+| Backend | TypeScript on Node.js: Payload CMS 3 (with the multi-tenant plugin) running inside Next.js, so one app is both backend and frontend |
+| Database + file storage | Supabase (Postgres + Storage), Mumbai region; Supabase Auth and row-level security are not used, because Payload handles login and salon separation |
+| Hosting | Vercel, functions pinned to the Mumbai region next to the database |
+| UI | shadcn/ui for the admin; restyled shadcn primitives + Motion, Magic UI / Aceternity, Vaul and Embla for the customer app |
 | Salon address | Subdomain or path on our domain (`glamnails.ourbrand.in`, `ourbrand.in/s/glamnails`); custom domain as an add-on |
 | WhatsApp cost | Passed through to the salon at cost |
 | Foundation code | Built from open-source parts with permissive licences. AGPL projects such as OpenSalon and Cal.com are used only as references. |
@@ -404,7 +406,7 @@ flowchart TB
         O[Owner / staff app]
         P[Platform console]
     end
-    FE -->|salon address| R[Next.js on Vercel<br/>reads subdomain or path, loads salon settings, theme, features]
+    FE -->|salon address| R[Next.js on Vercel, Mumbai<br/>reads subdomain or path, loads salon settings, theme, features]
     R -->|API calls| BE
     subgraph BE[Payload 3: one backend, modules switched on per salon and plan]
         M1[catalog] --- M2[gallery] --- M3[booking] --- M4[customers]
@@ -415,8 +417,8 @@ flowchart TB
     end
     BE -->|adapters| S
     subgraph S[Rented services, each behind an adapter]
-        DB[(Postgres - Neon)]
-        R2[(Cloudflare R2)]
+        DB[(Supabase Postgres - Mumbai)]
+        ST[(Supabase Storage)]
         WA[WhatsApp provider]
         RZ[Razorpay]
         AI[AI image API]
@@ -428,15 +430,19 @@ flowchart TB
 | Need | Tool |
 | --- | --- |
 | Admin, API, login, roles, media, per-salon data separation | Payload 3 + multi-tenant plugin |
-| Database | Postgres on Neon, with a separate database copy for each pull request |
-| Customer site and PWA | Next.js, Serwist (offline support and push notifications), shadcn/ui + Tailwind |
+| Backend language and runtime | TypeScript on Node.js. The backend is Payload running inside the Next.js app as API routes and server functions; there is no separate server to run |
+| Database | Supabase Postgres, Mumbai region (Pro plan, so the project never pauses); a staging project for pull requests |
+| Customer site and PWA | Next.js, Serwist (offline support and push notifications) |
+| Admin UI | shadcn/ui + Tailwind, used as it is |
+| Customer UI | shadcn primitives fully restyled per theme, Motion (animation), Magic UI / Aceternity UI (animated sections), Vaul (bottom sheets), Embla (swipe galleries), Google Fonts pairings per theme; each theme designed in Figma or v0 first |
 | Background jobs, schedules, events | Inngest |
-| Images | Cloudflare R2 |
+| Images and files | Supabase Storage with image transformations |
 | Errors, analytics, feature switches | Sentry, PostHog |
-| Hosting | Vercel, with a preview link for each pull request |
+| Hosting | Vercel (Pro), functions in the Mumbai region (`bom1`), a preview link for each pull request |
+| Heavy or long-running work (if ever needed) | A small TypeScript service on Railway or Fly.io, triggered by Inngest |
 | Monorepo tooling | pnpm workspaces, Turborepo, Biome |
 
-Running cost at launch is about ₹2–4k a month for all salons together, plus AI try-on usage, which is billed to salons as credits.
+Running cost at launch is about ₹4–5k a month (Vercel Pro + Supabase Pro) for all salons together, plus AI try-on usage, which is billed to salons as credits.
 
 ### Repository layout
 
@@ -445,7 +451,7 @@ apps/
   platform/              Next.js + Payload: admin (/admin), API, all salon sites, PWA
 packages/
   core/                  tenant context, money/phone/date utils, event names and types, module contract
-  ui/                    shadcn components + theme tokens
+  ui/                    shadcn components (admin) + theme tokens and animated primitives (customer)
   modules/               one folder per feature
     catalog/ gallery/ booking/ customers/ visits/ loyalty/ referrals/ reviews/
     campaigns/ contests/ content-engine/ reports/ payments/ messaging/ try-on/ discovery/
@@ -507,7 +513,7 @@ A salon page is an ordered list of blocks stored in the database: hero, services
 ```
 MessagingProvider  ->  official WhatsApp provider (AiSensy / Interakt / WATI / Gupshup), click-to-chat fallback
 PaymentProvider    ->  Razorpay (money goes to the salon's own account)
-StorageProvider    ->  Cloudflare R2
+StorageProvider    ->  Supabase Storage
 ImageAIProvider    ->  AI image-editing API for try-on
 ```
 
@@ -525,7 +531,7 @@ Modules call the adapter and never the vendor directly. Switching vendor means w
 
 - Each module has one owner, recorded in CODEOWNERS. A generator creates new modules from a template.
 - Types are generated from the schema, and inputs are validated with Zod.
-- Every pull request runs type checks, lint, unit tests (Vitest) and end-to-end tests (Playwright) for booking, checkout and referral. Each gets its own preview link and database copy.
+- Every pull request runs type checks, lint, unit tests (Vitest) and end-to-end tests (Playwright) for booking, checkout and referral. Each gets its own preview link, running against a shared staging database.
 - Schema changes go through reviewed migrations. Big decisions are recorded in `docs/adr/`. A CLAUDE.md file describes the rules for AI coding tools.
 
 ### Scaling path
@@ -635,7 +641,7 @@ Every feature belongs to one module, and all of them ship in the same release. "
 | Event bus and background jobs (Inngest) |
 | Adapters for messaging, payments, storage and AI images |
 | Generated types, input validation, linting, unit and end-to-end tests in CI |
-| Preview deployment and a database copy for every pull request |
+| Preview deployment for every pull request, against a staging database |
 | Tenant-isolation test that must always pass |
 | Error tracking and product analytics (Sentry, PostHog) |
 | Public API and embeddable booking widget |
