@@ -133,7 +133,7 @@ export const createEventBus = (
             { name: 'module', type: 'text', required: true },
             { name: 'event', type: 'json', required: true },
           ],
-          handler: async ({ input, req }) => {
+          handler: async ({ input, req }: { input: unknown; req: PayloadRequest }) => {
             const { module, event } = input as unknown as { module: string; event: EventEnvelope }
             await runHandler(req.payload, module, event)
             return { output: {} }
@@ -148,7 +148,7 @@ export const createEventBus = (
             { name: 'step', type: 'text', required: true },
             { name: 'data', type: 'json' },
           ],
-          handler: async ({ input, req }) => {
+          handler: async ({ input, req }: { input: unknown; req: PayloadRequest }) => {
             const i = input as unknown as { tenant: string; module: string; step: string; data?: Record<string, unknown> }
             const tenant = /^\d+$/.test(i.tenant) ? Number(i.tenant) : i.tenant
             await runStep(req.payload, { tenant, module: i.module, step: i.step, data: i.data ?? {} })
@@ -161,7 +161,7 @@ export const createEventBus = (
           tasks.push({
             slug: r.slug,
             schedule: [{ cron: r.cron, queue: 'recurring' }],
-            handler: async ({ req }) => {
+            handler: async ({ req }: { req: PayloadRequest }) => {
               await r.handler({ payload: req.payload })
               return { output: {} }
             },

@@ -181,7 +181,7 @@ export interface ActionCard {
 /** The owner's "Today" feed: things to do, most valuable first. */
 export const actionFeed = async (payload: Payload, tenant: ID, studioBase: string, now = new Date()): Promise<ActionCard[]> => {
   const repo = forTenant(payload, tenant)
-  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as {
+  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as {
     timezone?: string
     createdAt: string
   }

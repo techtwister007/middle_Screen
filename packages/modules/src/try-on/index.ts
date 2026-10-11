@@ -30,7 +30,7 @@ const absolute = (url?: string | null) => (!url ? '' : url.startsWith('http') ? 
 
 /** Remaining AI try-ons for a customer, given salon credits and the per-customer cap. */
 export const aiTryOnAllowance = async (payload: Payload, tenant: ID, customerId: ID) => {
-  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as {
+  const salon = (await payload.findByID({ collection: 'salons' as never, id: tenant, depth: 0, overrideAccess: true })) as unknown as {
     plan: 'starter' | 'studio' | 'growth'
     featureOverrides?: { feature: never; enabled: boolean }[]
     settings?: { aiTryOnCredits?: number; aiTryOnPerCustomer?: number }
