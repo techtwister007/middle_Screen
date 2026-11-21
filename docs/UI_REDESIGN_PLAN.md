@@ -476,18 +476,105 @@ The same "auto first, customise later" idea is applied to the whole brand kit:
 - All images, logos, story images and OG cards are generated automatically at upload/publish
 - Onboarding needs only phone + name; everything else has a good default
 
-### 25. Our branding on every page ("Made with ♥")
+### 25. Our branding on every page
 
-A small, tasteful, always-present credit that builds VectorScale/PropPulse visibility without taking anything away from the agent:
-- **Buyer pages & agent website footer:** `Made with ♥ on PropPulse · by VectorScale`, in the look's muted text colour, with a tiny PropPulse mark. Links to the landing page with `?ref={agent-handle}` so we can track which agent's pages bring new agents.
-- **Growth loop:** the landing page visited via that link shows "Like Rakesh's page? Get yours free for 30 days." **Referral reward:** the referring agent gets a free month when the new agent pays (uses the existing billing period-extension logic).
-- **Generated images** (WhatsApp Status, visiting card, brochure): a tiny "PropPulse" corner mark.
-- **WhatsApp preview (OG) card:** no branding (the agent's moment; keeps it clean and trusted).
-- **Welcome screen:** agent only.
-- Tone stays premium: one line, small, never a banner. A paid **"Remove PropPulse branding"** option can come later as an upsell.
+One line only, in the footer of buyer pages and agent websites:
+
+> with ❤ from **PropPulse**
+
+- "PropPulse" = `brand.name` (renames automatically) and is a **link to our website** (`brand.companyUrl` / landing page), with `?ref={agent-handle}` added for attribution.
+- Style: small, the look's muted text colour; the heart in the look's accent. Identical position in every look.
+- Not on the WhatsApp preview card or the welcome screen (the agent's moment).
+- Generated images (Status image, visiting card, brochure, greeting cards): the same line in tiny type in a corner.
+- Growth loop: visitors arriving via `?ref=` see "Get a page like this free for 30 days"; referring agent earns a free month when the new agent pays.
 
 ### 26. Next steps
 
 1. **Phase 0 starts:** review and install the design skills; product brand directions (2–3 options for PropPulse); static **style tiles** of the property page, collection card, welcome screen and WhatsApp preview card in the 4 looks × light/dark, plus 6 auto-logo samples.
 2. Further Dribbble references you send are folded into the moodboard as they arrive.
 3. You pick and adjust; then Phase 1 (foundation) begins.
+
+---
+
+## Part D: Final plan
+
+### 27. Colour schemes inside each look
+
+Every look ships with **8 colour schemes designed for that look** (not one generic palette list), each in **light and dark**. A scheme is more than one colour: it sets background tint, surfaces, primary, accent, emphasis-card colour and photo-scrim tint, so each one feels genuinely different.
+
+| Look | 8 schemes |
+|---|---|
+| **Signature** | Emerald · Ocean · Terracotta · Plum · Sandstone · Slate · Forest · Rose |
+| **Minimal** | Ink (pure mono) · Stone · Sage · Navy · Clay · Olive · Mocha · Graphite |
+| **Luxe** | Champagne Gold · Rose Gold · Emerald & Gold · Sapphire · Onyx & Pearl · Bordeaux · Bronze · Platinum |
+| **Bold** | Saffron · Coral · Electric Blue · Lime · Magenta · Tangerine · Teal Pop · Sunflower |
+
+Plus, in every look: **From my logo** (auto-extracted) and **Custom colour** (auto-corrected for contrast).
+
+**Variety:** 4 looks × 8 schemes × 2 modes = **64 built-in combinations**, plus logo/custom, for little extra effort, because schemes are only token sets on top of the same components.
+
+**How the agent picks:** Appearance studio → Look (4 big preview cards) → Scheme (8 swatches under the chosen look, each swatch a mini preview) → Mode. The live phone preview updates instantly. "Apply to all listings" or "Only this listing". WhatsApp: `look`, `scheme`, `dark`/`light`.
+
+**Quality guarantee:** all 64 are generated from OKLCH token definitions and checked by a **unit test** for WCAG contrast on every text/background pair (cheap, runs in CI). Screenshot tests sample each scheme once per look.
+
+**Storage:** `theme = { look, scheme, mode, customColor? }` on the agent, optional override on a listing.
+
+### 28. More quick wins (low effort, high value)
+
+Effort: S = a few hours, M = about a day. All reuse what already exists (OG image rendering, AI, bot, tracking, billing).
+
+**For agents**
+| Feature | Why it matters | Effort |
+|---|---|---|
+| **Owner report link** | Share a read-only page with the property *owner*: views, interested buyers (anonymised), visits. Agents use it to win and keep mandates. | M |
+| **Price-drop alert** | When the agent lowers a price: "Notify 3 buyers who liked this?" One tap sends personalised WhatsApp links. | S |
+| **Copy for portals** | One tap copies a well-formatted listing text for 99acres / MagicBricks / Facebook / OLX | S |
+| **"For Sale" board QR poster** | Printable A4 in the agent's look with a QR; scans tracked as source "Board" | S |
+| **WhatsApp Status image** (§24) | Daily free promotion | S |
+| **Festival greeting cards** | Diwali, Navratri, New Year… in the agent's brand, ready to forward to all contacts. Keeps them in buyers' minds; carries our footer. | S |
+| **Visit-day route** | All today's visits in order as one Google Maps multi-stop link | S |
+| **Listing quality tips** | "Add 3 more photos: listings with 8+ photos get more opens". Simple rules, shown in the editor and on Today. | S |
+| **Calendar invites** | Confirmed visits as .ics, added to the phone calendar | S |
+| **Duplicate listing** | "Same building, another flat" | S |
+| **Reply templates** | Common replies (price, availability, visit slots) in English/Hinglish with the buyer's name filled in | S |
+| **Testimonials** | After a deal closes, the buyer gets a one-tap review link; reviews show on the agent website | M |
+| **Inactivity nudges** | Bot tip if no share in 3 days: "Gotri 3 BHK hasn't been shared; send to 2 matching buyers?" | S |
+
+**For buyers**
+| Feature | Why it matters | Effort |
+|---|---|---|
+| **Interactive EMI calculator** | Instant affordability | S |
+| **Total cost estimate** | Price + stamp duty + registration (state table, starts with Gujarat) | S |
+| **"Notify me if the price drops"** | Buyer value; gives the agent a warm, verified lead | S |
+| **Read in Hindi / Gujarati** | One tap translates the description using the existing AI | S |
+| **Download brochure (PDF)** | For family members who aren't on WhatsApp | M |
+| **Save agent contact** | vCard | S |
+| **Directions after visit confirmation** | Exact pin revealed only once the agent confirms (keeps privacy) | S |
+
+**For us (PropPulse / VectorScale)**
+| Feature | Why it matters | Effort |
+|---|---|---|
+| **"with ❤ from PropPulse" link + `?ref=`** | Visibility and attribution on every buyer page | S |
+| **Referral month** | Agents bring agents | S |
+| **Showcase gallery** | Opt-in real agent pages shown on the landing page as proof | S |
+| **Churn early-warning in admin** | Agents inactive 7+ days flagged; bot nudges automatically | S |
+| **Footer on generated images** | Every Status image, greeting card and brochure carries our name | S |
+| **Monthly "your business" summary** | Value recap before renewal (opens, buyers, visits), which lowers churn | S |
+
+Later (bigger): 360° tours, nearby-places map, locality demand insights, white-label upsell, custom domains.
+
+### 29. Final phased plan
+
+| Phase | What | Approval gate |
+|---|---|---|
+| **0. Prototype** *(next)* | One interactive prototype page (static HTML, separate from the app): switch **Look × Scheme × Mode** live and see the **welcome screen, property page, collection, WhatsApp preview card, Status image** in phone frames; **auto-logo** generator (6 styles, live from a typed name); the **"with ❤ from PropPulse"** footer; key **agent app** screens (Today, Buyer detail, Appearance studio) in light/dark; **3 PropPulse brand directions**; motion demos (entry/exit, sheet, like, skeleton). Built with **Sonnet** to save tokens; I review it against this plan before showing you. | **You approve / adjust** |
+| 1. Foundation | Tokens, 4 looks × 8 schemes × 2 modes, contrast tests, self-hosted fonts, motion + elevation primitives, component library, theme resolver, DB migration, auto-logo generator | Component gallery |
+| 2. Buyer surfaces | Property, collection, website, welcome, sheets, gallery, sold page, OG card, footer branding, EMI/total-cost | **Screenshot matrix review** |
+| 3. Customisation | Appearance studio, brand kit, per-listing override, See as buyer, palette from logo, guided onboarding | |
+| 4. Agent app | New nav, Today, Listings, Editor, Buyers, Collections, Visits, Insights, Settings, Billing; light/dark; bug fixes | **Screenshot matrix review** |
+| 5. Quick wins | §28 S-items first, then M-items | |
+| 6. WhatsApp parity | Brand/look/scheme/preview/report commands, digest | |
+| 7. Landing + admin | Interactive look switcher landing, showcase, admin restyle | |
+| 8. Hardening | Visual + a11y matrix, Lighthouse budgets, low-end Android pass, Impeccable/Unslop sweep | Release |
+
+Every build phase: typecheck + unit + all E2E (+ new visual/contrast tests) → commit → push to `property-listing-app`.
