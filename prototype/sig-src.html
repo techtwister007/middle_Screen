@@ -1,0 +1,513 @@
+<title>PropPulse Property Page</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Hind+Vadodara:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Chrome around the phone: quiet graphite, follows the viewer's theme. */
+:root{--c-bg:#f3f3f2;--c-panel:#fff;--c-ink:#1c1c1e;--c-ink2:#55565a;--c-muted:#74757a;--c-line:rgba(28,28,30,.1);--c-sel:#1c1c1e;--c-on-sel:#fff;--ease:cubic-bezier(.22,1,.36,1);--font:"DM Sans","Hind Vadodara",system-ui,-apple-system,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-bg:#111112;--c-panel:#1b1b1d;--c-ink:#ececec;--c-ink2:#a8a8aa;--c-muted:#8a8a8d;--c-line:rgba(236,236,236,.1);--c-sel:#ececec;--c-on-sel:#111112;color-scheme:dark}}
+:root[data-theme="dark"]{--c-bg:#111112;--c-panel:#1b1b1d;--c-ink:#ececec;--c-ink2:#a8a8aa;--c-muted:#8a8a8d;--c-line:rgba(236,236,236,.1);--c-sel:#ececec;--c-on-sel:#111112;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--c-bg);color:var(--c-ink);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input{font:inherit}
+:focus-visible{outline:2px solid #2f6fde;outline-offset:2px;border-radius:8px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--c-bg);border-bottom:1px solid var(--c-line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--c-bg)}
+.bar-in{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.bt{font-weight:600;margin-right:auto}
+.bt span{font-weight:400;color:var(--c-muted)}
+.seg{display:inline-flex;background:var(--c-panel);border:1px solid var(--c-line);border-radius:10px;padding:3px;gap:2px}
+.seg button{height:32px;padding:0 12px;border-radius:7px;font-size:14px;color:var(--c-ink2);transition:background-color .18s var(--ease),color .18s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--c-sel);color:var(--c-on-sel)}
+.sw{display:inline-flex;gap:6px;align-items:center}
+.sw button{width:26px;height:26px;border-radius:50%;position:relative;transition:transform .15s var(--ease)}
+.sw button:active{transform:scale(.94)}
+.sw button[aria-pressed="true"]::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--c-ink)}
+.stage{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:48px;align-items:start;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.device{width:402px;height:852px;border-radius:54px;padding:11px;background:#0c0c0d;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 30px 60px -20px rgba(0,0,0,.35),0 12px 24px -12px rgba(0,0,0,.25);position:relative}
+.device::before{content:"";position:absolute;top:22px;left:50%;width:108px;height:30px;margin-left:-54px;background:#0c0c0d;border-radius:20px;z-index:60}
+.notes{max-width:440px;padding-top:6px}
+.notes h2{font-size:24px;font-weight:600;line-height:1.2;margin:0 0 8px}
+.notes p{margin:0 0 14px;color:var(--c-ink2)}
+.notes ul{margin:0 0 16px;padding-left:18px;color:var(--c-ink2)}
+.notes li{margin-bottom:6px}
+.notes .fine{font-size:13px;color:var(--c-muted);border-top:1px solid var(--c-line);padding-top:12px}
+@media (max-width:900px){.stage{grid-template-columns:1fr;gap:20px}.device{margin:0 auto}.notes{max-width:none}}
+@media (max-width:520px){
+ .stage{padding:0 0 32px}
+ .device{width:100%;height:calc(100dvh - var(--barh,64px));border-radius:0;padding:0;background:none;box-shadow:none}
+ .device::before{display:none}
+ .notes{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+
+/* ================= PHONE ================= */
+.ph{
+ --bg:#ffffff;--bg2:#f7f7f7;--ink:#222222;--ink2:#484848;--muted:#6a6a6a;--line:#dddddd;--line2:#ebebeb;
+ --card:#ffffff;--shadow:0 6px 20px rgba(0,0,0,.12);--pill:rgba(255,255,255,.92);--pill-ink:#222;
+ --map-land:#f3f1ec;--map-road:#ffffff;--map-road2:#fbfaf7;--map-park:#d7ead0;--map-water:#c9def0;--map-label:#8a877f;--map-block:#e9e6df;
+ height:100%;width:100%;border-radius:44px;overflow:hidden;position:relative;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;isolation:isolate}
+.ph[data-mode=dark]{
+ --bg:#121212;--bg2:#1c1c1c;--ink:#f2f2f2;--ink2:#d0d0d0;--muted:#a3a3a3;--line:#343434;--line2:#2a2a2a;
+ --card:#1c1c1c;--shadow:0 6px 20px rgba(0,0,0,.5);--pill:rgba(28,28,28,.9);--pill-ink:#f2f2f2;
+ --map-land:#1b1d1f;--map-road:#2c2f33;--map-road2:#25282b;--map-park:#1d2e22;--map-water:#16283a;--map-label:#8b9096;--map-block:#222528}
+@media (max-width:520px){.ph{border-radius:0}}
+.ph *{transition:background-color .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease)}
+.ph ::selection{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+.scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}
+.scr::-webkit-scrollbar{display:none}
+.ph img{display:block;width:100%;height:100%;object-fit:cover}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tn{font-variant-numeric:tabular-nums lining-nums}
+.ph h1,.ph h2,.ph h3,.ph p{margin:0}
+.ph h1,.ph h2,.ph h3{font-weight:600}
+.sbar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 7px;font:600 15px/1 system-ui,sans-serif;z-index:30;pointer-events:none;color:#fff;transition:color .2s var(--ease)}
+.sbar i{width:24px;height:11px;border-radius:3px;border:1.5px solid currentColor}
+.ph.scrolled .sbar{color:var(--ink)}
+@media (max-width:520px){.sbar{display:none}}
+
+/* hero */
+.hero{position:relative;height:340px;background:var(--bg2)}
+.gal{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gal>div{flex:0 0 100%;scroll-snap-align:start}
+.gal img{animation:fadein .5s var(--ease) both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.hb{position:absolute;top:58px;left:16px;right:16px;display:flex;gap:10px;z-index:3}
+@media (max-width:520px){.hb{top:14px}}
+.circ{width:36px;height:36px;border-radius:50%;background:var(--pill);color:var(--pill-ink);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.12);transition:transform .14s var(--ease)}
+.circ:active{transform:scale(.92)}
+.circ .ico{width:17px;height:17px;stroke-width:1.8}
+.hb .r{margin-left:auto;display:flex;gap:10px}
+.circ[aria-pressed="true"] .ico{fill:#e0314b;stroke:#e0314b}
+.circ.pop .ico{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.3)}100%{transform:scale(1)}}
+.count{position:absolute;right:16px;bottom:40px;font-size:12px;font-weight:500;padding:4px 11px;border-radius:999px;background:rgba(34,34,34,.66);color:#fff;font-variant-numeric:tabular-nums;z-index:2}
+
+/* sticky header that appears after the photo */
+.sh{position:absolute;top:0;left:0;right:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line2);padding:50px 16px 8px;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease)}
+@media (max-width:520px){.sh{padding-top:8px}}
+.ph.scrolled .sh{opacity:1;transform:none;pointer-events:auto}
+.sh .circ{box-shadow:none;background:transparent}
+.sh .ttl{font-weight:600;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:22px;padding:0 24px;position:absolute;top:100px;left:0;right:0;z-index:19;background:var(--bg);border-bottom:1px solid var(--line2);opacity:0;pointer-events:none;transition:opacity .2s var(--ease)}
+@media (max-width:520px){.tabs{top:52px}}
+.ph.scrolled .tabs{opacity:1;pointer-events:auto}
+.tabs button{height:42px;font-size:14px;font-weight:500;color:var(--muted);position:relative}
+.tabs button[aria-current="true"]{color:var(--ink)}
+.tabs button[aria-current="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--ink);border-radius:2px}
+
+/* content sheet */
+.body{position:relative;margin-top:-24px;background:var(--bg);border-radius:24px 24px 0 0;z-index:2}
+.title{padding:28px 24px 24px;text-align:center}
+.title h1{font-size:26px;line-height:30px;letter-spacing:-.01em;text-wrap:balance}
+.title .sub{margin-top:10px;font-size:16px;color:var(--ink)}
+.title .sub2{font-size:15px;color:var(--muted);margin-top:2px}
+.stats{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;align-items:center;margin:0 24px;padding:14px 0;border:1px solid var(--line);border-radius:14px}
+.stats i{height:30px;background:var(--line)}
+.stats div{text-align:center;padding:0 6px}
+.stats b{display:block;font-size:17px;font-weight:600;line-height:1.2}
+.stats span{font-size:12px;color:var(--muted);line-height:1.2;display:block;margin-top:3px}
+.blk{padding:32px 24px;border-top:1px solid var(--line)}
+.blk:first-of-type{border-top:0}
+.blk>h2{font-size:22px;line-height:26px;margin-bottom:20px;letter-spacing:-.005em}
+.blk>h2 small{display:block;font-size:15px;font-weight:400;color:var(--muted);margin-top:6px;line-height:20px}
+.inset{margin:0 24px}
+.host{display:flex;gap:16px;align-items:center;padding:24px 0;border-bottom:1px solid var(--line)}
+.av{width:48px;height:48px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:17px;position:relative}
+.av .vb{position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.host b{display:block;font-size:16px;font-weight:600}
+.host span{font-size:14px;color:var(--muted)}
+.feats{display:grid;gap:22px;padding:28px 0 4px}
+.feat{display:grid;grid-template-columns:28px 1fr;gap:14px}
+.feat .ico{width:24px;height:24px;stroke-width:1.5;margin-top:2px}
+.feat b{display:block;font-weight:600;font-size:16px;line-height:20px}
+.feat span{font-size:14px;color:var(--muted);line-height:20px}
+.desc{color:var(--ink);font-size:16px;line-height:24px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.desc.open{-webkit-line-clamp:unset}
+.btn{height:48px;border-radius:12px;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 22px;transition:transform .14s var(--ease),background-color .25s var(--ease);white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-gray{background:var(--bg2);color:var(--ink);width:100%;margin-top:20px}
+.btn-out{border:1px solid var(--ink);color:var(--ink);background:transparent;width:100%;margin-top:24px}
+.btn-p{background:var(--accent);color:var(--on-accent)}
+.rooms{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -24px;padding:0 24px;scroll-snap-type:x mandatory;scroll-padding:0 24px}
+.rooms::-webkit-scrollbar{display:none}
+.room{flex:0 0 46%;scroll-snap-align:start}
+.room .ph2{aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:var(--bg2)}
+.room b{display:block;font-weight:600;font-size:15px;margin-top:10px}
+.room span{font-size:14px;color:var(--muted)}
+.amen{display:grid;gap:18px;list-style:none;margin:0;padding:0}
+.amen li{display:flex;gap:16px;align-items:center;font-size:16px}
+.amen .ico{width:24px;height:24px;stroke-width:1.5}
+
+/* map */
+.map{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:1/1;background:var(--map-land)}
+.map svg{display:block;width:100%;height:100%}
+.map .pin{transition:opacity .25s var(--ease),transform .25s var(--ease);transform-box:fill-box;transform-origin:center}
+.map .pin.off{opacity:0;transform:scale(.6)}
+.mapnote{font-size:14px;color:var(--muted);margin-top:14px;line-height:20px}
+.mapnote b{color:var(--ink);font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -24px 16px;padding:0 24px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--line);font-size:14px;font-weight:500;color:var(--ink)}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.near{list-style:none;margin:20px 0 0;padding:0}
+.near li{display:flex;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:14px;margin:0 -16px}
+.near li:nth-child(odd){background:var(--bg2)}
+.near li.x{display:none}
+.near .nm{font-size:16px}
+.near .nm span{display:block;font-size:14px;color:var(--muted)}
+.near .d{font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
+.near .d span{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.search{margin-top:24px;display:flex;align-items:center;gap:12px;height:56px;border-radius:999px;padding:0 20px;box-shadow:var(--shadow);border:1px solid var(--line2);background:var(--card)}
+.search input{flex:1;border:0;background:transparent;color:var(--ink);font-size:15px;outline:none;min-width:0}
+.search input::placeholder{color:var(--muted)}
+.search:focus-within{outline:2px solid var(--ink);outline-offset:2px}
+.sugg{list-style:none;margin:8px 0 0;padding:0}
+.sugg button{display:flex;gap:14px;align-items:center;width:100%;text-align:left;padding:10px 0}
+.sugg .ib{width:44px;height:44px;border-radius:10px;background:var(--bg2);display:grid;place-items:center;flex:none}
+.sugg small{display:block;color:var(--muted);font-size:13px}
+.res{display:none;margin-top:16px;border:1px solid var(--line);border-radius:16px;padding:18px}
+.res.on{display:block;animation:rise .35s var(--ease)}
+.res h3{font-size:16px;margin-bottom:12px}
+.res .m{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.res .m div{text-align:center}
+.res .m b{display:block;font-size:20px;font-weight:600}
+.res .m span{font-size:13px;color:var(--muted)}
+.fine{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:18px}
+
+/* EMI */
+.emi .big{font-size:32px;font-weight:600;line-height:1.1;letter-spacing:-.01em}
+.emi .sub{font-size:14px;color:var(--muted)}
+.sl{margin-top:22px}
+.sl .lab{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px}
+.sl .lab b{font-weight:600}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(var(--ink),var(--ink)) 0/var(--p,50%) 100% no-repeat,var(--line)}
+input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--ink)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18);margin-top:-12px}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.cost{margin-top:24px;border-top:1px solid var(--line);padding-top:18px;display:grid;gap:10px;font-size:15px}
+.cost div{display:flex;justify-content:space-between}
+.cost span:first-child{color:var(--ink2)}
+.cost .tot{border-top:1px solid var(--line);padding-top:12px;font-weight:600}
+.cost .tot span:first-child{color:var(--ink)}
+
+/* agent card */
+.acard{border-radius:20px;box-shadow:var(--shadow);background:var(--card);padding:24px;display:grid;grid-template-columns:1fr 1px 108px;gap:20px;align-items:center;border:1px solid var(--line2)}
+.acard .who{text-align:center}
+.acard .av{width:96px;height:96px;font-size:32px;margin:0 auto 10px}
+.acard .av .vb{width:30px;height:30px;right:0;bottom:0}
+.acard h3{font-size:24px;line-height:1.15}
+.acard .who span{font-size:13px;color:var(--muted);display:block;margin-top:2px}
+.acard i.v{width:1px;align-self:stretch;background:var(--line2)}
+.acard .st{display:grid;gap:0}
+.acard .st div{padding:8px 0;border-bottom:1px solid var(--line2)}
+.acard .st div:last-child{border-bottom:0}
+.acard .st b{display:block;font-size:20px;font-weight:600;line-height:1.1}
+.acard .st span{font-size:12px;color:var(--muted)}
+.alist{display:grid;gap:14px;margin-top:24px;font-size:16px}
+.alist div{display:flex;gap:14px;align-items:center}
+.acts2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.acts2 .btn{width:100%}
+.ask{display:flex;gap:14px;align-items:center;width:100%;text-align:left;margin-top:20px;padding:16px 0 0;border-top:1px solid var(--line2)}
+.ask b{display:block;font-weight:600;font-size:15px}
+.ask span{font-size:14px;color:var(--muted)}
+.ask .chev{margin-left:auto}
+.know{display:grid;gap:22px}
+.know>div{display:grid;grid-template-columns:28px 1fr;gap:14px}
+.know b{display:block;font-weight:600;font-size:16px}
+.know span{font-size:15px;color:var(--ink2)}
+.foot{margin:8px 16px 0;border-radius:20px 20px 0 0;padding:24px 20px 124px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted)}
+.foot a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.foot .h{color:#e0314b}
+
+/* bottom bar */
+.bb{position:absolute;left:0;right:0;bottom:0;z-index:25;background:var(--bg);border-top:1px solid var(--line2);border-radius:20px 20px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.06);padding:14px 24px calc(16px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bb .p b{font-size:18px;font-weight:600;display:block;line-height:1.2}
+.bb .p span{font-size:14px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.bb .btn{min-width:150px}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.48);z-index:40;opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--bg);border-radius:20px 20px 0 0;max-height:88%;display:flex;flex-direction:column;transform:translateY(102%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+.sheet.open{transform:none;transition:transform .45s var(--ease)}
+.ph.dim .scrim{opacity:1;pointer-events:auto}
+.sheet .hd{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid var(--line2)}
+.sheet .hd h3{font-size:16px;flex:1;text-align:center;margin-right:36px}
+.sheet .bd{overflow-y:auto;padding:20px 24px 24px;scrollbar-width:none}
+.sheet .bd::-webkit-scrollbar{display:none}
+.days{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -24px;padding:4px 24px}
+.days::-webkit-scrollbar{display:none}
+.day{flex:none;width:68px;height:80px;border-radius:14px;border:1px solid var(--line);display:grid;place-content:center;text-align:center;gap:2px}
+.day span{font-size:12px;color:var(--muted)}
+.day b{font-size:22px;font-weight:600;line-height:1}
+.day small{font-size:12px;color:var(--muted)}
+.day[aria-pressed="true"]{border:2px solid var(--ink)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.slot{height:64px;border-radius:12px;border:1px solid var(--line);display:grid;place-content:center;text-align:center}
+.slot b{font-size:15px;font-weight:600}
+.slot span{font-size:12px;color:var(--muted)}
+.slot[aria-pressed="true"]{border:2px solid var(--ink)}
+.q{font-size:18px;font-weight:600;margin:20px 0 12px}
+.q:first-child{margin-top:0}
+.sheet .ft{padding:14px 24px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sheet .ft .sum{font-size:14px;color:var(--ink2)}
+.sheet .ft .sum b{display:block;color:var(--ink);font-size:15px}
+.ok{text-align:center;padding:28px 8px 8px}
+.ok svg{width:64px;height:64px;margin:0 auto 14px;display:block}
+.ok path{stroke-dasharray:44;stroke-dashoffset:44}
+.ok.on path{animation:draw .55s .1s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ok h3{font-size:22px}
+.ok p{color:var(--muted);margin-top:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid2 .w{grid-column:span 2}
+.grid2 div{border-radius:14px;overflow:hidden;aspect-ratio:4/3;background:var(--bg2)}
+.grid2 .w{aspect-ratio:16/10}
+.capt{font-weight:600;font-size:18px;margin:22px 0 10px}
+.capt:first-child{margin-top:0}
+
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.enter .body>*{animation:rise .5s var(--ease) both}
+.enter .body>*:nth-child(2){animation-delay:.05s}.enter .body>*:nth-child(3){animation-delay:.1s}.enter .body>*:nth-child(4){animation-delay:.15s}
+@media (prefers-reduced-motion:reduce){.ph *{animation:none!important;transition:none!important}}
+</style>
+
+<div>
+ <header class="bar" id="bar"><div class="bar-in">
+  <div class="bt">Signature <span>property page, sample data</span></div>
+  <div class="sw" role="group" aria-label="Agent colour" id="sw"></div>
+  <div class="seg" role="group" aria-label="Mode" id="modes"></div>
+ </div></header>
+ <main class="stage">
+  <div class="device"><div class="ph" id="ph" data-mode="light"></div></div>
+  <aside class="notes">
+   <h2>Airbnb-style craft, PropPulse content</h2>
+   <p>White page, one clean typeface, generous spacing and thin dividers between sections. Round buttons over the photo, a content sheet that overlaps the photo, a summary under the title, an agent card, a real-looking map and a price-and-action bar at the bottom.</p>
+   <ul>
+    <li>The agent's colour appears only on the main buttons and the agent's initials.</li>
+    <li>Font: Hind Vadodara throughout, three weights, with ₹ and Gujarati.</li>
+    <li>Try: swipe the photo, tap the heart, scroll (a header with section tabs appears), Show all photos, Book a visit, type “Alembic” in the area search, move the EMI sliders.</li>
+   </ul>
+   <p class="fine">Sample listing. Photos are stock stand-ins; agent, RERA, maintenance and counts are placeholders. Not affiliated with Airbnb; no Airbnb branding, colours or fonts are used.</p>
+  </aside>
+ </main>
+</div>
+
+<script>
+/*IMGS*/
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const I={
+ back:'<path d="M15 18l-6-6 6-6"/>',
+ share:'<path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+ heart:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ chev:'<path d="m9 18 6-6-6-6"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ tree:'<path d="M12 22v-6"/><path d="M17 8A5 5 0 0 0 7 8c0 1 .3 2 .8 2.8A4 4 0 0 0 8 18h8a4 4 0 0 0 .2-7.2c.5-.8.8-1.8.8-2.8Z"/>',
+ key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>',
+ school:'<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+ lift:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="m9 8 3-3 3 3M9 16l3 3 3-3"/>',
+ gym:'<path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/>',
+ car:'<path d="M5 17h14v-5l-2-5H7l-2 5v5Z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
+ bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>',
+ play:'<circle cx="12" cy="5" r="2"/><path d="M12 7v6M8 21l4-8 4 8M7 10h10"/>',
+ water:'<path d="M12 2.7s6 6.4 6 11.3a6 6 0 0 1-12 0c0-4.9 6-11.3 6-11.3Z"/>',
+ cctv:'<path d="M3 7h14l-2 6H5Z"/><path d="M17 9l4-1v5l-4-1M8 13v4H4"/>',
+ wa:'<path d="M3.5 20.5 5 16.3A8.5 8.5 0 1 1 8 19.3Z"/><path d="M9 9.2c0 2.6 2.2 5 5.2 5.6l1.1-1.2-1.6-1-1 .6a4 4 0 0 1-2-2l.6-1-1-1.6Z"/>',
+ phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
+ chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+ brief:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+ doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+ rupee:'<path d="M6 3h12M6 8h12M6 13l8.5 8M6 13h3a5 5 0 0 0 0-10"/>',
+ home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
+ lang:'<path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>',
+ badge:'<path d="m9 12 2 2 4-4"/><path d="M12 2l2.4 1.8 3 .1.9 2.9 2.4 1.8-1 2.9 1 2.9-2.4 1.8-.9 2.9-3 .1L12 22l-2.4-1.8-3-.1-.9-2.9-2.4-1.8 1-2.9-1-2.9 2.4-1.8.9-2.9 3-.1Z"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'
+};
+const ic=(n,s='')=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" ${s}>${I[n]}</svg>`;
+
+const SCHEMES=[['Neem','#1f5c45'],['Indigo','#2b3c8c'],['Laterite','#a3401f'],['Ink','#222222']];
+const state={scheme:0,mode:'light'};
+const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lum=h=>{const c=hex2rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const mixh=(a,b,t)=>'#'+hex2rgb(a).map((v,i)=>Math.round(v+(hex2rgb(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
+function colours(){
+ let a=SCHEMES[state.scheme][1];
+ if(state.mode==='dark'){ if(cr(a,'#121212')<2.2) a=state.scheme===3?'#f2f2f2':mixh(a,'#ffffff',.3); }
+ const on=cr('#ffffff',a)>=4.5?'#ffffff':'#151515';
+ return {accent:a,'on-accent':on};
+}
+
+const P={price:9500000};
+const NEAR=[
+ ['Gotri bus stop','Transport',0.4,'2 min drive, 5 min walk',4],['Reliance Smart','Grocery',0.5,'2 min drive, 7 min walk',2],['Navrachana School','School',0.8,'3 min drive, 11 min walk',0],
+ ['Gotri Lake Garden','Park',0.9,'4 min drive, 12 min walk',3],['Sunshine Global Hospital','Hospital',1.1,'4 min drive',1],['Bright Day School','School',1.4,'5 min drive',0],
+ ['D-Mart, Gotri Road','Grocery',1.6,'6 min drive',2],['Bhailal Amin Hospital','Hospital',2.6,'8 min drive',1],['Vadodara Railway Station','Transport',7.8,'22 min drive',4],['Vadodara Airport','Transport',9.6,'25 min drive',4]];
+const CATS=['Schools','Hospitals','Groceries','Parks','Transport'];
+const PINS=[[0,248,150],[0,120,250],[0,300,290],[1,212,92],[1,82,128],[2,182,232],[2,262,206],[2,132,168],[3,96,206],[3,288,108],[4,170,196],[4,306,236]];
+const MINE=[['Alembic City','Office park, Gorwa',6.1,18,14],['MS University','Pratapgunj',6.8,20,16],['Navrachana University','Vasna-Bhayli',4.2,12,10],['Vadodara Airport','Harni',9.6,25,21]];
+const inr=n=>{n=Math.round(n);const s=String(n);if(s.length<=3)return s;return s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g,',')+','+s.slice(-3)};
+const short=n=>n>=1e7?'₹'+(+(n/1e7).toFixed(2))+' Cr':'₹'+(+(n/1e5).toFixed(2))+' L';
+
+function map(){
+ const pin=([c,x,y])=>`<g class="pin" data-c="${c}"><circle cx="${x}" cy="${y}" r="9" fill="var(--card)" stroke="var(--line)"/><circle cx="${x}" cy="${y}" r="4" fill="var(--ink)"/></g>`;
+ return `<div class="map"><svg viewBox="0 0 360 360" role="img" aria-label="Map of the area around the home in Gotri">
+  <rect width="360" height="360" fill="var(--map-land)"/>
+  <g fill="var(--map-block)">${[[20,30,70,50],[110,24,60,40],[214,30,80,46],[30,112,50,60],[250,150,70,40],[20,270,90,60],[140,300,70,40],[250,276,90,64],[200,100,30,26]].map(r=>`<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" rx="4"/>`).join('')}</g>
+  <path d="M60 180c30-30 70-20 80 6s-10 44-40 46-62-26-40-52Z" fill="var(--map-park)"/>
+  <path d="M74 194c14-16 40-14 48 2s-6 26-24 26-36-12-24-28Z" fill="var(--map-water)"/>
+  <rect x="268" y="80" width="64" height="48" rx="6" fill="var(--map-park)"/>
+  <path d="M-10 92C80 100 180 130 370 120" stroke="var(--map-road)" stroke-width="14" fill="none"/>
+  <path d="M150 -10C160 90 170 220 140 370" stroke="var(--map-road)" stroke-width="12" fill="none"/>
+  <path d="M-10 260C100 250 230 262 370 250" stroke="var(--map-road)" stroke-width="10" fill="none"/>
+  <path d="M240 -10C236 120 250 230 300 370" stroke="var(--map-road2)" stroke-width="7" fill="none"/>
+  <path d="M-10 150C40 160 60 150 90 140M200 180C230 175 290 190 370 186" stroke="var(--map-road2)" stroke-width="6" fill="none"/>
+  <text x="18" y="86" font-size="10" fill="var(--map-label)" font-family="inherit">Gotri Road</text>
+  <text x="300" y="246" font-size="10" fill="var(--map-label)" font-family="inherit" text-anchor="middle">Sun Pharma Road</text>
+  <text x="98" y="244" font-size="10" fill="var(--map-label)" font-family="inherit" text-anchor="middle">Gotri Lake</text>
+  <circle cx="190" cy="178" r="58" fill="var(--accent)" fill-opacity=".14" stroke="var(--accent)" stroke-opacity=".5"/>
+  ${PINS.map(pin).join('')}
+  <g><circle cx="190" cy="178" r="22" fill="var(--accent)"/><path d="M181 179l9-8 9 8v8h-6v-5h-6v5h-6z" fill="var(--on-accent)"/></g>
+ </svg></div>`;
+}
+
+function page(){
+ const g=['bldg','living','kitchen','view','room'];
+ return `<div class="sbar"><span>9:41</span><i></i></div>
+ <div class="sh" id="sh"><button class="circ" aria-label="Back">${ic('back')}</button><span class="ttl">3 BHK flat in Gotri</span><button class="circ" aria-label="Share">${ic('share')}</button><button class="circ heartb" aria-label="Save" aria-pressed="false">${ic('heart')}</button></div>
+ <nav class="tabs" id="tabs" aria-label="Sections">${[['photos','Photos'],['details','Details'],['area','Area'],['cost','Cost']].map(([k,v],i)=>`<button data-go="${k}" aria-current="${i===0}">${v}</button>`).join('')}</nav>
+ <div class="scr enter" id="scr">
+  <div class="hero" id="photos"><div class="gal" id="gal">${g.map((k,i)=>`<div><img src="${IMG[k]}" alt="${['Building','Living room','Kitchen','Balcony view','Bedroom'][i]}"></div>`).join('')}</div>
+   <div class="hb"><button class="circ" aria-label="Back">${ic('back')}</button><div class="r"><button class="circ" aria-label="Share">${ic('share')}</button><button class="circ heartb" aria-label="Save" aria-pressed="false">${ic('heart')}</button></div></div>
+   <button class="count" id="cnt" aria-label="Show all photos">1 / 12</button></div>
+  <div class="body">
+   <div class="title"><h1>3 BHK flat in Gotri</h1><p class="sub">Furnished flat in Gotri, Vadodara</p><p class="sub2 tn">3 BHK · 2 bathrooms · 1,450 sq ft carpet</p></div>
+   <div class="stats tn"><div><b>5th</b><span>of 12 floors</span></div><i></i><div><b>East</b><span>facing</span></div><i></i><div><b>Ready</b><span>to move</span></div></div>
+   <div class="inset">
+    <div class="host"><div class="av">RS<span class="vb">${ic('badge','style="width:13px;height:13px;color:var(--accent)"')}</span></div><div><b>Listed by Rakesh Sharma</b><span>Sharma Properties · replies in about 10 min</span></div></div>
+    <div class="feats">
+     <div class="feat">${ic('tree')}<div><b>Park-facing balcony</b><span>The living room opens onto the society garden.</span></div></div>
+     <div class="feat">${ic('school')}<div><b>Walk to school</b><span>Navrachana School is 0.8 km away.</span></div></div>
+     <div class="feat">${ic('key')}<div><b>Ready to move, quick registration</b><span>The owner is open to closing this month.</span></div></div>
+    </div>
+   </div>
+   <div class="blk" id="details" style="margin-top:28px">
+    <p class="desc" id="desc">A bright, fully furnished flat on the fifth floor of a well-kept society in Gotri. The living room opens onto a balcony that looks over the society garden, and the kitchen comes fitted with a chimney and hob. Both bedrooms have wardrobes and the master has its own bathroom. The society has a lift, a gym and 24×7 security, and Gotri Road with its shops is a two-minute drive. The owner is open to a quick registration and the price is negotiable for a serious buyer.</p>
+    <button class="btn btn-gray" id="more">Show more</button>
+   </div>
+   <div class="blk"><h2>Rooms</h2><div class="rooms">${[['living','Living room','Opens to balcony'],['kitchen','Kitchen','Chimney and hob'],['room','Master bedroom','Attached bathroom'],['view','Balcony','Garden view']].map(r=>`<div class="room"><div class="ph2"><img src="${IMG[r[0]]}" alt="${r[1]}" loading="lazy"></div><b>${r[1]}</b><span>${r[2]}</span></div>`).join('')}</div></div>
+   <div class="blk"><h2>What this home offers</h2><ul class="amen">${[['lift','Lift'],['gym','Gym'],['car','Covered parking, 1 car'],['shield','24×7 security'],['bolt','Power backup'],['play',"Children's play area"]].map(a=>`<li>${ic(a[0])}${a[1]}</li>`).join('')}</ul><button class="btn btn-out" id="allam">Show all 14 amenities</button></div>
+   <div class="blk" id="area"><h2>Where it is<small>Gotri, Vadodara. The exact address is shared after you book a visit.</small></h2>
+    <div class="chips" role="group" aria-label="Show on map">${['All',...CATS].map((c,i)=>`<button class="chip" data-f="${i-1}" aria-pressed="${i===0}">${c}</button>`).join('')}</div>
+    ${map()}
+    <p class="mapnote"><b>6 schools and 3 hospitals</b> within 2 km. Groceries, a park and a bus stop are a short walk.</p>
+    <ul class="near tn" id="near">${NEAR.map((n,i)=>`<li data-c="${n[4]}" class="${i>=5?'x':''}"><div class="nm">${n[0]}<span>${n[1]}</span></div><div class="d">${n[2]} km<span>${n[3]}</span></div></li>`).join('')}</ul>
+    <button class="btn btn-out" id="allnear">Show all ${NEAR.length} places</button>
+    <h2 style="font-size:18px;margin-top:32px">How far is your place?</h2>
+    <label class="search" for="pl">${ic('search')}<input id="pl" placeholder="Office, school or family home" autocomplete="off"></label>
+    <ul class="sugg" id="sugg"></ul>
+    <div class="res" id="res"></div>
+    <p class="fine">Shared only with Rakesh. Times are approximate, without traffic. Map data © OpenStreetMap contributors.</p>
+   </div>
+   <div class="blk emi" id="cost"><h2>Monthly payment</h2>
+    <p class="big tn" id="emiv">₹65,955</p><p class="sub" id="emis">per month for 20 years</p>
+    <div class="sl"><div class="lab"><span>Loan</span><b class="tn" id="lv"></b></div><input type="range" id="lp" min="50" max="90" step="5" value="80" aria-label="Loan as percent of price"></div>
+    <div class="sl"><div class="lab"><span>Tenure</span><b class="tn" id="tv"></b></div><input type="range" id="tn" min="5" max="30" value="20" aria-label="Tenure in years"></div>
+    <div class="sl"><div class="lab"><span>Interest rate</span><b class="tn" id="rv"></b></div><input type="range" id="rt" min="7" max="12" step=".1" value="8.5" aria-label="Interest rate"></div>
+    <div class="cost tn"><div><span>Price</span><span>₹${inr(P.price)}</span></div><div><span>Stamp duty, 4.9%</span><span>₹${inr(P.price*.049)}</span></div><div><span>Registration, 1%</span><span>₹${inr(P.price*.01)}</span></div><div class="tot"><span>Total cost</span><span>₹${inr(P.price*1.059)}</span></div></div>
+   </div>
+   <div class="blk"><h2>Meet your agent</h2>
+    <div class="acard"><div class="who"><div class="av">RS<span class="vb">${ic('badge','style="width:20px;height:20px;color:var(--accent)"')}</span></div><h3>Rakesh</h3><span>Sharma Properties</span></div><i class="v"></i>
+     <div class="st tn"><div><b>24</b><span>Homes listed</span></div><div><b>12</b><span>Years in Vadodara</span></div><div><b>RERA</b><span>Registered</span></div></div></div>
+    <div class="alist"><div>${ic('lang')}Speaks Gujarati, Hindi and English</div><div>${ic('home')}Works in Gotri, Alkapuri and Vasna-Bhayli</div></div>
+    <div class="acts2"><button class="btn btn-out" style="margin:0">${ic('phone')}Call</button><button class="btn btn-p" id="bv2">${ic('cal')}Book a visit</button></div>
+    <button class="ask">${ic('chat')}<div><b>Not quite right?</b><span>Tell Rakesh what you are looking for</span></div><span class="chev">${ic('chev')}</span></button>
+   </div>
+   <div class="blk"><h2>Things to know</h2><div class="know">
+    <div>${ic('rupee')}<div><b>Maintenance</b><span>About ₹3,500 a month, paid to the society</span></div></div>
+    <div>${ic('doc')}<div><b>Documents</b><span>Clear title, society NOC available</span></div></div>
+    <div>${ic('brief')}<div><b>Brokerage</b><span>1% of the final price, payable on registration</span></div></div>
+   </div></div>
+   <footer class="foot"><span>with <span class="h">❤</span> from <a href="https://vectorscale.in" target="_blank" rel="noopener">PropPulse</a></span><button style="font-size:14px;text-decoration:underline;text-underline-offset:3px">Report listing</button></footer>
+  </div>
+ </div>
+ <div class="bb"><div class="p"><b class="tn">₹95 L</b><span>Negotiable</span></div><button class="btn btn-p" id="wa">${ic('wa')}WhatsApp Rakesh</button></div>
+ <div class="scrim" id="scrim"></div>
+ <div class="sheet" id="visit" role="dialog" aria-modal="true" aria-label="Book a visit"><div class="hd"><button class="circ" data-close aria-label="Close" style="box-shadow:none">${ic('x')}</button><h3>Book a visit</h3></div>
+  <div class="bd" id="vbd"></div><div class="ft" id="vft"></div></div>
+ <div class="sheet" id="photosheet" role="dialog" aria-modal="true" aria-label="All photos" style="max-height:94%"><div class="hd"><button class="circ" data-close aria-label="Close" style="box-shadow:none">${ic('x')}</button><h3>All photos</h3></div>
+  <div class="bd">${[['Building',['bldg']],['Living room',['living','living']],['Kitchen',['kitchen']],['Bedroom',['room']],['Balcony',['view']]].map(([c,ks])=>`<p class="capt">${c}</p><div class="grid2">${ks.map((k,i)=>`<div class="${ks.length===1||i===0&&ks.length===3?'w':''}"><img src="${IMG[k]}" alt="${c}" loading="lazy"></div>`).join('')}</div>`).join('')}</div></div>`;
+}
+
+const ph=$('#ph');
+function visitForm(){
+ const days=[['Today','21','Nov'],['Tomorrow','22','Nov'],['Sat','23','Nov'],['Sun','24','Nov'],['Mon','25','Nov'],['Tue','26','Nov']];
+ const slots=[['Morning','10 am to 12'],['Afternoon','2 to 5 pm'],['Evening','5 to 7 pm']];
+ $('#vbd').innerHTML=`<p class="q">Pick a day</p><div class="days">${days.map((d,i)=>`<button class="day" aria-pressed="${i===2}"><span>${d[0]}</span><b class="tn">${d[1]}</b><small>${d[2]}</small></button>`).join('')}</div>
+ <p class="q">Pick a time</p><div class="slots">${slots.map((s,i)=>`<button class="slot" aria-pressed="${i===2}"><b>${s[0]}</b><span>${s[1]}</span></button>`).join('')}</div>`;
+ const sum=()=>{const d=$('.day[aria-pressed=true]'),s=$('.slot[aria-pressed=true]');return `${d.querySelector('span').textContent} ${d.querySelector('b').textContent} Nov, ${s.querySelector('b').textContent.toLowerCase()}`};
+ const ft=()=>{$('#vft').innerHTML=`<div class="sum"><b>${sum()}</b>Rakesh confirms on WhatsApp</div><button class="btn btn-p" id="req">Request visit</button>`;
+  $('#req').onclick=()=>{const s=sum();$('#vbd').innerHTML=`<div class="ok on"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="none" stroke="var(--line)"/><path d="M20 33l8 8 17-18" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>Visit requested</h3><p>${s}. Rakesh will confirm the time on WhatsApp.</p></div>`;$('#vft').innerHTML=`<button class="btn btn-out" style="margin:0" data-close>Done</button>`;wireClose()}};
+ $$('#vbd .day,#vbd .slot').forEach(b=>b.onclick=()=>{const cls=b.classList.contains('day')?'.day':'.slot';$$('#vbd '+cls).forEach(x=>x.setAttribute('aria-pressed',x===b));ft()});ft();
+}
+function openSheet(id){ph.classList.add('dim');$('#'+id).classList.add('open');if(id==='visit')visitForm()}
+function closeSheets(){ph.classList.remove('dim');$$('.sheet',ph).forEach(s=>s.classList.remove('open'))}
+function wireClose(){$$('[data-close]',ph).forEach(b=>b.onclick=closeSheets)}
+
+function render(){
+ ph.dataset.mode=state.mode;
+ Object.entries(colours()).forEach(([k,v])=>ph.style.setProperty('--'+k,v));
+ const y=$('#scr')?.scrollTop;
+ ph.innerHTML=page();
+ if(y){$('#scr').classList.remove('enter');$('#scr').scrollTop=y}
+ wire();chrome();
+}
+function chrome(){
+ $('#sw').innerHTML=SCHEMES.map((s,i)=>`<button aria-pressed="${i===state.scheme}" aria-label="${s[0]}" title="${s[0]}" style="background:${s[1]}"></button>`).join('');
+ $('#modes').innerHTML=['light','dark'].map(m=>`<button aria-pressed="${m===state.mode}">${m==='light'?'Light':'Dark'}</button>`).join('');
+ $$('#sw button').forEach((b,i)=>b.onclick=()=>{state.scheme=i;render()});
+ $$('#modes button').forEach((b,i)=>b.onclick=()=>{state.mode=i?'dark':'light';render()});
+ document.documentElement.style.setProperty('--barh',$('#bar').offsetHeight+'px');
+}
+function wire(){
+ const scr=$('#scr'),gal=$('#gal'),cnt=$('#cnt');
+ gal.addEventListener('scroll',()=>{cnt.textContent=Math.round(gal.scrollLeft/gal.clientWidth)+1+' / 12'},{passive:true});
+ const secs=['photos','details','area','cost'];
+ const onScroll=()=>{const y=scr.scrollTop;ph.classList.toggle('scrolled',y>290);
+  let cur='photos';secs.forEach(s=>{const el=$('#'+s);if(el&&el.offsetTop-150<=y)cur=s});$$('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===cur))};
+ scr.addEventListener('scroll',onScroll,{passive:true});onScroll();
+ $$('#tabs button').forEach(b=>b.onclick=()=>{const el=$('#'+b.dataset.go);scr.scrollTo({top:Math.max(0,el.offsetTop-(b.dataset.go==='photos'?0:140)),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
+ $$('.heartb').forEach(h=>h.onclick=()=>{const on=h.getAttribute('aria-pressed')!=='true';$$('.heartb').forEach(x=>{x.setAttribute('aria-pressed',on);x.classList.remove('pop');void x.offsetWidth;if(on)x.classList.add('pop')})});
+ $('#more').onclick=()=>{const d=$('#desc');const o=d.classList.toggle('open');$('#more').textContent=o?'Show less':'Show more'};
+ $('#allnear').onclick=()=>{const l=$('#near');const all=!l.dataset.all;l.dataset.all=all?'1':'';$$('#near li').forEach((li,i)=>li.classList.toggle('x',!all&&i>=5&&!li.dataset.f));$('#allnear').textContent=all?'Show fewer':`Show all ${NEAR.length} places`};
+ $$('.chip').forEach(c=>c.onclick=()=>{$$('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c));const f=c.dataset.f;
+  $$('.map .pin').forEach(p=>p.classList.toggle('off',f!=='-1'&&p.dataset.c!==f));
+  $$('#near li').forEach((li,i)=>li.classList.toggle('x',f==='-1'?(i>=5&&!$('#near').dataset.all):li.dataset.c!==f))});
+ const lp=$('#lp'),tn=$('#tn'),rt=$('#rt');
+ const calc=()=>{const L=P.price*lp.value/100,n=tn.value*12,r=rt.value/1200,e=L*r*(1+r)**n/((1+r)**n-1);
+  $('#emiv').textContent='₹'+inr(e);$('#emis').textContent=`per month for ${tn.value} years`;$('#lv').textContent=`${short(L)} (${lp.value}%)`;$('#tv').textContent=`${tn.value} years`;$('#rv').textContent=`${(+rt.value).toFixed(1)}%`;
+  [lp,tn,rt].forEach(s=>s.style.setProperty('--p',(s.value-s.min)/(s.max-s.min)*100+'%'))};
+ [lp,tn,rt].forEach(s=>s.oninput=calc);calc();
+ const inp=$('#pl'),sg=$('#sugg'),res=$('#res');
+ inp.oninput=()=>{const q=inp.value.trim().toLowerCase();
+  sg.innerHTML=q.length<2?'':(MINE.filter(m=>(m[0]+' '+m[1]).toLowerCase().includes(q)).map(m=>`<li><button data-i="${MINE.indexOf(m)}"><span class="ib">${ic('pin2')||ic('search')}</span><span>${m[0]}<small>${m[1]}</small></span></button></li>`).join('')||'<li class="fine">No match in this sample. Try Alembic, University or Airport.</li>');
+  $$('button',sg).forEach(b=>b.onclick=()=>{const m=MINE[b.dataset.i];inp.value=m[0];sg.innerHTML='';
+   res.innerHTML=`<h3>${m[0]} is ${m[2]} km away</h3><div class="m tn"><div><b>${m[3]} min</b><span>Car</span></div><div><b>${m[4]} min</b><span>Two-wheeler</span></div><div><b>${m[2]<5?Math.round(m[2]*12)+' min':'–'}</b><span>${m[2]<5?'Walk':'Too far to walk'}</span></div></div>`;
+   res.classList.remove('on');void res.offsetWidth;res.classList.add('on')})};
+ $('#cnt').onclick=()=>openSheet('photosheet');
+ $('#bv2').onclick=()=>openSheet('visit');
+ $('#scrim').onclick=closeSheets;wireClose();
+ ph.onkeydown=e=>{if(e.key==='Escape')closeSheets()};
+}
+I.pin2=I.home;
+render();
+addEventListener('resize',()=>document.documentElement.style.setProperty('--barh',$('#bar').offsetHeight+'px'));
+</script>
