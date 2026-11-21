@@ -1,0 +1,153 @@
+<title>Signature Page Moodboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rasa:wght@400;500&family=Eczar:wght@500;600&family=Hind+Vadodara:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one reading column; references as horizontal strips of phone screens; plan as a wireframe beside numbered notes. */
+:root{--bg:#f6f6f4;--panel:#ffffff;--ink:#1a1b1d;--ink2:#4f5156;--muted:#707277;--line:rgba(26,27,29,.12);--accent:#1f5c45;--wf:#e4e4e0;--wf2:#cfcfca;
+ --serif:"Rasa",Georgia,serif;--sans:"Hind Vadodara",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141514;--panel:#1c1d1c;--ink:#ececea;--ink2:#b9bab5;--muted:#8f908b;--line:rgba(236,236,234,.12);--accent:#7fc4a6;--wf:#2a2b2a;--wf2:#3a3b39;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141514;--panel:#1c1d1c;--ink:#ececea;--ink2:#b9bab5;--muted:#8f908b;--line:rgba(236,236,234,.12);--accent:#7fc4a6;--wf:#2a2b2a;--wf2:#3a3b39;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--serif);font-weight:500;font-size:40px;line-height:1.08;margin:0 0 12px;letter-spacing:-.01em;text-wrap:balance}
+h2{font-family:var(--serif);font-weight:500;font-size:28px;line-height:1.15;margin:0 0 8px}
+h3{font-size:18px;font-weight:600;margin:0}
+p{margin:0}
+.lead{font-size:18px;color:var(--ink2);max-width:62ch}
+section{margin-top:64px}
+.sub{color:var(--ink2);max-width:62ch;margin-bottom:20px}
+.ref{border-top:1px solid var(--line);padding-top:20px;margin-top:28px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px}
+.ref .who{min-width:0}
+.ref .who p{font-size:14px;color:var(--muted);margin-top:2px}
+.ref ul{margin:14px 0 0;padding-left:18px;font-size:15px;color:var(--ink2)}
+.ref li{margin-bottom:6px}
+.ref li b{color:var(--ink);font-weight:500}
+.ref .leave{font-size:14px;color:var(--muted);margin-top:10px}
+.shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity;min-width:0}
+.shots img{flex:none;width:165px;height:auto;border-radius:12px;border:1px solid var(--line);scroll-snap-align:start;background:var(--panel)}
+.type{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.spec{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+.spec .tag{font-size:13px;color:var(--muted)}
+.spec .t{font-size:32px;line-height:1.1;margin:12px 0 6px}
+.spec .l{font-size:15px;color:var(--ink2)}
+.spec .p{font-size:40px;line-height:1;margin-top:18px}
+.spec .q{font-size:20px;line-height:1.4;margin-top:16px;color:var(--ink2)}
+.spec .g{font-size:18px;margin-top:12px;color:var(--muted)}
+.spec.rec{border-color:var(--accent)}
+.rec .tag{color:var(--accent);font-weight:500}
+.plan{display:grid;grid-template-columns:300px minmax(0,1fr);gap:40px;margin-top:8px;align-items:start}
+.phone{width:300px;border:1px solid var(--line);border-radius:36px;padding:10px;background:var(--panel);position:sticky;top:20px}
+.scr{border-radius:28px;overflow:hidden;background:var(--bg)}
+.b{background:var(--wf);border-radius:4px}
+.n{font-size:11px;font-weight:600;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--bg);display:inline-grid;place-items:center;flex:none}
+.wfrow{display:flex;gap:6px;align-items:center;padding:0 12px}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.steps li:first-child{border-top:1px solid var(--line)}
+.steps li::before{counter-increment:s;content:counter(s);font-size:12px;font-weight:600;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;margin-top:2px}
+.steps b{font-weight:600}
+.steps p{color:var(--ink2);font-size:15px;margin-top:2px}
+.decide{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:8px}
+.decide ol{margin:12px 0 0;padding-left:20px}
+.decide li{margin-bottom:10px}
+.decide li span{color:var(--muted)}
+.fine{font-size:13px;color:var(--muted);margin-top:40px}
+@media (max-width:760px){
+ h1{font-size:32px}
+ .ref{grid-template-columns:1fr;gap:12px}
+ .type{grid-template-columns:1fr}
+ .plan{grid-template-columns:1fr}
+ .phone{position:static;margin:0 auto}
+}
+</style>
+
+<div class="wrap">
+<header>
+ <h1>Signature property page: references and plan</h1>
+ <p class="lead">Before building again, here is what I want to learn from four real property websites, the font choice, and the exact order of the page. Nothing here is built yet. Approve or change it, then I build only this one screen.</p>
+</header>
+
+<section>
+ <h2>References</h2>
+ <p class="sub">Real pages captured on a phone today. Scroll each row sideways.</p>
+
+ <div class="ref"><div class="who"><h3>The Modern House</h3><p>London estate agent for design-led homes</p>
+  <ul><li><b>Photo first, then quiet facts.</b> Title, area and price as plain lines of text. No boxes.</li><li><b>Jump links</b> under the header: Floorplan, Map, Brochure.</li><li><b>One dark band</b> near the end: "Interested? Let's talk."</li></ul>
+  <p class="leave">Leave: tiny all-caps buttons, no WhatsApp.</p></div>
+  <div class="shots" data-r="tmh"></div></div>
+
+ <div class="ref"><div class="who"><h3>Inigo</h3><p>Sister agency for historic homes</p>
+  <ul><li><b>A one-line pitch</b> in the serif, before the long description.</li><li><b>Photos woven between paragraphs</b>, not dumped in a grid.</li><li><b>Warm, quiet ground</b> that lets photos glow.</li></ul>
+  <p class="leave">Leave: long essays; our buyers skim.</p></div>
+  <div class="shots" data-r="inigo"></div></div>
+
+ <div class="ref"><div class="who"><h3>Airbnb listing</h3><p>The benchmark for a property page on a phone</p>
+  <ul><li><b>Summary line</b> right under the title: 2 bedrooms, 2 beds, 2 baths.</li><li><b>Bottom bar</b>: price on the left, one clear action on the right.</li><li><b>Show all</b> buttons keep long lists short. A real map for location.</li></ul>
+  <p class="leave">Leave: rating badges, promotional pop-ups.</p></div>
+  <div class="shots" data-r="airbnb"></div></div>
+
+ <div class="ref"><div class="who"><h3>Lodha, Avalon Juhu</h3><p>Indian luxury developer</p>
+  <ul><li><b>Lots of space</b> and one idea per screen.</li><li><b>Small serif headings</b>, never shouted.</li><li><b>RERA details</b> are always visible, which buyers here expect.</li></ul>
+  <p class="leave">Leave: mood photos without facts; slow to reach price.</p></div>
+  <div class="shots" data-r="lodha"></div></div>
+</section>
+
+<section>
+ <h2>Font for headings and price</h2>
+ <p class="sub">Last round used Eczar, which is heavy and slightly quirky. The references use a calm book serif. Rasa is that kind of serif, made by an Indian type foundry, with ₹ and Gujarati. Text stays in Hind Vadodara in both.</p>
+ <div class="type">
+  <div class="spec rec"><p class="tag">Recommended: Rasa</p><p class="t" style="font-family:var(--serif)">3 BHK flat in Gotri</p><p class="l">Gotri, Vadodara</p><p class="p" style="font-family:var(--serif);font-weight:500">₹95 L</p><p class="q" style="font-family:var(--serif)">A park-facing home on the fifth floor, a short walk from Navrachana School.</p><p class="g" style="font-family:var(--serif)">ગોત્રી, વડોદરા · गोत्री</p></div>
+  <div class="spec"><p class="tag">Last round: Eczar</p><p class="t" style="font-family:'Eczar',serif;font-weight:600">3 BHK flat in Gotri</p><p class="l">Gotri, Vadodara</p><p class="p" style="font-family:'Eczar',serif;font-weight:600">₹95 L</p><p class="q" style="font-family:'Eczar',serif;font-weight:500">A park-facing home on the fifth floor, a short walk from Navrachana School.</p><p class="g" style="font-family:'Eczar',serif">ગોત્રી, વડોદરા · गोत्री</p></div>
+ </div>
+</section>
+
+<section>
+ <h2>The page, top to bottom</h2>
+ <p class="sub">Same content as before, in a calmer order. Grey blocks show where things sit, not how they look.</p>
+ <div class="plan">
+  <div class="phone" aria-hidden="true"><div class="scr">
+   <div style="height:22px"></div>
+   <div class="wfrow" style="height:28px"><span class="b" style="width:22px;height:22px;border-radius:6px"></span><span class="b" style="width:90px;height:9px"></span><span style="margin-left:auto" class="n">1</span></div>
+   <div class="b" style="height:250px;border-radius:0;margin-top:6px;position:relative"><span class="n" style="position:absolute;left:10px;top:10px">2</span></div>
+   <div style="padding:14px 12px 0;display:grid;gap:7px"><span class="b" style="width:70%;height:16px;background:var(--wf2)"></span><span class="b" style="width:40%;height:8px"></span><div style="display:flex;align-items:center;gap:8px"><span class="b" style="width:34%;height:20px;background:var(--wf2)"></span><span class="n">3</span></div><span class="b" style="width:86%;height:8px"></span></div>
+   <div class="wfrow" style="margin-top:12px;gap:10px"><span class="b" style="width:40px;height:7px"></span><span class="b" style="width:40px;height:7px"></span><span class="b" style="width:56px;height:7px"></span><span class="b" style="width:30px;height:7px"></span><span class="n" style="margin-left:auto">4</span></div>
+   <div style="height:12px"></div>
+   <div style="padding:0 12px;display:grid;gap:6px"><div style="display:flex;justify-content:space-between"><span class="b" style="width:30%;height:7px"></span><span class="b" style="width:24%;height:7px"></span></div><div style="display:flex;justify-content:space-between"><span class="b" style="width:26%;height:7px"></span><span class="b" style="width:30%;height:7px"></span></div><div style="display:flex;justify-content:space-between;align-items:center"><span class="b" style="width:22%;height:7px"></span><span class="n">5</span></div></div>
+   <div class="b" style="height:90px;border-radius:0;margin-top:14px;position:relative"><span class="n" style="position:absolute;left:10px;top:10px">6</span></div>
+   <div style="padding:12px;display:flex;gap:8px;align-items:center"><span class="b" style="width:70px;height:70px;border-radius:50%"></span><div style="flex:1;display:grid;gap:5px"><span class="b" style="height:7px"></span><span class="b" style="height:7px;width:70%"></span></div><span class="n">7</span></div>
+   <div style="background:var(--ink);height:70px;margin-top:6px;display:flex;align-items:center;padding:0 12px"><span class="n" style="background:var(--bg);color:var(--ink)">8</span></div>
+   <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--line)"><span class="b" style="width:60px;height:14px;background:var(--wf2)"></span><span style="display:flex;gap:6px;align-items:center"><span class="n">9</span><span style="width:110px;height:30px;border-radius:8px;background:var(--accent)"></span></span></div>
+  </div></div>
+  <ol class="steps">
+   <li><div><b>Agent name, Share and Save</b><p>Small and quiet. The agent's logo, generated from the name if they have none.</p></div></li>
+   <li><div><b>Photo, edge to edge</b><p>Swipe through, with a counter and an "All photos" button that opens a full-screen gallery grouped by room.</p></div></li>
+   <li><div><b>Title, area, price, and the agent's one-line pitch</b><p>Plain text in Rasa, like The Modern House. Price with "per sq ft" and Negotiable on one line. The pitch line is written by the AI from the voice note and the agent can edit it.</p></div></li>
+   <li><div><b>Jump links: Details, Photos, Area, Cost</b><p>They stay pinned under the top once you scroll, so a buyer can go straight to what they care about.</p></div></li>
+   <li><div><b>Details as one ruled list</b><p>BHK and bathrooms, carpet area, floor, facing, furnishing, possession, parking. Amenities follow as a short icon list with "Show all".</p></div></li>
+   <li><div><b>Photos between short paragraphs</b><p>Living room, kitchen and balcony, each with one line of description, like Inigo.</p></div></li>
+   <li><div><b>Area</b><p>A simple drawn map of the neighbourhood with the home as a circle (privacy kept), the five nearest places, and "How far is your place?".</p></div></li>
+   <li><div><b>Cost, then a dark "Talk to Rakesh" band</b><p>EMI and total cost with stamp duty. Then one dark band with the agent's photo, WhatsApp, Call and Book a visit, like the "Interested? Let's talk" band.</p></div></li>
+   <li><div><b>Bottom bar: price on the left, WhatsApp on the right</b><p>Like Airbnb. Book a visit moves into the band at step 8 and into WhatsApp replies, so the bar stays simple. Footer: with ❤ from PropPulse.</p></div></li>
+  </ol>
+ </div>
+</section>
+
+<section>
+ <h2>Please confirm</h2>
+ <div class="decide"><ol>
+  <li>Heading font: <b>Rasa</b> instead of Eczar. <span>Recommended.</span></li>
+  <li>Page order as above, steps 1 to 9.</li>
+  <li>Bottom bar shows <b>price + WhatsApp only</b>, with Book a visit in the agent band. <span>Or keep WhatsApp + Book a visit side by side.</span></li>
+  <li>Background: a quiet off-white, photos and the agent's colour carry the page.</li>
+ </ol></div>
+ <p class="fine">Screenshots belong to their owners and are used here only as private references. We take ideas and craft level, not their layout, words or images.</p>
+</section>
+</div>
+
+<script>
+/*REFS*/
+document.querySelectorAll('.shots').forEach(el=>{const r=el.dataset.r;el.innerHTML=[0,1,2,3].map(i=>`<img src="${REFS[r+i]}" alt="${r} screen ${i+1}" loading="lazy">`).join('')});
+</script>
