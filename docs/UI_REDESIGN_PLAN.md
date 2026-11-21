@@ -578,3 +578,72 @@ Later (bigger): 360° tours, nearby-places map, locality demand insights, white-
 | 8. Hardening | Visual + a11y matrix, Lighthouse budgets, low-end Android pass, Impeccable/Unslop sweep | Release |
 
 Every build phase: typecheck + unit + all E2E (+ new visual/contrast tests) → commit → push to `property-listing-app`.
+
+---
+
+## Part E: Location and neighbourhood intelligence
+
+### 30. Why
+
+For Indian buyers, *where* matters as much as *what*: school runs, parents' hospital access, office commute, daily needs, vastu. Today the page shows only "Gotri, Vadodara" + a Maps link. This section turns location into a visual, decision-making tool for buyers, a talking point for agents, and a differentiator for us.
+
+### 31. Features (useful, not gimmicks)
+
+**For buyers (on property and collection pages)**
+| Feature | What the buyer sees | Value |
+|---|---|---|
+| **Nearby summary** | Icon tiles: "6 schools within 2 km · 3 hospitals · 11 daily-needs shops · 2 parks" | Instant feel of the area |
+| **Nearest places ladder** | For each category the nearest 2–3 places: name, distance, drive / two-wheeler / walk time, a small relative-distance bar | Answers "how far is the school / hospital?" |
+| **Radial rings diagram** | Home at centre, rings at 1/2/3 km, coloured dots per category, filter chips | Understand the neighbourhood at a glance, without a heavy map |
+| **Add your place** | Buyer types office / child's school / parents' home → distance + times by car, two-wheeler, walk; saved as a chip ("Office · 18 min") | The most personal, decisive question; also a strong buying signal |
+| **Commute compare** (collections) | Bars comparing drive time from the buyer's place to each home in the shortlist; shortest highlighted | Makes choosing between homes easy |
+| **Transport** | Railway station, bus/BRTS stop, metro (where it exists), airport, highway access | Daily-life practicality |
+| **Vastu compass** | Compass graphic showing main-door facing + sunrise direction ("East facing · morning sun in living room") | Very relevant to Indian buyers; uses the existing "facing" field |
+| **Full map (on tap)** | Interactive map with category toggles, loaded only when tapped | Detail without slowing the page |
+
+**For agents**
+- **Auto-generated** at publish: zero work. The agent can hide categories, remove a wrong place, and **add landmarks** ("Opposite Gotri Lake", "5 min from upcoming metro station").
+- **Location highlights** suggested for the description and for the Status image / brochure ("3 schools within 1 km").
+- **Buyer insight:** when a buyer adds a place, the agent sees it on the buyer's profile ("Office: Alembic City · 18 min from Gotri 3 BHK"), shared with clear consent ("Only shared with Sharma Properties"). This makes better recommendations and better calls.
+- **Smarter matching:** buyer requirement can include "within 20 min of my office"; matching ranks by commute.
+
+**For us**
+- Every listing gains structured neighbourhood data, which feeds the future locality-insights and aggregator plans.
+
+**Later candidates:** drive-time zones ("15-min drive area"), upcoming-infrastructure tags curated by agents, locality price per sq ft from our own anonymised data, air quality, waterlogging reports. These are left out for now: the data is unreliable or not yet ours.
+
+### 32. Visual design
+
+- **Radial rings diagram** = pure SVG, themed by the look's tokens, works in light/dark, ~3 KB. This is the default visual, not a map.
+- **Distance ladder** rows with icons and proportional bars (dataviz rules: one accent, direct labels).
+- **Count tiles** in the look's tile style.
+- **Commute compare** horizontal bars, shortest bar in the primary colour.
+- **Compass** SVG with facing arrow and sun arc.
+- **Full map** only on tap: MapLibre + free OpenFreeMap tiles, lazy-loaded (≈200 KB only for those who open it).
+- Each look styles these differently (Minimal = hairline mono; Luxe = gold on dark; Bold = chunky coloured dots).
+
+### 33. Data, cost and privacy
+
+| Need | Source (pilot, ₹0) | Notes |
+|---|---|---|
+| Nearby places (schools, hospitals, shops, parks, transport) | **OpenStreetMap via Overpass API** | Free; attribution "© OpenStreetMap contributors" required; Indian tier-2 coverage is decent but incomplete, so agents can add/remove places |
+| Travel times | **OpenRouteService** (free key) or self-hosted OSRM later; fallback straight-line × road factor labelled "approx." | Times are "typical, without traffic"; we say so |
+| "Add your place" search | **Ola Maps** or **Mappls (MapmyIndia)** autocomplete (Indian address quality, free tiers) or Photon/Nominatim | Decision needed (§34) |
+| Map tiles (on tap) | **OpenFreeMap** (no key, free) | |
+
+- **Computed once at publish** (background job, cached in `listings.nearby jsonb`, refreshed monthly or when the pin moves). The buyer page makes **no** extra API calls for the summary, ladder or diagram, so it stays fast and free.
+- Only "Add your place" calls an API live (rate-limited, cached per place).
+- **Privacy:** for "area only" listings, distances are computed from the true pin on the server but **rounded** (0.5 km steps) and the home is drawn as an area circle, never a pin, so nobody can triangulate the exact building. "Hidden" location → only locality-level info, no ladder or diagram.
+- A buyer's places are stored in their buyer session and shared only with that agent.
+
+### 34. Decisions
+
+1. Address search provider for "Add your place": **Ola Maps** (recommended: Indian data, free tier) vs Mappls vs OSM-based (free, weaker Indian addresses).
+2. Show places of worship as a category? Useful to many buyers, but sensitive. *Recommendation: off by default; agent can enable it per listing.*
+
+### 35. Where it fits in the phases
+
+- **Phase 0 prototype:** neighbourhood section, Add-your-place, commute compare and vastu compass shown visually.
+- **Phase 2 (buyer surfaces):** summary tiles, ladder, radial diagram, compass, transport, lazy full map.
+- **Phase 3 (customisation):** agent landmark editor, category toggles.
+- **Phase 5 (quick wins):** Add your place, commute compare, buyer-place insight for agents, commute-aware matching.
