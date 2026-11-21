@@ -54,7 +54,7 @@ export function Gallery({ images, code, listingId, title }: { images: Img[]; cod
             <button aria-label="Next photo" onClick={() => go(1)} className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/85 p-2 shadow sm:block">
               <ChevronRight className="h-5 w-5" />
             </button>
-            <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
+            <span className="absolute bottom-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
               {idx + 1} / {images.length}
             </span>
           </>

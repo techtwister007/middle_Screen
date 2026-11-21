@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   if (!p.success) return bad("invalid");
   const from = normalizePhone(p.data.from);
   if (!from) return bad("bad phone");
-  const started = new Date(Date.now() - 1000);
+  const started = new Date();
   await handleInbound({ ...p.data, from, media: p.data.media ? { data: Buffer.from(p.data.media.base64, "base64"), mime: p.data.media.mime } : undefined });
   await runDueJobs(10);
   const replies = await db.select().from(waMessages).where(and(eq(waMessages.phone, from), eq(waMessages.direction, "out"), gt(waMessages.createdAt, started))).orderBy(asc(waMessages.createdAt));

@@ -13,3 +13,4 @@ next-env.d.ts
 bridge/baileys/auth/
 bridge/baileys/node_modules/
 backups/
+storage-test/

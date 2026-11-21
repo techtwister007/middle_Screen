@@ -144,8 +144,8 @@ export async function agentLeads(agentId: string, opts: { stage?: LeadStage | "h
   const rows = await db
     .select({
       lead: leads,
-      sharedCount: sql<number>`(select count(*) from ${shares} s where s.lead_id = ${leads.id})::int`,
-      lastEvent: sql<string | null>`(select e.type || '|' || coalesce(l.title,'') from ${events} e left join ${listings} l on l.id = e.listing_id where e.lead_id = ${leads.id} order by e.created_at desc limit 1)`,
+      sharedCount: sql<number>`(select count(*) from ${shares} s where s.lead_id = "leads"."id")::int`,
+      lastEvent: sql<string | null>`(select e.type || '|' || coalesce(l.title,'') from ${events} e left join ${listings} l on l.id = e.listing_id where e.lead_id = "leads"."id" order by e.created_at desc limit 1)`,
     })
     .from(leads)
     .where(and(...conds))
