@@ -174,6 +174,20 @@ test("price change keeps the same link; sold shows on buyer page", async ({ page
   await wa(request, AGENT, `available ${ref}`);
 });
 
+test("owner report: signed link shows activity, hides buyer names, rejects tampering", async ({ page, request }) => {
+  const msg = (await wa(request, AGENT, `report ${ref}`)).join();
+  const url = msg.match(/https?:\/\/\S+\/o\/\S+/)![0];
+  const path = new URL(url).pathname;
+  await page.goto(path);
+  await expect(page.getByText("Owner report")).toBeVisible();
+  await expect(page.getByText("Page views")).toBeVisible();
+  await expect(page.getByText("Interested buyers")).toBeVisible();
+  await expect(page.getByText("Asked for a site visit")).toBeVisible();
+  await expect(page.getByText("Priya")).toHaveCount(0);
+  const bad = await page.goto(path.slice(0, -2) + (path.endsWith("aa") ? "bb" : "aa"));
+  expect(bad?.status()).toBe(404);
+});
+
 test("agent website lists public properties", async ({ page, request }) => {
   await loginAgent(page, request, AGENT);
   await page.goto("/app/settings");

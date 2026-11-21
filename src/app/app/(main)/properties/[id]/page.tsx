@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { ExternalLink, Pencil, Eye, Users, Heart, CalendarCheck, Share2, AlertTriangle, Sparkles, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Pencil, Eye, Users, Heart, CalendarCheck, Share2, AlertTriangle, Sparkles, Image as ImageIcon, FileBarChart } from "lucide-react";
 import { CopyText } from "@/components/app/CopyText";
 import { PriceDropCard, type DropBuyer } from "@/components/app/PriceDropCard";
 import { db } from "@/db";
@@ -12,6 +12,7 @@ import { env } from "@/config/env";
 import { getListingWithProperty } from "@/modules/listings";
 import { listingMedia } from "@/modules/media";
 import { listingUrl } from "@/modules/shares";
+import { ownerReportUrl } from "@/modules/owner-report";
 import { matchingLeadsForListing } from "@/modules/matching";
 import { leadOptions } from "@/modules/lead-options";
 import { Badge, Card, LinkButton, PageHeader, Stat } from "@/components/ui";
@@ -223,6 +224,20 @@ export default async function PropertyDetail({ params, searchParams }: { params:
             )}
             <p className="text-xs text-stone-500">Personal links tell you exactly which buyer opened it. Public link is for groups and status.</p>
           </Card>
+
+          {l.status !== "draft" ? (
+            <Card className="space-y-3 p-4">
+              <p className="flex items-center gap-2 font-semibold"><FileBarChart className="h-4 w-4 text-brand-700" /> Owner report</p>
+              <p className="text-sm text-stone-600">A live page for the property owner: views, interest and visits. Buyer names stay private.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <a href={`https://wa.me/?text=${encodeURIComponent(`Namaste, here is the live update on your property "${l.title}": who viewed it, interest and site visits.\n\n${ownerReportUrl(id)}\n\n${agent.name || ""}`.trim())}`} target="_blank" rel="noopener" className="press flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#1f8f4e] text-sm font-semibold text-white">
+                  Send to owner
+                </a>
+                <CopyText label="Copy link" text={ownerReportUrl(id)} />
+              </div>
+              <a href={ownerReportUrl(id)} target="_blank" rel="noopener" className="block text-center text-xs font-semibold text-stone-500 underline underline-offset-2">See what the owner sees</a>
+            </Card>
+          ) : null}
           <Card className="p-4">
             <h3 className="mb-2 text-sm font-bold text-stone-700">Status</h3>
             <StatusControls

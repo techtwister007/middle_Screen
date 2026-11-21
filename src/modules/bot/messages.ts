@@ -44,7 +44,7 @@ export const M = {
   verifiedOk: (title: string) => `👍 Thanks! ${title} marked as available (verified today).`,
   contactAdded: (name: string, url: string) => `👤 Added *${name}* to your leads.\n${url}`,
   help: () =>
-    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M* then send a contact card — personal tracked link (add more refs for a shortlist)\n💰 *price K7Q2M 92L* — change price\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
+    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M* then send a contact card — personal tracked link (add more refs for a shortlist)\n💰 *price K7Q2M 92L* — change price\n📊 *report K7Q2M* — live report link for the owner\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
   unknown: () => `🤔 I didn't get that. Type *help* to see what I can do, or just forward property photos.`,
   buyerUnknown: () => `Hi! 👋 This number is used by property agents on ${brand.name}. If you're viewing a property, please contact the agent who shared it with you.`,
 };

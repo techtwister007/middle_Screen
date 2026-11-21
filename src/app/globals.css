@@ -204,6 +204,10 @@ body {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+@keyframes col-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
 
 /* Older class names kept so existing screens animate the same way */
 .animate-fade-up { animation: var(--animate-rise); }

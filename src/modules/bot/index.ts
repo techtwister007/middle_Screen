@@ -20,6 +20,7 @@ import { leadShare, listingUrl, collectionUrl, generalCollectionShare } from "..
 import { createCollection } from "../collections";
 import { markVerified } from "../verify";
 import { M } from "./messages";
+import { ownerReportUrl } from "../owner-report";
 
 type Agent = typeof agents.$inferSelect;
 
@@ -258,6 +259,16 @@ async function command(agent: Agent, from: string, text: string) {
     if (!l) return reply(from, M.notFound(m[1]), agent.id);
     const share = await publishListing(agent.id, l.id);
     return reply(from, M.published(l.title, listingUrl(share.code), l.ref), agent.id);
+  }
+
+  // report REF — owner report link
+  m = t.match(new RegExp(`^(?:owner\\s+)?report\\s+${REF}$`, "i"));
+  if (m) {
+    const l = await getListingByRef(agent.id, m[1]);
+    if (!l) return reply(from, M.notFound(m[1]), agent.id);
+    if (l.status === "draft") return reply(from, `*${l.title}* is still a draft. Publish it first, then the owner report starts filling up.`, agent.id);
+    const url = ownerReportUrl(l.id);
+    return reply(from, `📊 Owner report for *${l.title}*:\n${url}\n\nForward it to the owner. It updates live with views, interest and visits. Buyer names stay private.`, agent.id);
   }
 
   // price REF 92L
