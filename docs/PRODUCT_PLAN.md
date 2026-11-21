@@ -1,7 +1,7 @@
 # Property Listing Platform — Product Plan (v2, for discussion)
 
 Status: **brainstorm, not frozen**. Nothing gets built until you confirm.
-Product name: **TBD** (working name "the app"). Hosted on a subdomain of `vectorscale.in`.
+Product name: **TBD** (working name "the app"). Hosted at its own subdomain `{product}.vectorscale.in` (see §8).
 
 ---
 
@@ -28,6 +28,9 @@ Price: **₹500–1,000/month**. At this price the agent must *see* value every 
 | Buyer login | Never required |
 | Agent login | Once, via WhatsApp magic link. Stays logged in. |
 | Pilot city | Any — see §9 |
+| Pilot pricing | First month free, then ₹500/month (manual UPI) |
+| Admin panel | Protected page inside the main app (`/admin`) |
+| Chatsync costs | Platform fee + per-message fees, so the bot sends **one reply per batch** (not per photo), and alerts go via free web push, not WhatsApp |
 
 ---
 
@@ -190,16 +193,29 @@ Since AI runs on an online API, **the laptop is no longer on the critical path.*
 ### WhatsApp abstraction
 One `WhatsAppProvider` interface with two adapters: `BaileysAdapter` (laptop, testing) and `ChatsyncAdapter` (webhook, production). Same bot logic, so the switch is a config change.
 
-### Domain plan (`vectorscale.in`, your agency site stays at the root)
+### Domain plan: one subdomain per product
+`vectorscale.in` will host several products, so **each product owns exactly one subdomain** and everything for it lives under that subdomain as paths. Nothing is shared between products.
+
 | URL | Use |
 |---|---|
 | `vectorscale.in` | Your agency website (separate, untouched) |
-| `app.vectorscale.in` | Agent dashboard |
-| `go.vectorscale.in/p/a82k` | Short property link |
-| `go.vectorscale.in/c/r7mk` | Collection link |
-| `sharma.vectorscale.in` | Agent website (wildcard subdomain, free on Vercel + Cloudflare) |
+| `{product}.vectorscale.in` | Product landing page (for selling to agents) |
+| `{product}.vectorscale.in/app` | Agent dashboard (PWA) |
+| `{product}.vectorscale.in/p/a82k` | Short property link |
+| `{product}.vectorscale.in/c/r7mk` | Collection link |
+| `{product}.vectorscale.in/sharma` | Agent website |
+| `{product}.vectorscale.in/admin` | Your admin panel (protected) |
+| `{product}.vectorscale.in/api/...` | API + WhatsApp webhook |
 
-Later: buy a short, product-branded domain (~₹200–800/yr) and point it at the same app. Old links keep working.
+Why paths and not `sharma.{product}.vectorscale.in`: free SSL certificates cover only one subdomain level, and a nested wildcard needs a paid certificate. Paths are free, short and clean.
+
+**Per-product isolation (repeat for every future app):**
+- Its own Vercel project, bound only to `{product}.vectorscale.in`
+- Its own database project (note: Supabase free allows only **2 active projects per account**; future apps may use Neon free or a second account)
+- Its own R2 bucket `{product}-media`, its own env vars, keys and WhatsApp number
+- Its own repo/branch (this branch = this product)
+
+Later: a short, product-branded domain (~₹200–800/yr) can be pointed at the same app. Old links keep working.
 
 **Total cost for the pilot: ₹0** (domain already owned). Watch-outs: free-tier limits on AI calls/day and 10 GB of storage. Fine for 20 agents; revisit at ~100.
 
@@ -247,7 +263,5 @@ PDF brochure, teams/brokerages, builder projects, AI follow-up suggestions, cust
 ---
 
 ## 11. Still open
-1. **Product name** (we need one for the bot, pages and pitch). Want me to suggest a few?
-2. Is **Chatsync** already set up with a number (Meta-verified business)? Its pricing for incoming messages and webhooks? (Some providers charge a platform fee on top of Meta.)
-3. Admin panel: a separate laptop app, or a protected page in the main app? (Recommend the latter — simpler, and still free.)
-4. Free-trial policy for the pilot: free for the first month, then ₹500?
+1. **Product name**: pick from the shortlist in chat (sets `{product}`).
+2. Chatsync number: you will share it later. Development and testing proceed on Baileys meanwhile.
