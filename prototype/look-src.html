@@ -1,0 +1,473 @@
+<title>PropPulse Look</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Hind+Vadodara:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: three phones side by side on desktop; one phone with a screen switch on a phone. Warm paper ground, forest green actions. */
+:root{
+ --c-bg:#efeae0;--c-ink:#1c2620;--c-ink2:#4a554e;--c-muted:#6b756e;--c-line:rgba(28,38,32,.12);--c-panel:#fbf9f4;--c-sel:#1f4d36;--c-on-sel:#fff;
+ --ease:cubic-bezier(.22,1,.36,1);--font:"DM Sans","Hind Vadodara",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-bg:#0c100d;--c-ink:#eef2ec;--c-ink2:#b9c3bc;--c-muted:#8e9a92;--c-line:rgba(238,242,236,.12);--c-panel:#151b17;--c-sel:#cfe6d7;--c-on-sel:#10241a;color-scheme:dark}}
+:root[data-theme="dark"]{--c-bg:#0c100d;--c-ink:#eef2ec;--c-ink2:#b9c3bc;--c-muted:#8e9a92;--c-line:rgba(238,242,236,.12);--c-panel:#151b17;--c-sel:#cfe6d7;--c-on-sel:#10241a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--c-bg);color:var(--c-ink);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea{font:inherit}
+:focus-visible{outline:2px solid #2f7a55;outline-offset:2px;border-radius:10px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--c-bg);border-bottom:1px solid var(--c-line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--c-bg)}
+.bar-in{max-width:1320px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px;margin-right:auto}
+.logo svg{width:26px;height:26px}
+.logo span{font-weight:400;color:var(--c-muted);font-size:14px;margin-left:6px}
+.seg{display:inline-flex;background:var(--c-panel);border:1px solid var(--c-line);border-radius:12px;padding:3px;gap:2px}
+.seg button{height:34px;padding:0 13px;border-radius:9px;font-size:14px;color:var(--c-ink2);transition:background-color .18s var(--ease),color .18s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--c-sel);color:var(--c-on-sel)}
+#screens{display:none}
+.stage{max-width:1320px;margin:0 auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.cap{font-size:14px;color:var(--c-ink2);font-weight:500}
+.device{width:390px;height:844px;border-radius:52px;padding:10px;background:#0b0d0c;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 30px 60px -24px rgba(30,40,30,.35),0 10px 20px -10px rgba(30,40,30,.2);position:relative}
+.device::before{content:"";position:absolute;top:20px;left:50%;width:104px;height:30px;margin-left:-52px;background:#0b0d0c;border-radius:20px;z-index:80}
+.note{max-width:1320px;margin:0 auto;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));color:var(--c-muted);font-size:13.5px;text-align:center}
+@media (max-width:860px){
+ #screens{display:inline-flex}
+ .stage{padding:0;gap:0}
+ .col{display:none;width:100%}
+ .col.on{display:flex}
+ .cap{display:none}
+ .device{width:100%;height:calc(100dvh - var(--barh,110px));border-radius:0;padding:0;background:none;box-shadow:none}
+ .device::before{display:none}
+ .logo{width:100%}
+}
+
+/* ================= phone tokens ================= */
+.ph{
+ --bg:#f6f2ea;--card:#ffffff;--raised:#f1ece2;--ink:#1c2620;--ink2:#46524b;--muted:#68736b;--line:rgba(28,38,32,.1);--line2:rgba(28,38,32,.06);
+ --g:#1f4d36;--on-g:#ffffff;--g-ink:#1f4d36;--g-soft:#e3eee6;--g-soft-ink:#1d4a33;
+ --amber:#9a5a00;--amber-soft:#fbecd2;--wa:#1f8f4e;--red:#c03a3a;
+ --sh1:0 1px 2px rgba(28,38,32,.05),0 6px 18px rgba(28,38,32,.06);--sh2:0 2px 4px rgba(28,38,32,.06),0 14px 32px rgba(28,38,32,.1);
+ --map-land:#efe9dd;--map-road:#fbf8f2;--map-park:#d6e6d2;--map-water:#cde0ea;--map-block:#e6dfd1;--map-label:#8c8578;
+ height:100%;width:100%;border-radius:42px;overflow:hidden;position:relative;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;isolation:isolate}
+.ph.dark{
+ --bg:#101511;--card:#18201b;--raised:#212b25;--ink:#eef2ec;--ink2:#c5cec7;--muted:#97a39b;--line:rgba(238,242,236,.11);--line2:rgba(238,242,236,.06);
+ --g:#2f7a55;--on-g:#ffffff;--g-ink:#8fd1ad;--g-soft:#1e3328;--g-soft-ink:#a9dcc0;
+ --amber:#f2b35a;--amber-soft:#3a2b14;--wa:#3fbf72;--red:#ff7b7b;
+ --sh1:0 1px 0 rgba(255,255,255,.03) inset,0 6px 18px rgba(0,0,0,.35);--sh2:0 1px 0 rgba(255,255,255,.04) inset,0 14px 32px rgba(0,0,0,.5);
+ --map-land:#18201b;--map-road:#26302a;--map-park:#1d2f23;--map-water:#16262f;--map-block:#1f2823;--map-label:#869088}
+@media (max-width:860px){.ph{border-radius:0}}
+.ph *{transition:background-color .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease)}
+.ph ::selection{background:color-mix(in srgb,var(--g) 30%,transparent)}
+.scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}
+.scr::-webkit-scrollbar{display:none}
+.ph img{display:block;width:100%;height:100%;object-fit:cover}
+.ph h1,.ph h2,.ph h3,.ph p{margin:0}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tn{font-variant-numeric:tabular-nums lining-nums}
+.sbar{position:absolute;top:0;left:0;right:0;height:48px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font:600 15px/1 system-ui,sans-serif;z-index:40;pointer-events:none;color:var(--ink)}
+.sbar i{width:24px;height:11px;border-radius:3px;border:1.5px solid currentColor}
+.sbar{background:var(--bg)}
+.sbar.light{color:#fff;background:transparent}
+@media (max-width:860px){.sbar{display:none}}
+.pad{padding:0 20px}
+.top{padding-top:56px}
+@media (max-width:860px){.top{padding-top:14px}}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--sh1)}
+.h2{font-size:18px;font-weight:600;letter-spacing:-.005em}
+.btn{height:50px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;padding:0 18px;transition:transform .14s var(--ease),background-color .25s var(--ease);white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-g{background:var(--g);color:var(--on-g);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.btn-o{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn-wa{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn-wa .ico{color:var(--wa)}
+.circ{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--card);box-shadow:var(--sh1);color:var(--ink);transition:transform .14s var(--ease)}
+.circ:active{transform:scale(.92)}
+.circ[aria-pressed="true"] .ico{fill:var(--red);stroke:var(--red)}
+.circ.pop .ico{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.3)}100%{transform:scale(1)}}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:600;background:var(--g-soft);color:var(--g-soft-ink);flex:none;font-size:15px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:999px;font-size:13px;font-weight:600}
+.chip.hot{background:var(--amber-soft);color:var(--amber)}
+.chip.ok{background:var(--g-soft);color:var(--g-soft-ink)}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.tabs{display:flex;gap:6px;background:var(--raised);padding:4px;border-radius:14px}
+.tabs button{flex:1;height:38px;border-radius:11px;font-size:14px;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--sh1)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.enter>*{animation:rise .5s var(--ease) both}
+.enter>*:nth-child(2){animation-delay:.05s}.enter>*:nth-child(3){animation-delay:.1s}.enter>*:nth-child(4){animation-delay:.15s}.enter>*:nth-child(5){animation-delay:.2s}
+.panel{animation:rise .3s var(--ease) both}
+@media (prefers-reduced-motion:reduce){.ph *,.enter>*,.panel{animation:none!important;transition:none!important}}
+
+/* ---------- buyer property page ---------- */
+.hero{position:relative;height:330px}
+.hero .gal{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.hero .gal::-webkit-scrollbar{display:none}
+.hero .gal>div{flex:0 0 100%;scroll-snap-align:start}
+.hero::after{content:"";position:absolute;inset:0 0 auto;height:130px;background:linear-gradient(rgba(0,0,0,.38),transparent);pointer-events:none}
+.agentpill{position:absolute;left:16px;top:56px;z-index:2;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 4px;border-radius:999px;background:rgba(255,255,255,.94);color:#1c2620;font-size:14px;font-weight:600;box-shadow:var(--sh1)}
+.agentpill .av{width:32px;height:32px;font-size:12px;background:var(--g);color:#fff}
+.hero .acts{position:absolute;right:16px;top:56px;z-index:2;display:flex;gap:8px}
+.hero .acts .circ{background:rgba(255,255,255,.94);color:#1c2620}
+@media (max-width:860px){.agentpill,.hero .acts{top:14px}}
+.cnt{position:absolute;right:16px;bottom:42px;z-index:2;height:26px;padding:0 10px;border-radius:999px;background:rgba(15,20,17,.62);color:#fff;font-size:12.5px;font-weight:600;display:grid;place-items:center}
+.sum{position:relative;margin:-28px 12px 0;padding:20px 18px 18px;z-index:3}
+.sum h1{font-size:23px;line-height:1.2;font-weight:600;letter-spacing:-.01em}
+.sum .loc{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:14.5px;margin-top:6px}
+.sum .loc .ico{width:16px;height:16px}
+.prow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:14px}
+.price{font-size:30px;font-weight:700;color:var(--g-ink);letter-spacing:-.015em;line-height:1}
+.prow small{font-size:13.5px;color:var(--muted)}
+.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.specs div{background:var(--raised);border-radius:14px;padding:12px 8px;text-align:center}
+.specs b{display:block;font-size:16px;font-weight:600}
+.specs span{font-size:12.5px;color:var(--muted)}
+.ver{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;color:var(--ink2)}
+.ver .ico{width:16px;height:16px;color:var(--g-ink)}
+.ptabs{position:sticky;top:46px;z-index:10;background:var(--bg);padding:12px 12px 10px;margin-top:8px}
+@media (max-width:860px){.ptabs{top:0}}
+.ptabs.stuck{box-shadow:0 8px 16px -12px rgba(0,0,0,.25)}
+.sec{margin:12px;padding:18px}
+.sec .h2{margin-bottom:12px}
+.desc{color:var(--ink2);font-size:15px;line-height:1.6}
+.hl{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+.hl li{display:flex;gap:10px;font-size:14.5px}
+.hl .ico{width:18px;height:18px;color:var(--g-ink);margin-top:1px}
+.amen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.amen div{background:var(--raised);border-radius:14px;padding:14px 8px;text-align:center;font-size:13px;font-weight:500;display:grid;gap:6px;justify-items:center}
+.amen .ico{width:22px;height:22px;color:var(--g-ink)}
+.map{border-radius:16px;overflow:hidden;aspect-ratio:16/11;background:var(--map-land)}
+.map svg{display:block;width:100%;height:100%}
+.near{list-style:none;margin:12px 0 0;padding:0}
+.near li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.near li:last-child{border-bottom:0}
+.near .ib{width:36px;height:36px;border-radius:11px;background:var(--g-soft);color:var(--g-soft-ink);display:grid;place-items:center;flex:none}
+.near .ib .ico{width:18px;height:18px}
+.near .nm{flex:1;font-size:14.5px;line-height:1.25}
+.near .nm span{display:block;font-size:12.5px;color:var(--muted)}
+.near b{font-size:14px;font-weight:600}
+.emi .big{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.emi .sub{font-size:13.5px;color:var(--muted)}
+.sl{margin-top:14px}
+.sl .lab{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.sl .lab b{font-weight:600}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(var(--g),var(--g)) 0/var(--p,50%) 100% no-repeat,var(--raised)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--raised)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--g)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid var(--g);box-shadow:0 2px 6px rgba(0,0,0,.2);margin-top:-9px}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--g)}
+.cost{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:8px;font-size:14px}
+.cost div{display:flex;justify-content:space-between}
+.cost span:first-child{color:var(--ink2)}
+.cost .tot{font-weight:600}
+.cost .tot span:first-child{color:var(--ink)}
+.agent{display:flex;gap:12px;align-items:center}
+.agent .av{width:52px;height:52px;background:var(--g);color:#fff;font-size:17px}
+.agent b{display:block;font-size:16px;font-weight:600}
+.agent span{font-size:13.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.foot{padding:20px 20px 116px;font-size:13.5px;color:var(--muted);display:flex;justify-content:space-between}
+.foot a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.foot .h{color:var(--red)}
+.bb{position:absolute;left:12px;right:12px;bottom:12px;z-index:20;display:grid;grid-template-columns:50px 1fr 1.2fr;gap:8px;padding:8px;border-radius:22px;background:var(--card);box-shadow:var(--sh2);transition:transform .3s var(--ease)}
+.bb.hid{transform:translateY(130%)}
+.bb .heart{width:50px;height:50px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center}
+.bb .heart[aria-pressed="true"] .ico{fill:var(--red);stroke:var(--red)}
+.bb .heart.pop .ico{animation:pop .45s var(--ease)}
+
+/* sheet */
+.scrim{position:absolute;inset:0;z-index:30;background:rgba(10,14,11,.45);opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;background:var(--bg);border-radius:26px 26px 0 0;padding:10px 20px 20px;transform:translateY(102%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+.ph.dim .scrim{opacity:1;pointer-events:auto}
+.ph.dim .sheet{transform:none;transition:transform .45s var(--ease)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.sheet h3{font-size:19px;font-weight:600}
+.sheet .muted{font-size:14px;color:var(--muted);margin-top:2px}
+.q{font-size:14px;font-weight:600;margin:18px 0 8px}
+.days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.day{height:66px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:grid;place-content:center;text-align:center}
+.day span{font-size:12.5px;color:var(--muted)}
+.day b{font-size:20px;font-weight:600}
+.day[aria-pressed="true"]{background:var(--g);border-color:var(--g);color:var(--on-g)}
+.day[aria-pressed="true"] span{color:rgba(255,255,255,.8)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{height:44px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:600}
+.slot[aria-pressed="true"]{background:var(--g);border-color:var(--g);color:var(--on-g)}
+.ta{width:100%;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;font-size:14.5px}
+.ta::placeholder{color:var(--muted)}
+.okv{text-align:center;padding:18px 0 4px}
+.okv svg{width:64px;height:64px;margin:0 auto 12px;display:block}
+.okv path{stroke-dasharray:44;stroke-dashoffset:44;animation:draw .55s .1s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---------- agent home ---------- */
+.hello{display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.hello p{font-size:14px;color:var(--muted)}
+.hello h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin-top:2px}
+.hello .r{display:flex;gap:10px;align-items:center}
+.bell{position:relative}
+.bell i{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--card)}
+.quick{margin:20px 16px 0;padding:16px}
+.quick .h2{font-size:16px;margin-bottom:14px}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.qa button{display:grid;justify-items:center;gap:8px;font-size:12.5px;font-weight:500;line-height:1.25;text-align:center;padding:4px 0}
+.qa .ib{width:52px;height:52px;border-radius:16px;background:var(--g-soft);color:var(--g-soft-ink);display:grid;place-items:center;transition:transform .14s var(--ease)}
+.qa button:active .ib{transform:scale(.94)}
+.qa .ib .ico{width:22px;height:22px}
+.wa-tip{text-align:left;width:calc(100% - 32px);margin:12px 16px 0;padding:14px 16px;display:flex;gap:12px;align-items:center;border-radius:20px;background:var(--g);color:var(--on-g)}
+.wa-tip .ico{width:22px;height:22px}
+.wa-tip p{font-size:14px;line-height:1.35}
+.wa-tip b{font-weight:600;display:block;font-size:15px}
+.wa-tip .chev{margin-left:auto;opacity:.8}
+.secth{display:flex;justify-content:space-between;align-items:baseline;padding:0 20px;margin:26px 0 10px}
+.secth a,.secth button{font-size:14px;font-weight:600;color:var(--g-ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px}
+.stats div{padding:14px 14px 12px}
+.stats b{display:block;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stats span{font-size:13px;color:var(--muted)}
+.stats small{display:block;font-size:12px;color:var(--g-ink);font-weight:600;margin-top:4px}
+.att{margin:0 16px;padding:4px 16px}
+.att button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 0;border-bottom:1px solid var(--line2)}
+.att button:last-child{border-bottom:0}
+.att .t{flex:1;min-width:0}
+.att b{display:block;font-size:15px;font-weight:600}
+.att span{font-size:13.5px;color:var(--muted)}
+.att time{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.att .chev{color:var(--muted)}
+.att .av.ic{background:var(--amber-soft);color:var(--amber)}
+.nav{position:absolute;left:12px;right:12px;bottom:12px;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);padding:6px;border-radius:22px;background:var(--card);box-shadow:var(--sh2)}
+.nav button{display:grid;justify-items:center;gap:3px;height:54px;align-content:center;border-radius:16px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.nav button[aria-current="page"]{color:var(--g-ink);background:var(--g-soft)}
+.nav .ico{width:21px;height:21px}
+
+/* ---------- buyer (lead) detail ---------- */
+.lh{display:flex;align-items:center;gap:10px;padding:0 16px}
+.lh .t{flex:1;font-weight:600;font-size:16px;text-align:center}
+.who{margin:14px 16px 0;padding:18px;display:flex;gap:14px;align-items:center}
+.who .av{width:60px;height:60px;font-size:20px;background:var(--g);color:#fff}
+.who h1{font-size:21px;font-weight:600;letter-spacing:-.01em}
+.who p{font-size:13.5px;color:var(--muted);margin-top:2px}
+.who .chip{margin-top:8px}
+.why{margin:10px 16px 0;padding:14px 16px;font-size:14px;color:var(--ink2)}
+.why b{color:var(--ink);font-weight:600}
+.meter{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px}
+.meter i{height:6px;border-radius:3px;background:var(--raised)}
+.meter i.on{background:var(--amber)}
+.meter+div{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.ltabs{margin:16px 16px 0}
+.next{margin:14px 16px 0;padding:16px;background:var(--g-soft);border-radius:20px}
+.next p{font-size:13px;font-weight:600;color:var(--g-soft-ink)}
+.next b{display:block;font-size:17px;font-weight:600;margin-top:4px}
+.next span{font-size:14px;color:var(--ink2)}
+.next .two{margin-top:12px}
+.tl{margin:12px 16px 0;padding:6px 16px}
+.tl ol{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:12px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:13px;top:34px;bottom:-12px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl .d{width:28px;height:28px;border-radius:50%;background:var(--g-soft);color:var(--g-soft-ink);display:grid;place-items:center;z-index:1}
+.tl .d .ico{width:15px;height:15px;stroke-width:2}
+.tl b{font-size:14.5px;font-weight:600;display:block}
+.tl span{font-size:13px;color:var(--muted)}
+.tl time{font-size:12.5px;color:var(--muted)}
+.req{margin:12px 16px 0;padding:16px}
+.req dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:14.5px}
+.req dt{color:var(--muted)}
+.req dd{margin:0;font-weight:600;text-align:right}
+.props{margin:12px 16px 0;padding:6px 16px}
+.props .it{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line2)}
+.props .it:last-child{border-bottom:0}
+.props .th{width:56px;height:56px;border-radius:14px;overflow:hidden;flex:none}
+.props .t{flex:1;min-width:0}
+.props b{display:block;font-size:14.5px;font-weight:600}
+.props span{font-size:13px;color:var(--muted)}
+.props .chip{height:24px;font-size:12px;padding:0 9px}
+.notes{margin:12px 16px 0;padding:16px;display:grid;gap:12px}
+.notes .n{font-size:14.5px;color:var(--ink2)}
+.notes .n span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px}
+.addnote{display:flex;gap:8px}
+.addnote input{flex:1;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 14px}
+.addnote input::placeholder{color:var(--muted)}
+</style>
+
+<div>
+ <header class="bar" id="bar"><div class="bar-in">
+  <div class="logo"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#1f4d36"/><path d="M6.5 13 13 7.5l6.5 5.5v6h-4.2v-4.1h-4.6V19H6.5Z" fill="#fff"/></svg>PropPulse<span>look for the whole product</span></div>
+  <div class="seg" role="group" aria-label="Screen" id="screens"><button aria-pressed="true" data-s="0">Buyer page</button><button aria-pressed="false" data-s="1">Agent home</button><button aria-pressed="false" data-s="2">Buyer detail</button></div>
+  <div class="seg" role="group" aria-label="Mode" id="modes"><button aria-pressed="true" data-m="light">Light</button><button aria-pressed="false" data-m="dark">Dark</button></div>
+ </div></header>
+ <main class="stage">
+  <div class="col on"><div class="device"><div class="ph" id="p0"></div></div><p class="cap">Buyer property page</p></div>
+  <div class="col"><div class="device"><div class="ph" id="p1"></div></div><p class="cap">Agent home</p></div>
+  <div class="col"><div class="device"><div class="ph" id="p2"></div></div><p class="cap">Buyer detail, seen by the agent</p></div>
+ </main>
+ <p class="note">Sample data. Photos are stock stand-ins; names, numbers and RERA are placeholders. Try: switch tabs, tap Book visit, the heart, the EMI sliders and the buyer tabs.</p>
+</div>
+
+<script>
+/*IMGS*/
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const I={
+ back:'<path d="M15 18l-6-6 6-6"/>',share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
+ heart:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+ pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',chev:'<path d="m9 18 6-6-6-6"/>',
+ wa:'<path d="M3.5 20.5 5 16.3A8.5 8.5 0 1 1 8 19.3Z"/><path d="M9 9.2c0 2.6 2.2 5 5.2 5.6l1.1-1.2-1.6-1-1 .6a4 4 0 0 1-2-2l.6-1-1-1.6Z"/>',
+ phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
+ tree:'<path d="M12 22v-6"/><path d="M17 8A5 5 0 0 0 7 8c0 1 .3 2 .8 2.8A4 4 0 0 0 8 18h8a4 4 0 0 0 .2-7.2c.5-.8.8-1.8.8-2.8Z"/>',
+ school:'<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+ key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>',
+ lift:'<rect x="4" y="2" width="16" height="20" rx="3"/><path d="m9 8 3-3 3 3M9 16l3 3 3-3"/>',gym:'<path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/>',
+ car:'<path d="M5 17h14v-5l-2-5H7l-2 5v5Z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/>',bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>',
+ play:'<circle cx="12" cy="5" r="2"/><path d="M12 7v6M8 21l4-8 4 8M7 10h10"/>',cctv:'<path d="M3 7h14l-2 6H5Z"/><path d="M17 9l4-1v5l-4-1M8 13v4H4"/>',
+ cross:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',cart:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+ bus:'<rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 22l2-4M16 22l-2-4"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',userplus:'<circle cx="10" cy="8" r="4"/><path d="M2 21a8 8 0 0 1 14.5-4.6M19 14v6M16 17h6"/>',
+ grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+ home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',building:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+ users:'<circle cx="9" cy="8" r="4"/><path d="M1 21a8 8 0 0 1 16 0M17 4a4 4 0 0 1 0 8M23 21a8 8 0 0 0-5-7.4"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+ bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+ dots:'<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',flame:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-9-2 2-3 4-3 6-1-1-2-2-2-4-2 2-5 4-5 7a7 7 0 0 0 7 7Z"/>'
+};
+const ic=(n,c='')=>`<svg class="ico ${c}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const inr=n=>{n=Math.round(n);const s=String(n);if(s.length<=3)return s;return s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g,',')+','+s.slice(-3)};
+const short=n=>n>=1e7?'₹'+(+(n/1e7).toFixed(2))+' Cr':'₹'+(+(n/1e5).toFixed(2))+' L';
+const PRICE=9500000;
+let mode='light';
+
+function map(){
+ return `<div class="map"><svg viewBox="0 0 360 248" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map of the area around the home in Gotri">
+ <rect width="360" height="248" fill="var(--map-land)"/>
+ <g fill="var(--map-block)">${[[20,20,70,40],[110,16,60,34],[214,22,80,38],[26,96,46,50],[250,120,74,36],[22,190,84,44],[250,190,90,46],[196,74,30,24]].map(r=>`<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" rx="6"/>`).join('')}</g>
+ <path d="M54 150c28-26 66-18 74 6s-10 38-38 40-56-22-36-46Z" fill="var(--map-park)"/><path d="M68 162c13-14 36-12 44 2s-6 22-22 22-32-10-22-24Z" fill="var(--map-water)"/>
+ <path d="M-10 78C80 86 180 112 370 100" stroke="var(--map-road)" stroke-width="13" fill="none"/>
+ <path d="M150 -10C160 80 170 170 140 260" stroke="var(--map-road)" stroke-width="11" fill="none"/>
+ <path d="M-10 212C100 204 230 214 370 204" stroke="var(--map-road)" stroke-width="9" fill="none"/>
+ <text x="16" y="72" font-size="10" fill="var(--map-label)" font-family="DM Sans">Gotri Road</text><text x="92" y="200" font-size="10" fill="var(--map-label)" text-anchor="middle" font-family="DM Sans">Gotri Lake</text>
+ <circle cx="196" cy="146" r="52" fill="var(--g)" fill-opacity=".14" stroke="var(--g)" stroke-opacity=".45" stroke-dasharray="4 4"/>
+ ${[[244,124],[118,214],[262,176],[212,84],[96,112],[176,196]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="7" fill="var(--card)" stroke="var(--line)"/><circle cx="${x}" cy="${y}" r="3" fill="var(--ink2)"/>`).join('')}
+ <circle cx="196" cy="146" r="20" fill="var(--g)"/><path d="M187.5 147l8.5-7.5 8.5 7.5v7.5h-5.5v-4.5h-6v4.5h-5.5z" fill="#fff"/></svg></div>`;
+}
+
+/* ---------- screen 1: buyer property page ---------- */
+const PANES={
+ overview:()=>`<div class="card sec"><h2 class="h2">About this home</h2><p class="desc">A bright, fully furnished flat on the fifth floor of a well-kept society in Gotri. The living room opens onto a balcony over the society garden, and the kitchen comes fitted with a chimney and hob.</p>
+  <ul class="hl">${[['tree','Garden-facing balcony'],['school','0.8 km to Navrachana School'],['key','Ready to move, quick registration']].map(h=>`<li>${ic(h[0])}${h[1]}</li>`).join('')}</ul></div>
+  <div class="card sec emi"><h2 class="h2">Monthly payment</h2><p class="big tn" id="emiv">₹65,955</p><p class="sub" id="emis">per month for 20 years</p>
+  <div class="sl"><div class="lab"><span>Loan</span><b class="tn" id="lv"></b></div><input type="range" id="lp" min="50" max="90" step="5" value="80" aria-label="Loan as percent of price"></div>
+  <div class="sl"><div class="lab"><span>Tenure</span><b class="tn" id="tv"></b></div><input type="range" id="tn" min="5" max="30" value="20" aria-label="Tenure in years"></div>
+  <div class="sl"><div class="lab"><span>Interest</span><b class="tn" id="rv"></b></div><input type="range" id="rt" min="7" max="12" step=".1" value="8.5" aria-label="Interest rate"></div>
+  <div class="cost tn"><div><span>Stamp duty and registration</span><span>₹${inr(PRICE*.059)}</span></div><div class="tot"><span>Total cost</span><span>₹${inr(PRICE*1.059)}</span></div></div></div>`,
+ amenities:()=>`<div class="card sec"><h2 class="h2">Amenities</h2><div class="amen">${[['lift','Lift'],['gym','Gym'],['car','Covered parking'],['shield','24×7 security'],['bolt','Power backup'],['play','Play area'],['cctv','CCTV'],['tree','Garden'],['home','Clubhouse']].map(a=>`<div>${ic(a[0])}${a[1]}</div>`).join('')}</div></div>
+  <div class="card sec"><h2 class="h2">Details</h2><dl style="margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:14.5px">${[['Floor','5th of 12'],['Facing','East'],['Bathrooms','2'],['Parking','1 covered'],['Possession','Ready to move'],['Maintenance','₹3,500 a month']].map(r=>`<dt style="color:var(--muted)">${r[0]}</dt><dd style="margin:0;font-weight:600;text-align:right">${r[1]}</dd>`).join('')}</dl></div>`,
+ location:()=>`<div class="card sec"><h2 class="h2">Location</h2>${map()}<p style="font-size:13.5px;color:var(--muted);margin-top:10px">Approximate area. The exact address is shared after your visit is confirmed.</p>
+  <ul class="near tn">${[['school','Navrachana School','School',0.8],['cart','Reliance Smart','Grocery',0.5],['cross','Sunshine Global Hospital','Hospital',1.1],['tree','Gotri Lake Garden','Park',0.9],['bus','Gotri bus stop','Transport',0.4]].map(n=>`<li><span class="ib">${ic(n[0])}</span><div class="nm">${n[1]}<span>${n[2]}</span></div><b>${n[3]} km</b></li>`).join('')}</ul></div>`
+};
+function buyerPage(){
+ return `<div class="sbar light"><span>9:41</span><i></i></div><div class="scr" id="s0"><div class="enter">
+  <div class="hero"><div class="gal" id="gal">${['bldg','living','kitchen','view','room'].map((k,i)=>`<div><img src="${IMG[k]}" alt="${['Building','Living room','Kitchen','Balcony','Bedroom'][i]}"></div>`).join('')}</div>
+   <div class="agentpill"><span class="av">SP</span>Sharma Properties</div><div class="acts"><button class="circ" aria-label="Share">${ic('share')}</button></div><span class="cnt tn" id="cnt">1 / 12</span></div>
+  <div class="card sum"><h1>3 BHK apartment in Gotri</h1><p class="loc">${ic('pin')}Gotri, Vadodara</p>
+   <div class="prow"><span class="price tn">₹95 Lakh</span><small class="tn">₹6,552 per sq ft, negotiable</small></div>
+   <div class="specs tn"><div><b>3 BHK</b><span>Type</span></div><div><b>1,450</b><span>Sq ft</span></div><div><b>Furnished</b><span>Status</span></div></div>
+   <p class="ver">${ic('shield')}Available, confirmed by Rakesh 3 days ago</p></div>
+  <div class="ptabs" id="ptabs"><div class="tabs" role="tablist">${[['overview','Overview'],['amenities','Amenities'],['location','Location']].map(([k,v],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${k}">${v}</button>`).join('')}</div></div>
+  <div id="pane" class="panel">${PANES.overview()}</div>
+  <div class="card sec"><div class="agent"><span class="av">RS</span><div><b>Rakesh Sharma</b><span>Sharma Properties, RERA registered. Replies in about 10 min</span></div></div>
+   <div class="two"><button class="btn btn-o">${ic('phone')}Call</button><button class="btn btn-wa">${ic('wa')}WhatsApp</button></div></div>
+  <footer class="foot"><span>with <span class="h">❤</span> from <a href="https://vectorscale.in" target="_blank" rel="noopener">PropPulse</a></span><span>Report</span></footer>
+ </div></div>
+ <div class="bb" id="bb"><button class="heart" aria-label="Save" aria-pressed="false" id="heart">${ic('heart')}</button><button class="btn btn-wa">${ic('wa')}WhatsApp</button><button class="btn btn-g" id="bv">${ic('cal')}Book visit</button></div>
+ <div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Request a site visit" id="sheet"></div>`;
+}
+function visitSheet(ph){
+ const days=[['Mon','21'],['Tue','22'],['Wed','23'],['Thu','24']],slots=['9–11 AM','11–1 PM','3–5 PM'];
+ const sh=$('#sheet',ph);
+ sh.innerHTML=`<div class="grab"></div><h3>Request a site visit</h3><p class="muted">3 BHK apartment in Gotri</p>
+  <p class="q">Day</p><div class="days">${days.map((d,i)=>`<button class="day" aria-pressed="${i===1}"><span>${d[0]}</span><b class="tn">${d[1]}</b></button>`).join('')}</div>
+  <p class="q">Time</p><div class="slots">${slots.map((s,i)=>`<button class="slot" aria-pressed="${i===1}">${s}</button>`).join('')}</div>
+  <p class="q">Note for Rakesh</p><input class="ta" placeholder="Optional, e.g. prefer a higher floor">
+  <button class="btn btn-g" style="width:100%;margin-top:18px" id="conf">Confirm request</button>`;
+ $$('.day',sh).forEach(b=>b.onclick=()=>$$('.day',sh).forEach(x=>x.setAttribute('aria-pressed',x===b)));
+ $$('.slot',sh).forEach(b=>b.onclick=()=>$$('.slot',sh).forEach(x=>x.setAttribute('aria-pressed',x===b)));
+ $('#conf',sh).onclick=()=>{const d=$('.day[aria-pressed=true]',sh),s=$('.slot[aria-pressed=true]',sh);
+  sh.innerHTML=`<div class="grab"></div><div class="okv"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="var(--g-soft)"/><path d="M20 33l8 8 17-18" fill="none" stroke="var(--g-ink)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>Visit requested</h3><p class="muted">${d.querySelector('span').textContent} ${d.querySelector('b').textContent} Nov, ${s.textContent}. Rakesh will confirm on WhatsApp.</p></div><button class="btn btn-o" style="width:100%;margin-top:16px" id="done">Done</button>`;
+  $('#done',sh).onclick=()=>ph.classList.remove('dim')};
+}
+function wireBuyer(ph){
+ const scr=$('#s0',ph),gal=$('#gal',ph),bb=$('#bb',ph);let last=0;
+ gal.addEventListener('scroll',()=>{$('#cnt',ph).textContent=Math.round(gal.scrollLeft/gal.clientWidth)+1+' / 12'},{passive:true});
+ scr.addEventListener('scroll',()=>{const y=scr.scrollTop;$('.sbar',ph).classList.toggle('light',y<270);bb.classList.toggle('hid',y>last+4&&y>420);if(y<last-4)bb.classList.remove('hid');last=y;$('#ptabs',ph).classList.toggle('stuck',$('#ptabs',ph).getBoundingClientRect().top-scr.getBoundingClientRect().top<=parseFloat(getComputedStyle($('#ptabs',ph)).top)+1)},{passive:true});
+ const setPane=k=>{$$('[data-p]',ph).forEach(b=>b.setAttribute('aria-selected',b.dataset.p===k));const p=$('#pane',ph);p.innerHTML=PANES[k]();p.classList.remove('panel');void p.offsetWidth;p.classList.add('panel');if(k==='overview')wireEmi(ph)};
+ $$('[data-p]',ph).forEach(b=>b.onclick=()=>setPane(b.dataset.p));wireEmi(ph);
+ const h=$('#heart',ph);h.onclick=()=>{const on=h.getAttribute('aria-pressed')!=='true';h.setAttribute('aria-pressed',on);h.classList.remove('pop');void h.offsetWidth;if(on)h.classList.add('pop')};
+ $('#bv',ph).onclick=()=>{visitSheet(ph);ph.classList.add('dim')};
+ $('#scrim',ph).onclick=()=>ph.classList.remove('dim');
+ ph.onkeydown=e=>{if(e.key==='Escape')ph.classList.remove('dim')};
+}
+function wireEmi(ph){
+ const lp=$('#lp',ph),tn=$('#tn',ph),rt=$('#rt',ph);if(!lp)return;
+ const calc=()=>{const L=PRICE*lp.value/100,n=tn.value*12,r=rt.value/1200,e=L*r*(1+r)**n/((1+r)**n-1);
+  $('#emiv',ph).textContent='₹'+inr(e);$('#emis',ph).textContent=`per month for ${tn.value} years`;$('#lv',ph).textContent=`${short(L)} (${lp.value}%)`;$('#tv',ph).textContent=`${tn.value} years`;$('#rv',ph).textContent=`${(+rt.value).toFixed(1)}%`;
+  [lp,tn,rt].forEach(s=>s.style.setProperty('--p',(s.value-s.min)/(s.max-s.min)*100+'%'))};
+ [lp,tn,rt].forEach(s=>s.oninput=calc);calc();
+}
+
+/* ---------- screen 2: agent home ---------- */
+function agentHome(){
+ return `<div class="sbar"><span>9:41</span><i></i></div><div class="scr"><div class="enter top" style="padding-bottom:110px">
+  <div class="hello"><div><p>Good morning</p><h1>Rakesh Sharma</h1></div><div class="r"><button class="circ bell" aria-label="Notifications, 2 new">${ic('bell')}<i></i></button><span class="av" style="background:var(--g);color:#fff">RS</span></div></div>
+  <div class="card quick"><h2 class="h2">What would you like to do?</h2><div class="qa">${[['plus','Add property'],['userplus','Add buyer'],['grid','New collection'],['share','Share property']].map(q=>`<button><span class="ib">${ic(q[0])}</span>${q[1]}</button>`).join('')}</div></div>
+  <button class="wa-tip">${ic('wa')}<p><b>Fastest way to add a property</b>Send photos and a voice note to PropPulse on WhatsApp</p><span class="chev">${ic('chev')}</span></button>
+  <div class="secth"><h2 class="h2">Your business today</h2></div>
+  <div class="stats tn"><div class="card"><b>12</b><span>Live listings</span></div><div class="card"><b>48</b><span>Buyers</span><small>5 new this week</small></div><div class="card"><b>2</b><span>Visits today</span></div></div>
+  <div class="secth"><h2 class="h2">Needs attention</h2><button>See all</button></div>
+  <div class="card att">
+   <button><span class="av ic">${ic('flame')}</span><div class="t"><b>Rahul Sharma is ready to visit</b><span>Asked for Tue 22 Nov, 11 AM</span></div><time>2 min</time></button>
+   <button><span class="av">PP</span><div class="t"><b>Priya Patel opened your shortlist</b><span>Liked 2 of 4 homes</span></div><time>18 min</time></button>
+   <button><span class="av">${ic('cal')}</span><div class="t"><b>Site visit at 4:00 PM</b><span>Amit Shah, 3 BHK in Gotri</span></div><time>Today</time></button>
+   <button><span class="av">${ic('eye')}</span><div class="t"><b>2 buyers match your new listing</b><span>2 BHK in Alkapuri</span></div><time>1 h</time></button>
+  </div>
+ </div></div>
+ <nav class="nav" aria-label="Main">${[['home','Home'],['building','Properties'],['users','Buyers'],['grid','Collections'],['menu','More']].map((n,i)=>`<button ${i===0?'aria-current="page"':''}>${ic(n[0])}${n[1]}</button>`).join('')}</nav>`;
+}
+
+/* ---------- screen 3: buyer detail ---------- */
+const LT={
+ overview:()=>`<div class="next"><p>Next action</p><b>Confirm site visit</b><span>Tue 22 Nov, 11 AM, 3 BHK apartment in Gotri</span><div class="two"><button class="btn btn-o">${ic('phone')}Call</button><button class="btn btn-g">${ic('check')}Confirm</button></div></div>
+  <div class="card req"><h2 class="h2" style="margin-bottom:12px">Looking for</h2><dl><dt>Budget</dt><dd class="tn">₹80 L to ₹1 Cr</dd><dt>Type</dt><dd>3 BHK flat, to buy</dd><dt>Areas</dt><dd>Gotri, Alkapuri</dd><dt>Moving</dt><dd>Within 3 months</dd></dl></div>
+  <div class="card props"><div class="it"><div class="th"><img src="${IMG.bldg}" alt=""></div><div class="t"><b>3 BHK in Gotri</b><span class="tn">₹95 L, opened 3 times</span></div><span class="chip ok">Liked</span></div>
+   <div class="it"><div class="th"><img src="${IMG.living}" alt=""></div><div class="t"><b>3 BHK in Vasna-Bhayli</b><span class="tn">₹88 L, opened once</span></div><span class="chip" style="background:var(--raised);color:var(--muted)">Seen</span></div></div>`,
+ activity:()=>`<div class="card tl"><ol>${[['eye','Viewed 3 BHK in Gotri','Spent 4 min, saw all photos','10:42 AM'],['heart','Shortlisted it','From your collection link','10:48 AM'],['cal','Requested a site visit','Tue 22 Nov, 11 AM','11:02 AM'],['wa','Opened your WhatsApp link','Yesterday','6:15 PM']].map(t=>`<li><span class="d">${ic(t[0])}</span><div><b>${t[1]}</b><span>${t[2]}</span></div><time>${t[3]}</time></li>`).join('')}</ol></div>`,
+ notes:()=>`<div class="card notes"><div class="n">Wants a higher floor, wife works near Alembic City. Budget can stretch to ₹1 Cr for the right home.<span>You, yesterday</span></div><div class="addnote"><input placeholder="Add a note" aria-label="Add a note"><button class="btn btn-g" style="height:46px;padding:0 16px">Add</button></div></div>`
+};
+function buyerDetail(){
+ return `<div class="sbar"><span>9:41</span><i></i></div><div class="scr"><div class="enter top" style="padding-bottom:40px">
+  <div class="lh"><button class="circ" aria-label="Back">${ic('back')}</button><span class="t">Buyer</span><button class="circ" aria-label="More">${ic('dots')}</button></div>
+  <div class="card who"><span class="av">RS</span><div><h1>Rahul Sharma</h1><p class="tn">+91 98765 43210</p><span class="chip hot"><span class="dot"></span>Ready to visit</span></div></div>
+  <div class="card why"><b>Why:</b> opened the Gotri flat 3 times, shortlisted it and asked for a visit.<div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></div><div><span>Exploring</span><span>Interested</span><span>Ready</span></div></div>
+  <div class="ltabs tabs" role="tablist">${[['overview','Overview'],['activity','Activity'],['notes','Notes']].map(([k,v],i)=>`<button role="tab" aria-selected="${i===0}" data-l="${k}">${v}</button>`).join('')}</div>
+  <div id="lpane" class="panel">${LT.overview()}</div>
+ </div></div>`;
+}
+function wireLead(ph){
+ $$('[data-l]',ph).forEach(b=>b.onclick=()=>{$$('[data-l]',ph).forEach(x=>x.setAttribute('aria-selected',x===b));const p=$('#lpane',ph);p.innerHTML=LT[b.dataset.l]();p.classList.remove('panel');void p.offsetWidth;p.classList.add('panel')});
+}
+
+function render(){
+ const ps=[$('#p0'),$('#p1'),$('#p2')];
+ ps.forEach(p=>p.classList.toggle('dark',mode==='dark'));
+ ps[0].innerHTML=buyerPage();wireBuyer(ps[0]);
+ ps[1].innerHTML=agentHome();
+ ps[2].innerHTML=buyerDetail();wireLead(ps[2]);
+}
+$$('#modes button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;$$('#modes button').forEach(x=>x.setAttribute('aria-pressed',x===b));$$('.ph').forEach(p=>p.classList.toggle('dark',mode==='dark'))});
+$$('#screens button').forEach(b=>b.onclick=()=>{$$('#screens button').forEach(x=>x.setAttribute('aria-pressed',x===b));$$('.col').forEach((c,i)=>c.classList.toggle('on',i===+b.dataset.s))});
+render();
+const bh=()=>document.documentElement.style.setProperty('--barh',$('#bar').offsetHeight+'px');bh();addEventListener('resize',bh);
+</script>
