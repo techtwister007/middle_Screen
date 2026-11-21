@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { ExternalLink, Pencil, Eye, Users, Heart, CalendarCheck, Share2, AlertTriangle, Sparkles } from "lucide-react";
+import { ExternalLink, Pencil, Eye, Users, Heart, CalendarCheck, Share2, AlertTriangle, Sparkles, Image as ImageIcon } from "lucide-react";
+import { CopyText } from "@/components/app/CopyText";
 import { db } from "@/db";
 import { buyerActions, events, leads, shares } from "@/db/schema";
 import { requireAgent } from "@/lib/auth/session";
@@ -55,6 +56,17 @@ export default async function PropertyDetail({ params, searchParams }: { params:
   const sharedTo = await db.select({ s: shares, lead: leads }).from(shares).innerJoin(leads, eq(leads.id, shares.leadId)).where(eq(shares.listingId, id)).orderBy(desc(shares.createdAt)).limit(50);
   const images = ms.filter((m) => m.kind === "image");
   const publicUrl = general ? listingUrl(general.code) : null;
+  // Ready-to-paste text for 99acres / MagicBricks / Facebook / OLX posts
+  const portalText = [
+    l.title,
+    `${priceLabel(l)}${l.negotiable ? " (negotiable)" : ""}`,
+    keySpecs(p.type, l.fields ?? {}).map((x) => x.value).join(" · "),
+    [p.locality, p.city].filter(Boolean).join(", "),
+    l.fields?.amenities?.length ? `Amenities: ${l.fields.amenities.join(", ")}` : "",
+    l.description,
+    publicUrl ? `Photos, location and site-visit booking: ${publicUrl}` : "",
+    `Contact: ${agent.name || ""} +${agent.phone}`,
+  ].filter(Boolean).join("\n\n");
   const stale = Date.now() - new Date(l.verifiedAt).getTime() > env.LISTING_VERIFY_DAYS * 86400000;
   const live = l.status === "available" || l.status === "on_hold";
 
@@ -168,9 +180,17 @@ export default async function PropertyDetail({ params, searchParams }: { params:
           <Card className="space-y-3 p-4">
             <ShareButton target={{ listingId: id }} leads={opts} publicUrl={publicUrl} className="w-full" />
             {publicUrl ? (
-              <a href={publicUrl} target="_blank" rel="noopener" className="flex h-10 items-center justify-center gap-2 rounded-xl bg-stone-100 text-sm font-semibold">
+              <>
+              <a href={publicUrl} target="_blank" rel="noopener" className="press flex h-11 items-center justify-center gap-2 rounded-[14px] bg-stone-100 text-sm font-semibold">
                 <ExternalLink className="h-4 w-4" /> View buyer page
               </a>
+              <div className="grid grid-cols-2 gap-2">
+                <a href={`/api/status-image/${id}`} target="_blank" rel="noopener" className="press flex h-11 items-center justify-center gap-2 rounded-[14px] bg-stone-100 text-sm font-semibold">
+                  <ImageIcon className="h-4 w-4" /> Status image
+                </a>
+                <CopyText label="Copy for portals" text={portalText} />
+              </div>
+              </>
             ) : (
               <a href={`/app/properties/${id}/preview`} className="flex h-10 items-center justify-center gap-2 rounded-xl bg-stone-100 text-sm font-semibold">
                 <ExternalLink className="h-4 w-4" /> Preview
