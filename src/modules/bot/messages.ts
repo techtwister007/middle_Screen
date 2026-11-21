@@ -25,6 +25,11 @@ export const M = {
   discarded: () => `🗑️ Discarded. Send new photos anytime.`,
   notFound: (ref: string) => `I couldn't find a property with ref *${ref}*. Type *list* to see your properties.`,
   statusUpdated: (title: string, status: string) => `✔️ ${title} is now *${status}*.`,
+  brandSaved: (what: string, site: string) => `✔️ ${what}. Every property page and your website now use it.\n\nSee it: ${site}`,
+  colourHelp: (light: boolean, names: string[]) =>
+    `${light ? "That colour is too light: white text on it would be hard to read.\n\n" : ""}🎨 Pick a colour: ${names.map((n) => `*${n}*`).join(", ")}.\n\nExample: *colour maroon*. You can also send a dark hex code like *colour #1e3a5f*.`,
+  branding: (b: { name: string | null; company: string | null; tagline: string | null; colour: string; logo: boolean; photo: boolean; welcome: string; site: string }) =>
+    `🎨 *Your branding*\n\nName: ${b.name || "–"}\nCompany: ${b.company || "–"}\nTagline: ${b.tagline || "–"}\nColour: ${b.colour}\nLogo: ${b.logo ? "added" : "not added"} · Photo: ${b.photo ? "added" : "not added"}\nWelcome screen: ${b.welcome === "none" ? "off" : b.welcome === "splash" ? "full" : "short"}\n\n*To change:*\n• *colour maroon*\n• *name: Rakesh Sharma*\n• *company: Sharma Realty*\n• *tagline: Homes in Vadodara since 2005*\n• Send an image with caption *logo* or *photo*\n• *welcome off* / *welcome on* / *welcome full*\n\nYour website: ${b.site}`,
   priceDropped: (title: string, was: string, now: string, n: number, link: string) =>
     `✔️ Price lowered: ${title} → *${now}* (was ${was}). Buyers now see a "Price reduced" tag.\n\n${n} buyer${n > 1 ? "s" : ""} showed interest. Tell them in one tap each:\n${link}`,
   priceUpdated: (title: string, price: string) => `✔️ Price updated: ${title} → *${price}*. Same link, buyers see the new price.`,
@@ -44,7 +49,7 @@ export const M = {
   verifiedOk: (title: string) => `👍 Thanks! ${title} marked as available (verified today).`,
   contactAdded: (name: string, url: string) => `👤 Added *${name}* to your leads.\n${url}`,
   help: () =>
-    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M* then send a contact card — personal tracked link (add more refs for a shortlist)\n💰 *price K7Q2M 92L* — change price\n📊 *report K7Q2M* — live report link for the owner\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
+    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M* then send a contact card — personal tracked link (add more refs for a shortlist)\n💰 *price K7Q2M 92L* — change price\n📊 *report K7Q2M* — live report link for the owner\n🎨 *branding* — your colour, logo, name and tagline\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
   unknown: () => `🤔 I didn't get that. Type *help* to see what I can do, or just forward property photos.`,
   buyerUnknown: () => `Hi! 👋 This number is used by property agents on ${brand.name}. If you're viewing a property, please contact the agent who shared it with you.`,
 };

@@ -1,12 +1,13 @@
 "use client";
 
+import { BRAND_COLORS } from "@/lib/brand-colors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload } from "lucide-react";
 import { updateProfileAction } from "@/app/app/_actions/misc";
 
 type P = { name: string; company: string; tagline: string; city: string; areas: string; handle: string; brandColor: string; welcomeMode: "none" | "minimal" | "splash"; watermark: boolean; networkOptIn: boolean; photoUrl: string | null; logoUrl: string | null };
-const COLORS: [string, string][] = [["#1f4d36", "Forest"], ["#0f6b5f", "Teal"], ["#2b3c8c", "Indigo"], ["#1e3a5f", "Navy"], ["#7a1f2b", "Maroon"], ["#a3401f", "Terracotta"], ["#5b2a5e", "Plum"], ["#8a5a12", "Mustard"], ["#2b2d31", "Charcoal"], ["#0369a1", "Ocean"]];
+const COLORS = BRAND_COLORS;
 const input = "block w-full rounded-[14px] px-3.5 py-3 text-[15px] ring-1 ring-stone-200 outline-none focus:ring-2 focus:ring-brand-600 bg-white placeholder:text-stone-500";
 
 function Img({ kind, url, label }: { kind: "photo" | "logo"; url: string | null; label: string }) {

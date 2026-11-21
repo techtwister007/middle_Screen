@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import postgres from "postgres";
 import { E2E_ENV } from "../../playwright.config";
-import { fixture, firstUrl, loginAgent, onboardAgent, wa } from "./helpers";
+import { b64, fixture, firstUrl, loginAgent, onboardAgent, wa } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -223,4 +223,26 @@ test("festival greeting cards render in the agent's colours and need login", asy
   const custom = await page.request.get("/api/greeting/diwali?msg=" + encodeURIComponent("Shubh Deepavali"));
   expect(custom.headers()["content-type"]).toContain("image/png");
   expect((await page.request.get("/api/greeting/nope")).status()).toBe(404);
+});
+
+test("branding from WhatsApp: colour, name, company, tagline, logo, welcome", async ({ page, request }) => {
+  const A = "919800000277";
+  await onboardAgent(request, A, "Meera Shah");
+  expect((await wa(request, A, "colour maroon")).join()).toContain("Colour set to Maroon");
+  expect((await wa(request, A, "colour #ffee88")).join()).toContain("too light");
+  expect((await wa(request, A, "company: Shah Realty")).join()).toContain("Company set to Shah Realty");
+  expect((await wa(request, A, "tagline: Homes in Vadodara since 2005")).join()).toContain("Tagline updated");
+  expect((await wa(request, A, "welcome off")).join()).toContain("Welcome screen turned off");
+  const logo = (await wa(request, A, { type: "image", text: "logo", media: { base64: b64("avatar.png"), mime: "image/png" } })).join();
+  expect(logo).toContain("Logo");
+  const brand = (await wa(request, A, "branding")).join();
+  expect(brand).toMatch(/Colour: Maroon[\s\S]*Logo: added/);
+  expect(brand).toContain("Shah Realty");
+  // the logo is a branding image, not the start of a property draft
+  expect((await wa(request, A, "done")).join()).not.toContain("Draft");
+  await loginAgent(page, request, A);
+  await page.goto("/app/settings");
+  const handle = await page.locator("#handle").inputValue();
+  await page.goto(`/${handle}`);
+  await expect(page.getByText("Homes in Vadodara since 2005")).toBeVisible();
 });

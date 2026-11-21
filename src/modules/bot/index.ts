@@ -7,7 +7,8 @@ import { id } from "@/lib/ids";
 import { normalizePhone, waLink } from "@/lib/phone";
 import { inr, istDayRange, priceLabel } from "@/lib/format";
 import { parseAmount, parseSearchQuery } from "@/lib/ai/parse";
-import { processAvatar } from "@/lib/images";
+import { processAvatar, processLogo } from "@/lib/images";
+import { BRAND_COLORS, parseBrandColor } from "@/lib/brand-colors";
 import { storage } from "@/lib/storage";
 import { sendWhatsApp, type InboundMessage } from "@/lib/wa";
 import { createLoginToken } from "@/lib/auth/session";
@@ -109,6 +110,20 @@ export async function handleInbound(msg: InboundMessage & { mediaRef?: string },
           : msg.type === "document" && msg.media?.mime === "application/pdf"
             ? "doc"
             : null;
+  // Image captioned "logo" or "photo" → branding, not a property photo.
+  const brandKind = kind === "image" ? (/^(my\s+)?logo$/i.test(text) ? "logo" : /^(my\s+)?(photo|profile( photo| pic)?|dp|pic)$/i.test(text) ? "photo" : null) : null;
+  if (brandKind) {
+    try {
+      const m = await loadMedia();
+      const out = brandKind === "logo" ? await processLogo(m.data) : await processAvatar(m.data);
+      const url = await storage.put(`a/${agent.id}/brand/${brandKind}-${id().slice(0, 6)}.webp`, out, "image/webp");
+      await db.update(agents).set(brandKind === "logo" ? { logoUrl: url } : { photoUrl: url }).where(eq(agents.id, agent.id));
+    } catch (e) {
+      console.error("[bot] brand image failed", e);
+      return reply(from, `⚠️ Couldn't save your ${brandKind}. Please try another image.`, agent.id);
+    }
+    return reply(from, M.brandSaved(brandKind === "logo" ? "Logo" : "Profile photo", `${appUrl}/${agent.handle}`), agent.id);
+  }
   if (kind) {
     const { draft, created } = await getOrCreateDraft(agent.id);
     try {
@@ -190,6 +205,45 @@ async function onboarding(agent: Agent, msg: InboundMessage, text: string, loadM
 const STATUS_WORDS: Record<string, ListingStatus> = { sold: "sold", rented: "rented", hold: "on_hold", available: "available", unhold: "available", live: "available" };
 const STATUS_LABEL: Record<ListingStatus, string> = { draft: "Draft", available: "Available", on_hold: "On hold", sold: "Sold", rented: "Rented", archived: "Archived" };
 
+/** Change branding from WhatsApp. Returns the reply text, or null when the message isn't a branding command. */
+async function brandingCommand(agent: Agent, t: string): Promise<string | null> {
+  const site = `${appUrl}/${agent.handle}`;
+  if (/^(branding|brand|my brand|look|my look)$/i.test(t)) {
+    const colour = BRAND_COLORS.find(([h]) => h === agent.brandColor)?.[1] ?? agent.brandColor;
+    return M.branding({ name: agent.name, company: agent.company, tagline: agent.tagline, colour, logo: !!agent.logoUrl, photo: !!agent.photoUrl, welcome: agent.welcomeMode, site });
+  }
+  let m = t.match(/^(?:brand\s+)?colou?r\s*:?\s+(.+)$/i);
+  if (m) {
+    const c = parseBrandColor(m[1]);
+    if ("error" in c) return M.colourHelp(c.error === "light", BRAND_COLORS.map(([, n]) => n));
+    await db.update(agents).set({ brandColor: c.hex }).where(eq(agents.id, agent.id));
+    return M.brandSaved(`Colour set to ${c.name}`, site);
+  }
+  m = t.match(/^(?:welcome|splash|welcome screen)\s*:?\s+(off|none|on|minimal|simple|full|splash)$/i);
+  if (m) {
+    const v = /off|none/i.test(m[1]) ? "none" : /full|splash/i.test(m[1]) ? "splash" : "minimal";
+    await db.update(agents).set({ welcomeMode: v }).where(eq(agents.id, agent.id));
+    return M.brandSaved(v === "none" ? "Welcome screen turned off" : v === "splash" ? "Full welcome screen turned on" : "Short welcome screen turned on", site);
+  }
+  // name / company / tagline need a prefix that can't be property text ("name: Rakesh", "my name is Rakesh", "set company Sharma Realty")
+  m = t.match(/^(?:(?:set|change)\s+(?:my\s+)?name(?:\s+to)?|my name is|name\s*:)\s*(.{2,60})$/i);
+  if (m) {
+    await db.update(agents).set({ name: m[1].trim() }).where(eq(agents.id, agent.id));
+    return M.brandSaved(`Name set to ${m[1].trim()}`, site);
+  }
+  m = t.match(/^(?:(?:set|change)\s+(?:my\s+)?(?:company|firm|business)(?:\s+(?:name\s+)?to)?|company\s*:|firm\s*:)\s*(.{2,80})$/i);
+  if (m) {
+    await db.update(agents).set({ company: m[1].trim() }).where(eq(agents.id, agent.id));
+    return M.brandSaved(`Company set to ${m[1].trim()}`, site);
+  }
+  m = t.match(/^(?:(?:set|change)\s+(?:my\s+)?tagline(?:\s+to)?|tagline\s*:)\s*(.{2,90})$/i);
+  if (m) {
+    await db.update(agents).set({ tagline: m[1].trim() }).where(eq(agents.id, agent.id));
+    return M.brandSaved("Tagline updated", site);
+  }
+  return null;
+}
+
 async function command(agent: Agent, from: string, text: string) {
   const t = text.trim();
   const lower = t.toLowerCase();
@@ -208,6 +262,10 @@ async function command(agent: Agent, from: string, text: string) {
     await setListingStatus(agent.id, l.id, "archived");
     return reply(from, M.discarded(), agent.id);
   }
+
+  // Branding: colour / name / company / tagline / welcome / branding
+  const brandCmd = await brandingCommand(agent, t);
+  if (brandCmd) return reply(from, brandCmd, agent.id);
 
   // done / new — finish the current batch
   if (/^(done|ok done|finish|finished|bas|ho gaya|create|new)$/i.test(t)) {
