@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Bell, BarChart3, Settings, CreditCard, MessageCircle, ShieldCheck, Download, LifeBuoy, LogOut, Globe } from "lucide-react";
+import { CalendarDays, Bell, BarChart3, Settings, CreditCard, MessageCircle, ShieldCheck, Download, LifeBuoy, LogOut, Globe, Sparkles } from "lucide-react";
 import { requireAgent } from "@/lib/auth/session";
 import { waLink } from "@/lib/phone";
 import { botNumber } from "@/lib/wa";
@@ -14,6 +14,7 @@ export default async function More() {
     { href: "/app/visits", label: "Site visits", icon: CalendarDays },
     { href: "/app/activity", label: "Activity", icon: Bell },
     { href: "/app/insights", label: "Insights", icon: BarChart3 },
+    { href: "/app/greetings", label: "Festival greeting cards", icon: Sparkles },
     { href: `/${agent.handle}`, label: "My agent website", icon: Globe },
     { href: "/app/settings", label: "Profile & branding", icon: Settings },
     { href: "/app/settings/billing", label: "Plan & billing", icon: CreditCard },

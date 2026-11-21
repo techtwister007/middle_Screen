@@ -210,3 +210,17 @@ test("lead CSV export", async ({ page, request }) => {
   expect(csv).toContain("Karan Mehta");
   expect(csv).not.toContain("Priya Patel"); // other agent's lead
 });
+
+test("festival greeting cards render in the agent's colours and need login", async ({ page, request }) => {
+  expect((await request.get("/api/greeting/diwali")).status()).toBe(401);
+  await loginAgent(page, request, AGENT);
+  await page.goto("/app/more");
+  await page.getByRole("link", { name: "Festival greeting cards" }).click();
+  await page.getByRole("button", { name: /Diwali/ }).first().click();
+  const img = page.getByRole("img", { name: "Happy Diwali card" });
+  await expect(img).toBeVisible();
+  await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(1080);
+  const custom = await page.request.get("/api/greeting/diwali?msg=" + encodeURIComponent("Shubh Deepavali"));
+  expect(custom.headers()["content-type"]).toContain("image/png");
+  expect((await page.request.get("/api/greeting/nope")).status()).toBe(404);
+});

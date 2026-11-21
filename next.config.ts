@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   poweredByHeader: false,
   // fonts read from disk when rendering shareable images
-  outputFileTracingIncludes: { "/api/status-image/[id]": ["./src/assets/fonts/**"] },
+  outputFileTracingIncludes: { "/api/status-image/[id]": ["./src/assets/fonts/**"], "/api/greeting/[id]": ["./src/assets/fonts/**"] },
 };
 
 export default nextConfig;
