@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Upload } from "lucide-react";
 import { updateProfileAction } from "@/app/app/_actions/misc";
 
-type P = { name: string; company: string; tagline: string; city: string; areas: string; handle: string; brandColor: string; welcomeMode: "none" | "minimal" | "splash"; watermark: boolean; networkOptIn: boolean; photoUrl: string | null; logoUrl: string | null };
+type P = { name: string; company: string; tagline: string; city: string; areas: string; handle: string; brandColor: string; welcomeMode: "none" | "minimal" | "splash"; pageLook: "signature" | "classic"; watermark: boolean; networkOptIn: boolean; photoUrl: string | null; logoUrl: string | null };
 const COLORS = BRAND_COLORS;
 const input = "block w-full rounded-[14px] px-3.5 py-3 text-[15px] ring-1 ring-stone-200 outline-none focus:ring-2 focus:ring-brand-600 bg-white placeholder:text-stone-500";
 
@@ -86,6 +86,17 @@ export function ProfileForm({ initial, appUrl }: { initial: P; appUrl: string })
           <input type="color" value={p.brandColor} onChange={(e) => set("brandColor", e.target.value)} aria-label="Custom colour" className="h-9 w-9 cursor-pointer rounded-full" />
         </div>
         <Preview p={p} />
+        <p className="text-[16px] font-semibold">Page look</p>
+        <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Page look">
+          {(["signature", "classic"] as const).map((k) => (
+            <button key={k} type="button" role="radio" aria-checked={p.pageLook === k} onClick={() => set("pageLook", k)} className={`press rounded-[18px] p-2.5 text-left ring-2 transition-shadow ${p.pageLook === k ? "bg-white ring-stone-900" : "bg-stone-100 ring-transparent"}`}>
+              <LookThumb look={k} color={p.brandColor} />
+              <span className="mt-2 block text-sm font-semibold">{k === "signature" ? "Signature" : "Classic"}</span>
+              <span className="block text-xs text-stone-500">{k === "signature" ? "Big photo first, airy" : "Compact, details first"}</span>
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-stone-500">Applies to every property. You can pick a different look for one property in its editor.</p>
         <p className="text-[16px] font-semibold">When a buyer opens your link</p>
         <div className="grid grid-cols-3 gap-2">
           <button type="button" className={chip(p.welcomeMode === "none")} onClick={() => set("welcomeMode", "none")}>Straight to property</button>
@@ -134,6 +145,35 @@ function Preview({ p }: { p: P }) {
         <p className="tnum mt-1 text-[24px] font-bold tracking-tight text-agent transition-colors duration-300">₹95 L</p>
         <div className="mt-3 flex h-11 items-center justify-center rounded-[14px] text-sm font-semibold text-white transition-colors duration-300" style={{ background: p.brandColor }}>Book site visit</div>
       </div>
+    </div>
+  );
+}
+
+/** Tiny schematic of each buyer page layout, drawn in the agent's colour. */
+function LookThumb({ look, color }: { look: "signature" | "classic"; color: string }) {
+  const bar = "rounded-full bg-stone-300";
+  if (look === "signature")
+    return (
+      <div className="relative h-[120px] overflow-hidden rounded-[12px] bg-[#f6f2ea]" aria-hidden>
+        <div className="h-[62px] bg-gradient-to-br from-stone-400 to-stone-500" />
+        <div className="absolute inset-x-2 top-[48px] rounded-[10px] bg-white p-2 shadow-sm">
+          <div className={`h-1.5 w-3/4 ${bar}`} />
+          <div className="mt-1.5 h-2.5 w-1/3 rounded-full" style={{ background: color }} />
+          <div className="mt-1.5 grid grid-cols-3 gap-1"><div className="h-3 rounded bg-stone-100" /><div className="h-3 rounded bg-stone-100" /><div className="h-3 rounded bg-stone-100" /></div>
+        </div>
+        <div className="absolute inset-x-2 bottom-1.5 h-3.5 rounded-md" style={{ background: color }} />
+      </div>
+    );
+  return (
+    <div className="relative h-[120px] overflow-hidden rounded-[12px] bg-[#f6f2ea]" aria-hidden>
+      <div className="flex h-4 items-center gap-1 px-1.5" style={{ background: color }}><div className="h-2 w-2 rounded-full bg-white/80" /><div className="h-1 w-8 rounded-full bg-white/70" /></div>
+      <div className="bg-white px-2 pb-1.5 pt-1.5">
+        <div className={`h-1.5 w-3/4 ${bar}`} />
+        <div className="mt-1 h-2 w-1/4 rounded-full" style={{ background: color }} />
+      </div>
+      <div className="mx-1.5 mt-1 grid grid-cols-[2fr_1fr] gap-0.5"><div className="h-[34px] rounded-l bg-stone-400" /><div className="grid gap-0.5"><div className="rounded-tr bg-stone-300" /><div className="rounded-br bg-stone-300" /></div></div>
+      <div className="mx-1.5 mt-1 space-y-0.5 rounded bg-white p-1"><div className="h-1 w-full rounded-full bg-stone-200" /><div className="h-1 w-full rounded-full bg-stone-200" /></div>
+      <div className="absolute inset-x-0 bottom-0 flex h-4 items-center justify-between bg-white px-1.5 shadow-[0_-1px_0_rgba(0,0,0,.06)]"><div className="h-1.5 w-6 rounded-full" style={{ background: color }} /><div className="h-2.5 w-10 rounded" style={{ background: color }} /></div>
     </div>
   );
 }

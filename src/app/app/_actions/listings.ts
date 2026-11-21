@@ -39,6 +39,7 @@ const ListingSchema = z.object({
   showBuilding: z.boolean(),
   locationPrivacy: z.enum(["exact", "area", "hidden"]),
   youtubeUrl: z.string().trim().max(300).nullable(),
+  look: z.enum(["signature", "classic"]).nullable().optional(),
   visibility: z.enum(["private", "network"]),
   fields: z.object({
     bhk: num.optional(),

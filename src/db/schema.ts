@@ -21,6 +21,8 @@ const created = () => ts("created_at").notNull().defaultNow();
 /* ------------------------------------------------------------------ */
 
 export type WelcomeMode = "none" | "minimal" | "splash";
+/** Buyer page layout: signature (photo-first, airy) or classic (compact, details-first). */
+export type PageLook = "signature" | "classic";
 export type BotContext = {
   /** Onboarding step when not finished. */
   onboarding?: "name" | "company" | "photo" | "promise";
@@ -45,6 +47,7 @@ export const agents = pgTable(
     areas: text("areas"),
     brandColor: text("brand_color").notNull().default("#1f4d36"),
     welcomeMode: text("welcome_mode").$type<WelcomeMode>().notNull().default("minimal"),
+    pageLook: text("page_look").$type<PageLook>().notNull().default("signature"),
     watermark: boolean("watermark").notNull().default(true),
     networkOptIn: boolean("network_opt_in").notNull().default(true),
     promiseAcceptedAt: ts("promise_accepted_at"),
@@ -204,6 +207,8 @@ export const listings = pgTable(
     /** Deal attribution: the lead this property was sold/rented to (pilot proof-of-value). */
     closedLeadId: text("closed_lead_id"),
     /** Set when the agent lowers the price: shown to buyers as "Price reduced" and used for price-drop alerts. */
+    /** Overrides the agent's page look for this listing; null = use the agent's. */
+    look: text("look").$type<PageLook>(),
     prevPrice: bigint("prev_price", { mode: "number" }),
     priceDroppedAt: timestamp("price_dropped_at", { withTimezone: true }),
     closedAt: ts("closed_at"),

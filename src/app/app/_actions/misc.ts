@@ -47,6 +47,7 @@ const Profile = z.object({
   handle: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,40}$/, "Handle: 3-40 letters, numbers or dashes"),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   welcomeMode: z.enum(["none", "minimal", "splash"]),
+  pageLook: z.enum(["signature", "classic"]),
   watermark: z.boolean(),
   networkOptIn: z.boolean(),
 });

@@ -208,13 +208,97 @@ export function ListingView({
     window.scrollTo({ top: y, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
   const initials = agent.displayName.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
-  const card = "mx-3 rounded-[22px] bg-white p-5 shadow-card sm:mx-0";
+  const classic = (l.look ?? agent.pageLook) === "classic";
+  const card = classic ? "mx-3 rounded-[16px] bg-white p-4 ring-1 ring-stone-200/70 sm:mx-0" : "mx-3 rounded-[22px] bg-white p-5 shadow-card sm:mx-0";
 
   return (
     <div style={{ ["--agent" as string]: agent.brandColor }} className="min-h-screen bg-stone-50 pb-32">
       {splash ? <Splash agent={agent} onDone={() => setSplash(false)} /> : null}
 
       <main className="mx-auto max-w-3xl sm:px-4 sm:pt-4">
+        {classic ? (
+          <>
+            <div className="flex h-14 items-center gap-2 bg-agent px-3 text-white sm:rounded-[16px]">
+              {backHref ? (
+                <Link href={backHref} aria-label="Back" className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+                  <ChevronLeft className="h-5 w-5" />
+                </Link>
+              ) : null}
+              {agent.logoUrl || agent.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={(agent.logoUrl ?? agent.photoUrl)!} alt="" className="h-9 w-9 rounded-full bg-white object-cover" />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-[13px] font-semibold">{initials}</span>
+              )}
+              <span className="min-w-0 flex-1 truncate font-semibold">{agent.displayName}</span>
+              <button onClick={share} aria-label="Share" className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/15"><Share2 className="h-[18px] w-[18px]" /></button>
+              <button onClick={toggleSave} aria-label={state.saved ? "Saved" : "Save"} className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+                <Heart key={String(state.saved)} className={`h-[18px] w-[18px] ${state.saved ? "fill-white [animation:pop_.45s_cubic-bezier(.22,1,.36,1)]" : ""}`} />
+              </button>
+            </div>
+            <section className="stagger bg-white px-4 pb-4 pt-4 sm:mt-3 sm:rounded-[16px]">
+          {greetingName ? <p className="mb-2 text-sm font-semibold text-agent">Hi {greetingName.split(" ")[0]}, selected for you</p> : null}
+              <div className="flex flex-wrap items-center gap-2">
+                {sold ? (
+                  <span className="rounded-full bg-[#4a544e] px-2.5 py-1 text-xs font-semibold text-white">{l.status === "sold" ? "Sold" : "Rented"}</span>
+                ) : l.status === "on_hold" ? (
+                  <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">On hold</span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800"><span className="h-1.5 w-1.5 rounded-full bg-current" />Available</span>
+                )}
+                <span className="text-xs text-stone-500">
+                  {l.typeLabel} · For {l.purpose === "rent" ? "rent" : "sale"} · #{l.ref}
+                </span>
+              </div>
+              <h1 className="mt-2.5 text-[24px] font-semibold leading-tight tracking-tight text-stone-900 sm:text-3xl">{l.title}</h1>
+              {l.locality || l.city ? (
+                <p className="mt-1 flex items-center gap-1.5 text-[15px] text-stone-500">
+                  <MapPin className="h-4 w-4" /> {[l.locality, l.city].filter(Boolean).join(", ")}
+                </p>
+              ) : null}
+              <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="tnum font-display text-[32px] font-bold leading-none tracking-tight text-agent">{l.price}</p>
+                {l.wasPrice ? <span className="tnum text-[15px] text-stone-500 line-through decoration-stone-400">{l.wasPrice}</span> : null}
+                {l.negotiable ? <span className="text-sm font-semibold text-stone-500">Negotiable</span> : null}
+              </div>
+              {l.wasPrice ? (
+                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[13px] font-semibold text-emerald-800 [animation:pop_.45s_.3s_cubic-bezier(.22,1,.36,1)_backwards]">
+                  <TrendingDown className="h-3.5 w-3.5" /> Price reduced
+                </p>
+              ) : null}
+              {l.perSqft || l.emi ? (
+                <p className="tnum mt-2 text-sm text-stone-500">
+                  {l.perSqft}
+                  {l.perSqft && l.emi ? " · " : ""}
+                  {l.emi ? <>EMI from <b className="font-semibold text-stone-800">{l.emi}</b><span title="Indicative: 80% loan at 8.5% for 20 years" className="cursor-help">*</span></> : null}
+                </p>
+              ) : null}
+            </section>
+            <div className="px-3 pt-3 sm:px-0">
+              <Gallery images={l.images} code={code} listingId={l.id} title={l.title} inset />
+            </div>
+            <section className={`mt-3 ${card}`}>
+              {l.specs.length ? <h2 className="mb-3 text-[17px] font-semibold">Key facts</h2> : null}
+              {l.specs.length ? (
+                <dl className="grid grid-cols-2 overflow-hidden rounded-[12px] ring-1 ring-stone-200/80">
+                  {l.specs.slice(0, 8).map((s, i) => (
+                    <div key={s.label} className={`px-3 py-2.5 ${i % 2 ? "border-l border-stone-200/80" : ""} ${i > 1 ? "border-t border-stone-200/80" : ""}`}>
+                      <dt className="text-xs text-stone-500">{s.label}</dt>
+                      <dd className="text-[15px] font-semibold text-stone-900">{s.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              {l.stale ? (
+                <p className="mt-3 text-[13px] text-amber-700">Availability is being re-confirmed. Ask {agent.displayName} for the latest status.</p>
+              ) : (
+                <p className="mt-3 flex items-center gap-1.5 text-[13px] text-stone-500"><BadgeCheck className="h-4 w-4 text-emerald-700" />Updated {daysAgo(l.updatedAt)}</p>
+              )}
+              {visit ? <VisitStatus visit={visit} l={l} agent={agent} /> : null}
+            </section>
+          </>
+        ) : (
+          <>
         <div className="relative">
           <Gallery images={l.images} code={code} listingId={l.id} title={l.title} hero />
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3 sm:p-4">
@@ -299,9 +383,21 @@ export function ListingView({
           )}
           {visit ? <VisitStatus visit={visit} l={l} agent={agent} /> : null}
         </section>
+          </>
+        )}
 
         {sections.length > 1 ? (
-          <div ref={tabsRef} className={`sticky top-0 z-20 mt-3 px-3 py-2 transition-[background-color,box-shadow] duration-300 sm:px-0 ${stuck ? "bg-stone-50/95 shadow-[0_8px_16px_-12px_rgba(0,0,0,.25)] backdrop-blur" : ""}`}>
+          <div ref={tabsRef} className={`sticky top-0 z-20 mt-3 transition-[background-color,box-shadow] duration-300 sm:px-0 ${classic ? "" : "px-3 py-2"} ${stuck && !classic ? "bg-stone-50/95 shadow-[0_8px_16px_-12px_rgba(0,0,0,.25)] backdrop-blur" : ""}`}>
+            {classic ? (
+            <div className="grid border-b border-stone-200 bg-white sm:rounded-t-[12px]" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }} role="tablist" aria-label="Sections">
+              {sections.map((x) => (
+                <button key={x.id} role="tab" aria-selected={tab === x.id} onClick={() => jump(x.id)} className={`relative h-11 text-sm font-semibold transition-colors ${tab === x.id ? "text-agent" : "text-stone-500"}`}>
+                  {x.label}
+                  <span aria-hidden className={`absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-agent transition-transform duration-300 ${tab === x.id ? "scale-x-100" : "scale-x-0"}`} />
+                </button>
+              ))}
+            </div>
+            ) : (
             <div className="relative grid rounded-2xl bg-stone-100 p-1" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }} role="tablist" aria-label="Sections">
               <span aria-hidden className="absolute bottom-1 top-1 rounded-[12px] bg-white shadow-card transition-[left] duration-300 ease-[cubic-bezier(.22,1,.36,1)]" style={{ width: `calc((100% - 8px) / ${sections.length})`, left: `calc(4px + ${Math.max(0, sections.findIndex((x) => x.id === tab))} * (100% - 8px) / ${sections.length})` }} />
               {sections.map((x) => (
@@ -310,6 +406,7 @@ export function ListingView({
                 </button>
               ))}
             </div>
+            )}
           </div>
         ) : null}
 
@@ -426,7 +523,23 @@ export function ListingView({
         </div>
       </main>
 
-      {!sold ? (
+      {!sold && classic ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)] [animation:rise_.5s_.3s_cubic-bezier(.22,1,.36,1)_backwards]">
+          <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="tnum truncate text-[17px] font-bold leading-tight text-agent">{l.price}</p>
+              <button onClick={() => setSheet("ask")} className="text-[13px] font-semibold text-stone-600 underline underline-offset-2">Ask a question</button>
+            </div>
+            <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} aria-label="WhatsApp agent" className="press flex h-12 w-12 items-center justify-center rounded-[12px] bg-[#1f8f4e] text-white">
+              <MessageCircle className="h-5 w-5" />
+            </a>
+            <button onClick={() => setSheet("visit")} disabled={visitBooked} className="press flex h-12 items-center justify-center gap-2 rounded-[12px] bg-agent px-5 text-[15px] font-semibold text-white disabled:opacity-70">
+              <CalendarCheck className="h-5 w-5" /> {visit?.status === "confirmed" || visit?.status === "rescheduled" ? "Visit booked ✓" : visitBooked ? "Visit requested" : "Book site visit"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {!sold && !classic ? (
         <div className="fixed inset-x-3 bottom-[calc(10px+env(safe-area-inset-bottom))] z-30 [animation:rise_.5s_.3s_cubic-bezier(.22,1,.36,1)_backwards]">
           <div className="mx-auto grid max-w-3xl grid-cols-[auto_auto_1fr] gap-2 rounded-[22px] bg-white p-2 shadow-float">
             <button onClick={() => setSheet("ask")} className="press flex h-12 items-center justify-center gap-1.5 rounded-[14px] bg-stone-100 px-4 text-sm font-semibold text-stone-900">

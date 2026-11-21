@@ -41,6 +41,8 @@ export type ListingInput = {
   showBuilding?: boolean;
   locationPrivacy: LocationPrivacy;
   youtubeUrl?: string | null;
+  /** undefined = leave as is, null = use the agent's look */
+  look?: "signature" | "classic" | null;
   visibility: "private" | "network";
 };
 
@@ -149,6 +151,7 @@ export async function updateListing(agentId: string, listingId: string, input: L
       locationPrivacy: input.locationPrivacy,
       showBuilding: input.showBuilding ?? false,
       youtubeUrl: input.youtubeUrl ?? null,
+      ...(input.look !== undefined ? { look: input.look } : {}),
       ...drop,
       visibility: input.visibility,
       missing: [],

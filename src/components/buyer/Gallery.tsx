@@ -6,7 +6,7 @@ import { track } from "./api";
 
 type Img = { id: string; lg: string; md: string; sm: string };
 
-export function Gallery({ images, code, listingId, title, hero }: { images: Img[]; code: string; listingId: string; title: string; hero?: boolean }) {
+export function Gallery({ images, code, listingId, title, hero, inset }: { images: Img[]; code: string; listingId: string; title: string; hero?: boolean; inset?: boolean }) {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -30,14 +30,14 @@ export function Gallery({ images, code, listingId, title, hero }: { images: Img[
 
   if (!images.length)
     return (
-      <div className={`flex w-full items-center justify-center bg-stone-200 text-stone-500 sm:rounded-3xl ${hero ? "aspect-[4/3.3] pb-8" : "aspect-[4/3]"}`}>
+      <div className={`flex w-full items-center justify-center bg-stone-200 text-stone-500 ${inset ? "rounded-[16px]" : "sm:rounded-3xl"} ${hero ? "aspect-[4/3.3] pb-8" : "aspect-[4/3]"}`}>
         <Images className="h-10 w-10" />
       </div>
     );
 
   return (
     <>
-      <div className="relative w-full overflow-hidden bg-[#1c2620] sm:rounded-3xl">
+      <div className={`relative w-full overflow-hidden bg-[#1c2620] ${inset ? "rounded-[16px]" : "sm:rounded-3xl"}`}>
         <div ref={scroller} onScroll={onScroll} className={`no-scrollbar flex w-full snap-x snap-mandatory overflow-x-auto sm:aspect-[16/10] ${hero ? "aspect-[4/3.3]" : "aspect-[4/3]"}`}>
           {images.map((im, i) => (
             <button key={im.id} type="button" onClick={() => { setIdx(i); setOpen(true); track(code, "gallery", { i, full: true }, listingId); }} className="relative h-full w-full shrink-0 snap-center">
@@ -61,7 +61,7 @@ export function Gallery({ images, code, listingId, title, hero }: { images: Img[
         ) : null}
       </div>
       {images.length > 1 && !hero ? (
-        <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto px-4 sm:px-0">
+        <div className={`no-scrollbar mt-2 flex gap-2 overflow-x-auto ${inset ? "" : "px-4 sm:px-0"}`}>
           {images.map((im, i) => (
             <button key={im.id} onClick={() => { scroller.current?.scrollTo({ left: i * (scroller.current?.clientWidth ?? 0), behavior: "smooth" }); }} className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg ring-2 transition ${i === idx ? "ring-agent" : "ring-transparent opacity-70"}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

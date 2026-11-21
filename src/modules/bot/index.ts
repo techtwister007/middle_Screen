@@ -210,7 +210,7 @@ async function brandingCommand(agent: Agent, t: string): Promise<string | null> 
   const site = `${appUrl}/${agent.handle}`;
   if (/^(branding|brand|my brand|look|my look)$/i.test(t)) {
     const colour = BRAND_COLORS.find(([h]) => h === agent.brandColor)?.[1] ?? agent.brandColor;
-    return M.branding({ name: agent.name, company: agent.company, tagline: agent.tagline, colour, logo: !!agent.logoUrl, photo: !!agent.photoUrl, welcome: agent.welcomeMode, site });
+    return M.branding({ name: agent.name, company: agent.company, tagline: agent.tagline, colour, logo: !!agent.logoUrl, photo: !!agent.photoUrl, welcome: agent.welcomeMode, look: agent.pageLook, site });
   }
   let m = t.match(/^(?:brand\s+)?colou?r\s*:?\s+(.+)$/i);
   if (m) {
@@ -218,6 +218,12 @@ async function brandingCommand(agent: Agent, t: string): Promise<string | null> 
     if ("error" in c) return M.colourHelp(c.error === "light", BRAND_COLORS.map(([, n]) => n));
     await db.update(agents).set({ brandColor: c.hex }).where(eq(agents.id, agent.id));
     return M.brandSaved(`Colour set to ${c.name}`, site);
+  }
+  m = t.match(/^(?:page\s+)?look\s*:?\s+(signature|classic|compact|default)$/i);
+  if (m) {
+    const v = /classic|compact/i.test(m[1]) ? "classic" : "signature";
+    await db.update(agents).set({ pageLook: v }).where(eq(agents.id, agent.id));
+    return M.brandSaved(`Page look set to ${v === "classic" ? "Classic (compact, details first)" : "Signature (big photo first)"}`, site);
   }
   m = t.match(/^(?:welcome|splash|welcome screen)\s*:?\s+(off|none|on|minimal|simple|full|splash)$/i);
   if (m) {

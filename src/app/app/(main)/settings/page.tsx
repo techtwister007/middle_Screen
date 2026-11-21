@@ -21,6 +21,7 @@ export default async function Settings() {
           handle: a.handle,
           brandColor: a.brandColor,
           welcomeMode: a.welcomeMode,
+          pageLook: a.pageLook,
           watermark: a.watermark,
           networkOptIn: a.networkOptIn,
           photoUrl: a.photoUrl,

@@ -188,6 +188,16 @@ test("owner report: signed link shows activity, hides buyer names, rejects tampe
   expect(bad?.status()).toBe(404);
 });
 
+test("page look: agent switches to Classic from WhatsApp and back", async ({ page, request }) => {
+  expect((await wa(request, AGENT, "look classic")).join()).toContain("Page look set to Classic");
+  await page.goto(personalUrl);
+  await expect(page.getByRole("heading", { name: "Key facts" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ask a question" })).toBeVisible();
+  expect((await wa(request, AGENT, "look signature")).join()).toContain("Signature");
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Key facts" })).toHaveCount(0);
+});
+
 test("agent website lists public properties", async ({ page, request }) => {
   await loginAgent(page, request, AGENT);
   await page.goto("/app/settings");

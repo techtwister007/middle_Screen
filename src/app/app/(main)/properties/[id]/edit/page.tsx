@@ -43,6 +43,8 @@ export default async function EditProperty({ params, searchParams }: { params: P
           locationPrivacy: l.locationPrivacy,
           youtubeUrl: l.youtubeUrl ?? "",
           visibility: l.visibility,
+          look: l.look ?? null,
+          defaultLook: agent.pageLook,
         }}
       />
     </div>

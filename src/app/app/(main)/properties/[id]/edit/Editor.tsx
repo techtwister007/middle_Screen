@@ -29,6 +29,9 @@ export type EditorData = {
   locationPrivacy: LocationPrivacy;
   youtubeUrl: string;
   visibility: "private" | "network";
+  look: "signature" | "classic" | null;
+  /** The agent's default look, shown as "Use my default (…)" */
+  defaultLook: "signature" | "classic";
 };
 
 const AMENITIES = ["Lift", "Covered parking", "Gym", "Swimming pool", "Club house", "Garden", "24×7 security", "Power backup", "CCTV", "Gated community", "Children's play area", "Intercom", "24×7 water", "Piped gas", "Modular kitchen", "Wardrobes", "Air conditioning", "Jogging track", "Temple"];
@@ -223,6 +226,7 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
       building: d.building || null,
       unit: d.unit || null,
       youtubeUrl: d.youtubeUrl || null,
+      look: d.look,
     };
     const r = await saveListingAction(id, payload, publish);
     setSaving(null);
@@ -435,6 +439,15 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
           <button type="button" className={chip(d.visibility === "private")} onClick={() => set("visibility", "private")}>Private</button>
         </div>
         <p className="text-xs text-stone-500">Public: shown on your agent website (and the future network). Private: only people you send the link to can see it.</p>
+      </Section>
+
+      <Section title="Page look">
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Page look">
+          <button type="button" className={chip(d.look === null)} onClick={() => set("look", null)}>My default</button>
+          <button type="button" className={chip(d.look === "signature")} onClick={() => set("look", "signature")}>Signature</button>
+          <button type="button" className={chip(d.look === "classic")} onClick={() => set("look", "classic")}>Classic</button>
+        </div>
+        <p className="text-xs text-stone-500">Your default is {d.defaultLook === "classic" ? "Classic" : "Signature"}. Change it for all properties in Profile &amp; branding.</p>
       </Section>
 
       <div className="fixed inset-x-3 bottom-[calc(88px+env(safe-area-inset-bottom))] z-20 rounded-[22px] bg-white shadow-float [animation:rise_.45s_cubic-bezier(.22,1,.36,1)_backwards] lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:w-[min(720px,calc(100vw-2rem))] lg:-translate-x-1/2">
