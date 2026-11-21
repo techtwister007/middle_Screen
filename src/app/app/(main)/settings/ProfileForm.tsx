@@ -130,7 +130,7 @@ function Preview({ p }: { p: P }) {
           <span className="truncate text-sm font-semibold">{name}</span>
         </div>
         <p className="mt-3 text-[15px] font-semibold">3 BHK flat in {p.areas?.split(",")[0]?.trim() || p.city || "your area"}</p>
-        <p className="tnum mt-1 text-[24px] font-bold tracking-tight transition-colors duration-300" style={{ color: p.brandColor }}>₹95 L</p>
+        <p className="tnum mt-1 text-[24px] font-bold tracking-tight text-agent transition-colors duration-300">₹95 L</p>
         <div className="mt-3 flex h-11 items-center justify-center rounded-[14px] text-sm font-semibold text-white transition-colors duration-300" style={{ background: p.brandColor }}>Book site visit</div>
       </div>
     </div>

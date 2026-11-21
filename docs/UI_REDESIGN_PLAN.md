@@ -662,5 +662,13 @@ Direction: the approved whole-product look (forest green on warm paper, DM Sans,
 - **Cleanup**: decorative emojis removed; one WhatsApp green; "Leads" → "Buyers" on screens; footer "with ❤ from PropPulse".
 - **Fixes found on the way**: an inline script in the app layout broke server-action redirects (moved to `next/script beforeInteractive`); app-wide `loading.tsx` turned 404s into 200s (removed); action bars repositioned above the floating nav; share E2E test now waits for the "opened" event before closing the buyer tab.
 
+### Round 2 (shipped)
+- Buyer **collection page** and **agent website** rebuilt (progress bar, labelled Like / Not for me, Rank it / Compare, floating bar, Save contact vCard).
+- **Neighbourhood intelligence** (Part E): `properties.nearby` cached via background job `compute_nearby` (OSM via Photon; locality auto-geocoded when there's no pin), privacy rounding for area-only, rings diagram, nearest list, "How far is your place?" with car / two-wheeler / walk; the buyer's checked place appears on the agent's timeline. `NEARBY_PROVIDER=off` in tests.
+- **Editor**: listing-strength meter with next tips; 30 px photo controls; "Set cover".
+- **Branding**: 10 curated colours, live buyer preview, forest green default (migration 0003).
+- **Quick wins**: WhatsApp Status image (`/api/status-image/[id]`, 1080×1920, agent colour), copy-for-portals text, today's visit route.
+- **Landing** with live product preview, how it works, pricing; **login**, **onboarding**, **admin** restyled.
+
 ### Next rounds
-Collection page and agent website in the new layout; property editor steps; visits/insights polish; neighbourhood section (Part E); quick wins (Part D §28).
+Price-drop alerts to interested buyers, owner report link, festival cards, WhatsApp bot commands for branding, agent-selectable page looks (Signature / Classic) and multiple colour schemes per look, Hindi / Gujarati UI.

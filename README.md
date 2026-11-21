@@ -18,6 +18,15 @@ WhatsApp-first property sharing & buyer intelligence for real estate agents.
 
 ---
 
+## What agents and buyers get
+
+- **Look:** forest green on warm paper, DM Sans (self-hosted), rounded surfaces, automatic **dark mode**, motion throughout (page entrances, sheets, press feedback), a branded welcome screen and loading skeletons. Design plan and history: [docs/UI_REDESIGN_PLAN.md](docs/UI_REDESIGN_PLAN.md).
+- **Buyer property page:** hero photos, overlapping summary card, pinned section tabs, EMI and total cost, **neighbourhood** (nearby schools, hospitals, shops, parks and transport with drive/walk times, a rings diagram, and "How far is your place?"), visit booking, ask, save, share.
+- **Collections:** like / not for me, rank, compare, progress, top-picks on WhatsApp. **Agent website** with filters and "Save contact".
+- **Agent app:** Today screen with "Needs attention", buyers with intent and next action, listing editor with a **listing-strength** meter, **WhatsApp Status image** and **copy-for-portals** per listing, today's **visit route** in Google Maps, branding with live preview.
+
+Neighbourhood data comes from OpenStreetMap through Photon (free). It is computed in a background job when a listing is published or edited and cached on the property, so buyer pages make no map calls. Set `NEARBY_PROVIDER=off` to disable it (tests do this). Area-only listings show rounded distances and quantised directions so the building can't be pinpointed.
+
 ## Run it on your laptop (Windows 11)
 
 **Install once:** [Node.js 22 LTS](https://nodejs.org), [Git](https://git-scm.com), and [PostgreSQL 16](https://www.postgresql.org/download/windows/) (remember the password you set for user `postgres`).
