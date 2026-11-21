@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { agents, leads, visits, waMessages, type ListingStatus } from "@/db/schema";
 import { id } from "@/lib/ids";
 import { normalizePhone, waLink } from "@/lib/phone";
-import { inr, priceLabel } from "@/lib/format";
+import { inr, istDayRange, priceLabel } from "@/lib/format";
 import { parseAmount, parseSearchQuery } from "@/lib/ai/parse";
 import { processAvatar } from "@/lib/images";
 import { storage } from "@/lib/storage";
@@ -67,8 +67,10 @@ export async function handleInbound(msg: InboundMessage & { mediaRef?: string },
 
   if (/^stop$/i.test(text)) return reply(from, M.stop(), agent?.id);
 
-  // 2. New sender → start onboarding.
+  // 2. New sender → start onboarding (unless it's a buyer who verified via a property link).
   if (!agent) {
+    const wasBuyer = await db.query.waVerifications.findFirst({ where: (v, { and, eq }) => and(eq(v.phone, from), eq(v.purpose, "buyer_verify")), columns: { code: true } });
+    if (wasBuyer && !/^(join|signup|sign up|agent|register)$/i.test(text)) return reply(from, `${M.buyerUnknown()}\n\nAre you a property agent? Reply *JOIN* to create your free account.`);
     const a = await createAgent(from, "");
     await db.update(agents).set({ lastInboundAt: new Date() }).where(eq(agents.id, a.id));
     return reply(from, M.welcomeNew(), a.id);
@@ -298,9 +300,7 @@ async function command(agent: Agent, from: string, text: string) {
   }
 
   if (/^(today|visits|aaj)$/i.test(t)) {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start.getTime() + 86400000);
+    const { start, end } = istDayRange();
     const vs = await db
       .select({ v: visits, name: leads.name })
       .from(visits)

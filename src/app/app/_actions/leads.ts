@@ -81,7 +81,7 @@ export async function setStageAction(leadId: string, stage: LeadStage) {
 export async function setFollowUpAction(leadId: string, when: string | null, note?: string) {
   return safe(async () => {
     const agent = await activeAgent();
-    const d = when ? new Date(when.length === 10 ? `${when}T10:00:00+05:30` : when) : null;
+    const d = when ? new Date(when.length === 10 ? `${when}T10:00:00+05:30` : /[Zz]|[+-]\d\d:\d\d$/.test(when) ? when : `${when}:00+05:30`) : null;
     if (d && Number.isNaN(d.getTime())) throw new Error("Invalid date");
     await updateLead(agent.id, leadId, { nextFollowUpAt: d, followUpNote: note?.slice(0, 200) ?? null });
     revalidatePath(`/app/leads/${leadId}`);

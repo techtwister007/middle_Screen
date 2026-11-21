@@ -45,12 +45,12 @@ export default async function Properties({ searchParams }: { searchParams: Promi
       {rows.length === 0 ? (
         <Empty icon={<Building2 className="h-10 w-10" />} title={status === "active" ? "No live properties yet" : "Nothing here"} body="Forward photos to our WhatsApp and type done — or add one here." action={<LinkButton href="/app/properties/new">Add property</LinkButton>} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {rows.map((r) => {
             const c = cover(r.l.id);
             return (
               <Link key={r.l.id} href={`/app/properties/${r.l.id}${sp.share ? "?share=1" : ""}`}>
-                <Card className="flex gap-3 overflow-hidden p-2.5 transition hover:ring-brand-500">
+                <Card className="flex min-w-0 gap-3 overflow-hidden p-2.5 transition hover:ring-brand-500">
                   <div className="h-24 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-200">
                     {c ? (
                       // eslint-disable-next-line @next/next/no-img-element

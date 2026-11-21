@@ -45,7 +45,7 @@ export function Simulator() {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-[1fr_260px]">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_260px]">
       <div className="flex h-[70vh] flex-col overflow-hidden rounded-2xl bg-[#efeae2] ring-1 ring-stone-200">
         <div className="bg-[#075e54] px-4 py-3 text-sm font-semibold text-white">Bot chat · +{phone}</div>
         <div className="flex-1 space-y-2 overflow-y-auto p-3">

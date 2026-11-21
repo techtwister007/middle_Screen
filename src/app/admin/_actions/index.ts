@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { env } from "@/config/env";
+import { assertProdSecrets, env } from "@/config/env";
 import { db } from "@/db";
 import { agents, announcements, dataRequests, feedback, listings, reports } from "@/db/schema";
 import { id } from "@/lib/ids";
@@ -13,6 +13,11 @@ import { notifyAgent } from "@/modules/notify";
 import { timingSafeEqual } from "node:crypto";
 
 export async function adminLoginAction(_: unknown, fd: FormData) {
+  try {
+    assertProdSecrets("admin");
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
   const pw = String(fd.get("password") ?? "");
   const a = Buffer.from(pw);
   const b = Buffer.from(env.ADMIN_PASSWORD);

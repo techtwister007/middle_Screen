@@ -12,7 +12,7 @@ export const E2E_ENV = {
   WA_PROVIDER: "console",
   DEV_TOOLS: "true",
   CRON_SECRET: "e2e-cron",
-  ADMIN_PASSWORD: "e2e-admin",
+  ADMIN_PASSWORD: "e2e-admin-password",
   SESSION_SECRET: "e2e-secret-e2e-secret-e2e-secret-e2e",
   AI_API_KEY: "",
   RAZORPAY_KEY_ID: "",

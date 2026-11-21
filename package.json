@@ -2,7 +2,7 @@
   "name": "proppulse",
   "version": "0.1.0",
   "private": true,
-  "description": "PropPulse by VectorScale — WhatsApp-first property sharing & buyer intelligence for real estate agents",
+  "description": "PropPulse by VectorScale \u2014 WhatsApp-first property sharing & buyer intelligence for real estate agents",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +13,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "test": "vitest run",
-    "test:e2e": "playwright test --trace off",
+    "test:e2e": "next build && playwright test --trace off",
     "keys:vapid": "tsx scripts/vapid.ts",
     "backup": "tsx scripts/backup.ts"
   },
@@ -50,5 +50,8 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
 }

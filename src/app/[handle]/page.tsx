@@ -76,7 +76,7 @@ export default async function AgentSite({ params, searchParams }: Props) {
         {listings.length === 0 ? (
           <p className="py-16 text-center text-stone-500">No properties listed right now. Message me for current options.</p>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {listings.map((l, i) => (
               <Link key={l.id} href={`/p/${codes[i]}`} className="overflow-hidden rounded-3xl bg-white ring-1 ring-stone-200 transition hover:shadow-md">
                 <div className="relative aspect-[16/10] bg-stone-200">

@@ -1,6 +1,6 @@
 # PropPulse by VectorScale — Final Product Plan (v3)
 
-> **Status:** final plan, awaiting your confirmation to start building.
+> **Status:** ✅ built (all milestones M0–M6). See README.md to run it, docs/DEPLOYMENT.md to go live.
 > **Working name:** *PropPulse*. Changeable at any time (see §2). A product of **VectorScale**.
 
 ---

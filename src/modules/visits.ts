@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { visits, leads, listings, type VisitStatus } from "@/db/schema";
 import { notifyAgent } from "./notify";
+import { istDayRange } from "@/lib/format";
 
 export async function agentVisits(agentId: string, scope: "upcoming" | "requests" | "past" | "all" = "all") {
   const conds = [eq(visits.agentId, agentId)];
@@ -20,9 +21,7 @@ export async function agentVisits(agentId: string, scope: "upcoming" | "requests
 }
 
 export async function todaysVisits(agentId: string) {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start.getTime() + 86400000);
+  const { start, end } = istDayRange();
   return db
     .select({ v: visits, lead: leads, listing: listings })
     .from(visits)

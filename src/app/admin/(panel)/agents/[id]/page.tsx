@@ -44,7 +44,7 @@ export default async function AdminAgent({ params }: { params: Promise<{ id: str
         <Stat label="Saves (7d)" value={w.saves} />
         <Stat label="Visits (7d)" value={w.visits} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="space-y-3 p-4">
           <p className="font-semibold">Grant paid months (cash / manual)</p>
           <form action={grantMonthsAction.bind(null, id)} className="flex gap-2">

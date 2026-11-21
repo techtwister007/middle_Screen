@@ -58,7 +58,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
     <div className="space-y-5">
       <PageHeader back="/app/leads" title={lead.name || formatPhone(lead.phone) || "Unnamed lead"} subtitle={<span>{lead.phone ? formatPhone(lead.phone) : "No number"} {lead.phoneVerified ? <Badge tone="green">✓ WhatsApp verified</Badge> : null} · added {timeAgo(lead.createdAt)}</span>} />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px]">
         <div className="space-y-5">
           <Card className="p-4">
             <div className="flex items-start gap-3">

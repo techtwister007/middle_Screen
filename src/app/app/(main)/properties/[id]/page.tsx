@@ -83,7 +83,7 @@ export default async function PropertyDetail({ params, searchParams }: { params:
       ) : null}
       {(sp.verify || stale) && live ? <VerifyBanner id={id} /> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           <Card className="overflow-hidden">
             {images[0] ? (

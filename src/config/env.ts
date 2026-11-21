@@ -62,3 +62,13 @@ export const env = schema.parse(process.env);
 export const isProd = env.NODE_ENV === "production";
 export const devTools = env.DEV_TOOLS || !isProd;
 export const appUrl = env.APP_URL.replace(/\/$/, "");
+
+const DEFAULT_SECRET = "dev-only-secret-change-me-dev-only-secret";
+/** Production safety: refuse weak defaults (checked at use time so builds never fail). */
+export function assertProdSecrets(kind: "session" | "admin") {
+  if (!isProd) return;
+  if (kind === "session" && (env.SESSION_SECRET === DEFAULT_SECRET || env.SESSION_SECRET.length < 32))
+    throw new Error("SESSION_SECRET must be set to a random string of 32+ characters in production");
+  if (kind === "admin" && (env.ADMIN_PASSWORD === "admin" || env.ADMIN_PASSWORD.length < 10))
+    throw new Error("ADMIN_PASSWORD must be set to a strong password (10+ characters) in production");
+}

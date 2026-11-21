@@ -84,3 +84,11 @@ export function istDate(offsetDays = 0): string {
   const d = new Date(Date.now() + offsetDays * 86400000 + 5.5 * 3600000);
   return d.toISOString().slice(0, 10);
 }
+
+/** Start/end of "today" in India (IST), as UTC Date objects. */
+export function istDayRange(offsetDays = 0): { start: Date; end: Date } {
+  const IST = 5.5 * 3600000;
+  const nowIst = Date.now() + IST + offsetDays * 86400000;
+  const startIst = nowIst - (nowIst % 86400000);
+  return { start: new Date(startIst - IST), end: new Date(startIst - IST + 86400000) };
+}

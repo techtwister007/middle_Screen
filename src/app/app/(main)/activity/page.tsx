@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Bell } from "lucide-react";
 import { db } from "@/db";
 import { notifications } from "@/db/schema";
 import { requireAgent } from "@/lib/auth/session";
 import { timeAgo } from "@/lib/format";
-import { markAllReadAction } from "@/app/app/_actions/misc";
 import { Card, Empty, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Activity" };
@@ -14,16 +13,14 @@ export default async function Activity() {
   const agent = await requireAgent();
   const rows = await db.select().from(notifications).where(eq(notifications.agentId, agent.id)).orderBy(desc(notifications.createdAt)).limit(150);
   const unread = rows.some((r) => !r.readAt);
+  // Opening the activity centre marks everything as seen (rows above still show unread styling this time).
+  if (unread) await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.agentId, agent.id), isNull(notifications.readAt)));
   return (
     <div>
       <PageHeader
         title="Activity"
         subtitle="Everything your buyers do, as it happens."
-        action={unread ? (
-          <form action={markAllReadAction}>
-            <button className="h-9 rounded-xl bg-white px-3 text-sm font-semibold ring-1 ring-stone-200">Mark all read</button>
-          </form>
-        ) : null}
+        action={null}
       />
       {rows.length === 0 ? (
         <Empty icon={<Bell className="h-10 w-10" />} title="No activity yet" body="When buyers open, save or enquire on your links, it shows up here — and as a phone notification." />

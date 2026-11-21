@@ -1,0 +1,14 @@
+{
+  "name": "proppulse-baileys-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TEST ONLY: connects a spare WhatsApp number (via WhatsApp Web) to the app's bot. Production uses Chatsync.",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.24",
+    "pino": "9.7.0",
+    "qrcode-terminal": "0.12.0"
+  }
+}

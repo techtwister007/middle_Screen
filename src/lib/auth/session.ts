@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHash } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
-import { env, isProd } from "@/config/env";
+import { assertProdSecrets, env, isProd } from "@/config/env";
 import { db } from "@/db";
 import { agents, loginTokens } from "@/db/schema";
 import { token as newToken } from "@/lib/ids";
@@ -15,6 +15,7 @@ const key = new TextEncoder().encode(env.SESSION_SECRET);
 const cookieOpts = { httpOnly: true, secure: isProd, sameSite: "lax" as const, path: "/" };
 
 async function sign(payload: Record<string, unknown>, days: number) {
+  assertProdSecrets("session");
   return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${days}d`).sign(key);
 }
 async function verify<T>(jwt: string | undefined): Promise<T | null> {

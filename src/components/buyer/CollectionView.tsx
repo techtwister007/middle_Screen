@@ -103,8 +103,11 @@ export function CollectionView({
                     <img src={l.images[0].md} alt={l.title} loading="lazy" className="h-full w-full object-cover" />
                   ) : null}
                   {s.rank ? <span className="absolute left-3 top-3 rounded-full bg-agent px-2.5 py-1 text-xs font-bold text-white shadow">Priority {s.rank}</span> : null}
-                  {l.status === "sold" || l.status === "rented" ? <span className="absolute right-3 top-3 rounded-full bg-stone-900 px-2.5 py-1 text-xs font-bold uppercase text-white">{l.status}</span> : null}
-                  <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2 py-0.5 text-xs font-semibold text-white">{l.images.length} photos</span>
+                  {l.status === "sold" || l.status === "rented" ? (
+                    <span className="absolute right-3 top-3 rounded-full bg-stone-900 px-2.5 py-1 text-xs font-bold uppercase text-white">{l.status}</span>
+                  ) : l.images.length ? (
+                    <span className="absolute right-3 top-3 rounded-full bg-black/55 px-2 py-0.5 text-xs font-semibold text-white">{l.images.length} photo{l.images.length === 1 ? "" : "s"}</span>
+                  ) : null}
                 </div>
                 <div className="p-4 pb-2">
                   <p className="font-display text-xl font-extrabold text-agent">{l.price}</p>
