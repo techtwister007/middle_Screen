@@ -23,7 +23,7 @@ export default async function Visits({ searchParams }: { searchParams: Promise<{
       <PageHeader title="Site visits" subtitle="Confirm in one tap. We remind you 2 hours before." />
       <div className="mb-4 flex gap-2">
         {tabs.map((t) => (
-          <Link key={t.k} href={`/app/visits?tab=${t.k}`} className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${tab === t.k ? "bg-stone-900 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"}`}>
+          <Link key={t.k} href={`/app/visits?tab=${t.k}`} className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${tab === t.k ? "bg-brand-700 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"}`}>
             {t.l} {t.k === "requests" && requests.length ? `(${requests.length})` : t.k === "upcoming" && upcoming.length ? `(${upcoming.length})` : ""}
           </Link>
         ))}

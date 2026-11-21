@@ -55,12 +55,15 @@ test("share dialog creates a personal link; buyer page hides private details", a
   expect(url).toMatch(/\/p\/[a-z0-9]+$/);
   await expect(page.getByRole("link", { name: "Send on WhatsApp" })).toHaveAttribute("href", /wa\.me\/919876511111/);
   const buyer = await page.context().browser()!.newPage();
+  // the "opened" event is sent once the page's script starts; wait for it before closing the tab
+  const opened = buyer.waitForResponse((r) => r.url().includes("/api/t") && r.request().method() === "POST");
   await buyer.goto(url);
   await expect(buyer.getByText("Hi Karan, selected for you")).toBeVisible();
   await expect(buyer.getByText("₹18,000 / month", { exact: true })).toBeVisible();
   const html = await buyer.content();
   expect(html).not.toContain("A-702"); // unit never shown
   expect(html).not.toContain("Shivalik"); // building hidden by default
+  await opened;
   await buyer.close();
   // agent got the "opened" alert
   await page.goto("/app/activity");
@@ -113,7 +116,7 @@ test("lead created manually with a requirement gets matches", async ({ page, req
   await page.locator('input[name="bhk"][value="3"]').check();
   await page.locator('input[name="budgetMax"]').fill("40k");
   await page.locator('input[name="localities"]').fill("Bodakdev");
-  await page.getByRole("button", { name: "Save lead" }).click();
+  await page.getByRole("button", { name: "Save buyer" }).click();
   await expect(page.getByRole("heading", { name: "Sonal Shah" })).toBeVisible();
   await expect(page.getByText("Matches from your inventory")).toBeVisible();
   await expect(page.getByText(/3 BHK Apartment for Rent in Bodakdev/)).toBeVisible();

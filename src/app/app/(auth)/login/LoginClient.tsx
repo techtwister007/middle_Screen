@@ -42,7 +42,7 @@ export function LoginClient({ devTools, next }: { devTools: boolean; next: strin
 
   return (
     <div className="mt-5 space-y-4">
-      <button onClick={start} disabled={waiting} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] font-semibold text-white shadow-sm disabled:opacity-80">
+      <button onClick={start} disabled={waiting} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] font-semibold text-white shadow-sm disabled:opacity-80">
         {waiting ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
         {waiting ? "Waiting for your message…" : "Continue with WhatsApp"}
       </button>
@@ -59,7 +59,7 @@ export function LoginClient({ devTools, next }: { devTools: boolean; next: strin
           <div className="mt-3 space-y-2">
             <input aria-label="Dev phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone e.g. 9812345678" className="block w-full rounded-lg px-3 py-2 ring-1 ring-stone-300" />
             <input aria-label="Dev name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (new accounts)" className="block w-full rounded-lg px-3 py-2 ring-1 ring-stone-300" />
-            <button onClick={dev} className="h-10 w-full rounded-lg bg-stone-800 font-semibold text-white">Dev login</button>
+            <button onClick={dev} className="h-10 w-full rounded-lg bg-[#4a544e] font-semibold text-white">Dev login</button>
           </div>
         </details>
       ) : null}

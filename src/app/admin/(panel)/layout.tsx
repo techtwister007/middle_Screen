@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ];
   return (
     <div className="min-h-screen bg-stone-100">
-      <header className="bg-stone-900 text-white">
+      <header className="bg-brand-700 text-white">
         <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-3">
           <span className="shrink-0 font-display font-extrabold">{brand.name} · Admin</span>
           <nav className="flex gap-1 text-sm">

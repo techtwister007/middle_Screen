@@ -88,7 +88,7 @@ export function CollectionView({
             {listings.length} propert{listings.length === 1 ? "y" : "ies"} · curated by {agent.displayName}
           </p>
           {note ? <p className="mt-3 rounded-2xl bg-stone-50 p-3 text-sm text-stone-700 ring-1 ring-stone-200">“{note}”</p> : null}
-          <p className="mt-4 text-sm text-stone-500">👍 Like, 👎 skip, or tap the number to rank your favourites. {agent.displayName} sees what you prefer.</p>
+          <p className="mt-4 text-sm text-stone-500">Like or skip each home, or tap the number to rank your favourites. {agent.displayName} sees what you prefer.</p>
         </div>
       </header>
 
@@ -105,7 +105,7 @@ export function CollectionView({
                   ) : null}
                   {s.rank ? <span className="absolute left-3 top-3 rounded-full bg-agent px-2.5 py-1 text-xs font-bold text-white shadow">Priority {s.rank}</span> : null}
                   {l.status === "sold" || l.status === "rented" ? (
-                    <span className="absolute right-3 top-3 rounded-full bg-stone-900 px-2.5 py-1 text-xs font-bold uppercase text-white">{l.status}</span>
+                    <span className="absolute right-3 top-3 rounded-full bg-brand-700 px-2.5 py-1 text-xs font-bold uppercase text-white">{l.status}</span>
                   ) : l.images.length ? (
                     <span className="absolute right-3 top-3 rounded-full bg-black/55 px-2 py-0.5 text-xs font-semibold text-white">{l.images.length} photo{l.images.length === 1 ? "" : "s"}</span>
                   ) : null}
@@ -123,7 +123,7 @@ export function CollectionView({
                 <button onClick={() => react(l.id, "like")} aria-label="Like" className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold ${s.reaction === "like" ? "bg-emerald-600 text-white" : "bg-stone-100 text-stone-700"}`}>
                   <ThumbsUp className="h-4 w-4" /> Like
                 </button>
-                <button onClick={() => react(l.id, "dislike")} aria-label="Not for me" className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold ${s.reaction === "dislike" ? "bg-stone-800 text-white" : "bg-stone-100 text-stone-700"}`}>
+                <button onClick={() => react(l.id, "dislike")} aria-label="Not for me" className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold ${s.reaction === "dislike" ? "bg-[#4a544e] text-white" : "bg-stone-100 text-stone-700"}`}>
                   <ThumbsDown className="h-4 w-4" /> Skip
                 </button>
                 <button onClick={() => toggleRank(l.id)} aria-label="Rank" className={`flex h-10 w-12 items-center justify-center rounded-xl text-sm font-bold ${s.rank ? "bg-agent text-white" : "bg-stone-100 text-stone-500"}`}>
@@ -161,7 +161,7 @@ export function CollectionView({
                 target="_blank"
                 rel="noopener"
                 onClick={() => track(code, "whatsapp")}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] font-bold text-white"
+                className="flex h-12 flex-1 items-center justify-center gap-2 press rounded-[14px] bg-[#1f8f4e] font-bold text-white"
               >
                 <MessageCircle className="h-5 w-5" /> {ranked.length ? "Send my top picks" : `WhatsApp ${agent.name?.split(" ")[0] || "agent"}`}
               </a>

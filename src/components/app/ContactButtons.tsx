@@ -10,8 +10,8 @@ export function ContactButtons({ leadId, phone, message }: { leadId: string; pho
   };
   return (
     <>
-      <a href={`tel:+${phone}`} onClick={mark} className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-stone-100 text-sm font-semibold"><Phone className="h-4 w-4" /> Call</a>
-      <a href={`https://wa.me/${phone}?text=${encodeURIComponent(message)}`} onClick={mark} target="_blank" rel="noopener" className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#25D366] text-sm font-semibold text-white"><MessageCircle className="h-4 w-4" /> WhatsApp</a>
+      <a href={`tel:+${phone}`} onClick={mark} className="press flex h-11 items-center justify-center gap-1.5 rounded-xl bg-stone-100 text-sm font-semibold"><Phone className="h-4 w-4" /> Call</a>
+      <a href={`https://wa.me/${phone}?text=${encodeURIComponent(message)}`} onClick={mark} target="_blank" rel="noopener" className="press flex h-11 items-center justify-center gap-1.5 rounded-xl bg-[#1f8f4e] text-sm font-semibold text-white"><MessageCircle className="h-4 w-4" /> WhatsApp</a>
     </>
   );
 }
@@ -22,7 +22,7 @@ export function ReplyToQuestion({ questionId, phone, question, title, answered }
   return (
     <span className="flex gap-3">
       {phone ? (
-        <a href={`https://wa.me/${phone}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener" onClick={() => markAnsweredAction(questionId)} className="text-xs font-semibold text-[#128C7E]">
+        <a href={`https://wa.me/${phone}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener" onClick={() => markAnsweredAction(questionId)} className="text-xs font-semibold text-brand-700">
           Reply on WhatsApp
         </a>
       ) : null}

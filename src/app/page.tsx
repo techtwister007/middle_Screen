@@ -31,10 +31,10 @@ export default function Landing() {
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-stone-600">{brand.description}</p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href={waLink(botNumber(), "hi")} className="flex h-12 items-center gap-2 rounded-xl bg-[#25D366] px-6 font-bold text-white shadow-sm">
+          <a href={waLink(botNumber(), "hi")} className="flex h-12 items-center gap-2 rounded-xl bg-[#1f8f4e] px-6 font-bold text-white shadow-sm">
             <MessageCircle className="h-5 w-5" /> Start on WhatsApp
           </a>
-          <Link href="/app/login" className="flex h-12 items-center rounded-xl bg-stone-900 px-6 font-bold text-white">Sign up on the web</Link>
+          <Link href="/app/login" className="flex h-12 items-center rounded-xl bg-brand-700 px-6 font-bold text-white">Sign up on the web</Link>
         </div>
         <p className="mt-3 text-sm text-stone-500">{env.TRIAL_DAYS}-day free trial · then ₹{env.PLAN_PRICE_INR}/month · no card needed</p>
       </section>

@@ -15,7 +15,7 @@ export default async function Broadcast() {
           <input name="title" required placeholder="Title e.g. New: compare properties in collections" className="block w-full rounded-xl px-3 py-2.5 ring-1 ring-stone-300" />
           <textarea name="body" rows={3} placeholder="Message" className="block w-full rounded-xl px-3 py-2.5 ring-1 ring-stone-300" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="push" /> Also send push notification</label>
-          <button className="h-10 rounded-xl bg-stone-900 px-4 font-semibold text-white">Send to everyone (in-app)</button>
+          <button className="h-10 rounded-xl bg-brand-700 px-4 font-semibold text-white">Send to everyone (in-app)</button>
         </form>
       </Card>
       <div className="space-y-2">

@@ -91,7 +91,7 @@ function ShareDialog({ target, leads, publicUrl, presetLeadId, onClose }: { targ
         {result ? (
           <div className="space-y-3">
             <p className="text-sm text-stone-600">A personal link — you&apos;ll see exactly when {result.leadName.split(" ")[0]} opens it and what they like.</p>
-            <a href={result.waUrl} target="_blank" rel="noopener" className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] font-bold text-white">
+            <a href={result.waUrl} target="_blank" rel="noopener" className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] font-bold text-white">
               <MessageCircle className="h-5 w-5" /> Send on WhatsApp
             </a>
             <div className="flex items-center gap-2 rounded-xl bg-stone-50 p-2 ring-1 ring-stone-200">

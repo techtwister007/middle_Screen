@@ -6,7 +6,7 @@ import { track } from "./api";
 
 type Img = { id: string; lg: string; md: string; sm: string };
 
-export function Gallery({ images, code, listingId, title }: { images: Img[]; code: string; listingId: string; title: string }) {
+export function Gallery({ images, code, listingId, title, hero }: { images: Img[]; code: string; listingId: string; title: string; hero?: boolean }) {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -30,19 +30,19 @@ export function Gallery({ images, code, listingId, title }: { images: Img[]; cod
 
   if (!images.length)
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 text-stone-500 sm:rounded-3xl">
+      <div className={`flex w-full items-center justify-center bg-stone-200 text-stone-500 sm:rounded-3xl ${hero ? "aspect-[4/3.3] pb-8" : "aspect-[4/3]"}`}>
         <Images className="h-10 w-10" />
       </div>
     );
 
   return (
     <>
-      <div className="relative w-full overflow-hidden bg-stone-900 sm:rounded-3xl">
-        <div ref={scroller} onScroll={onScroll} className="no-scrollbar flex aspect-[4/3] w-full snap-x snap-mandatory overflow-x-auto sm:aspect-[16/10]">
+      <div className="relative w-full overflow-hidden bg-[#1c2620] sm:rounded-3xl">
+        <div ref={scroller} onScroll={onScroll} className={`no-scrollbar flex w-full snap-x snap-mandatory overflow-x-auto sm:aspect-[16/10] ${hero ? "aspect-[4/3.3]" : "aspect-[4/3]"}`}>
           {images.map((im, i) => (
             <button key={im.id} type="button" onClick={() => { setIdx(i); setOpen(true); track(code, "gallery", { i, full: true }, listingId); }} className="relative h-full w-full shrink-0 snap-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={im.md} srcSet={`${im.sm} 400w, ${im.md} 900w, ${im.lg} 1600w`} sizes="(min-width: 768px) 768px, 100vw" alt={`${title} — photo ${i + 1}`} loading={i < 2 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : "auto"} className="h-full w-full object-cover" />
+              <img src={im.md} srcSet={`${im.sm} 400w, ${im.md} 900w, ${im.lg} 1600w`} sizes="(min-width: 768px) 768px, 100vw" alt={`${title} — photo ${i + 1}`} loading={i < 2 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : "auto"} className="img-fade h-full w-full object-cover" />
             </button>
           ))}
         </div>
@@ -54,13 +54,13 @@ export function Gallery({ images, code, listingId, title }: { images: Img[]; cod
             <button aria-label="Next photo" onClick={() => go(1)} className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/85 p-2 shadow sm:block">
               <ChevronRight className="h-5 w-5" />
             </button>
-            <span className="absolute bottom-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
+            <span className={`tnum absolute rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm ${hero ? "bottom-12 right-4 sm:bottom-14" : "bottom-3 left-3"}`}>
               {idx + 1} / {images.length}
             </span>
           </>
         ) : null}
       </div>
-      {images.length > 1 ? (
+      {images.length > 1 && !hero ? (
         <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto px-4 sm:px-0">
           {images.map((im, i) => (
             <button key={im.id} onClick={() => { scroller.current?.scrollTo({ left: i * (scroller.current?.clientWidth ?? 0), behavior: "smooth" }); }} className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg ring-2 transition ${i === idx ? "ring-agent" : "ring-transparent opacity-70"}`}>

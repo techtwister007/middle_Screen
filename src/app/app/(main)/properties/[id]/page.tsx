@@ -104,7 +104,7 @@ export default async function PropertyDetail({ params, searchParams }: { params:
               {keySpecs(p.type, l.fields).slice(0, 6).map((s) => (
                 <span key={s.label} className="rounded-lg bg-stone-50 px-2 py-1 text-xs text-stone-600 ring-1 ring-stone-200"><b>{s.value}</b> {s.label.toLowerCase()}</span>
               ))}
-              {p.locality ? <span className="rounded-lg bg-stone-50 px-2 py-1 text-xs text-stone-600 ring-1 ring-stone-200">📍 {p.locality}{p.city ? `, ${p.city}` : ""}</span> : null}
+              {p.locality ? <span className="rounded-lg bg-stone-50 px-2 py-1 text-xs text-stone-600 ring-1 ring-stone-200">{p.locality}{p.city ? `, ${p.city}` : ""}</span> : null}
             </div>
           </Card>
 
@@ -117,7 +117,7 @@ export default async function PropertyDetail({ params, searchParams }: { params:
 
           {matches.length ? (
             <Card className="p-4" id="matches">
-              <h2 className="font-display font-bold">✨ {matches.length} buyer{matches.length > 1 ? "s" : ""} match this property</h2>
+              <h2 className="font-display font-bold">{matches.length} buyer{matches.length > 1 ? "s" : ""} match this property</h2>
               <p className="text-sm text-stone-500">Based on their saved requirements.</p>
               <div className="mt-3 divide-y divide-stone-100">
                 {matches.slice(0, 10).map((m) => (

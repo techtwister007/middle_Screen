@@ -29,7 +29,7 @@ export function StatusControls({ id, status, buyers = [], closedWith }: { id: st
   if (closing)
     return (
       <div className="space-y-2">
-        <p className="text-sm font-semibold">🎉 {closing === "sold" ? "Sold" : "Rented"} to whom?</p>
+        <p className="text-sm font-semibold">{closing === "sold" ? "Sold" : "Rented"} to whom?</p>
         <div className="max-h-56 space-y-1.5 overflow-y-auto">
           {buyers.map((b) => (
             <button key={b.id} disabled={pending} onClick={() => close(b.id)} className="block w-full rounded-lg bg-stone-50 px-3 py-2 text-left text-sm font-medium ring-1 ring-stone-200 hover:bg-brand-50">
@@ -51,7 +51,7 @@ export function StatusControls({ id, status, buyers = [], closedWith }: { id: st
     <div>
       <div className="grid grid-cols-2 gap-2">
         {opts.map((o) => (
-          <button key={o.s} disabled={pending} onClick={() => set(o.s)} className={`h-9 rounded-lg text-sm font-semibold ring-1 ${status === o.s ? "bg-stone-900 text-white ring-stone-900" : "bg-white text-stone-700 ring-stone-200 hover:bg-stone-50"}`}>
+          <button key={o.s} disabled={pending} onClick={() => set(o.s)} className={`h-9 rounded-lg text-sm font-semibold ring-1 ${status === o.s ? "bg-brand-700 text-white ring-stone-900" : "bg-white text-stone-700 ring-stone-200 hover:bg-stone-50"}`}>
             {o.label}
           </button>
         ))}

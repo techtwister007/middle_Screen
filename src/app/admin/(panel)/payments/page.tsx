@@ -16,7 +16,7 @@ export default async function AdminPayments() {
       <Card className="p-4">
         <h2 className="mb-1 font-semibold">UPI payments to verify ({pending.length})</h2>
         <p className="mb-3 text-sm text-stone-500">Check the UTR in your bank / UPI app, then confirm. Confirming extends the agent&apos;s plan instantly.</p>
-        {pending.length === 0 ? <p className="text-sm text-stone-500">Nothing pending ✨</p> : null}
+        {pending.length === 0 ? <p className="text-sm text-stone-500">Nothing pending</p> : null}
         <div className="divide-y divide-stone-100">
           {pending.map(({ p, a }) => (
             <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3">

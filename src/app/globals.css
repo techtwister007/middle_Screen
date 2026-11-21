@@ -1,21 +1,125 @@
 @import "tailwindcss";
 
+/*
+ * PropPulse look: forest green on warm paper, DM Sans, rounded surfaces, soft depth.
+ * Neutrals ("stone") and brand ("brand") are redefined here so every screen picks up the look;
+ * dark mode re-maps the same variables below, so most components need no dark: classes.
+ */
 @theme {
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-stone-50: #f6f2ea;
+  --color-stone-100: #eee9df;
+  --color-stone-200: #e3ddd1;
+  --color-stone-300: #cfc8ba;
+  --color-stone-400: #9aa39c;
+  --color-stone-500: #66716a;
+  --color-stone-600: #535d57;
+  --color-stone-700: #414b45;
+  --color-stone-800: #2b352f;
+  --color-stone-900: #1c2620;
+  --color-stone-950: #121813;
+
+  --color-brand-50: #ecf4ee;
+  --color-brand-100: #d7e8dc;
+  --color-brand-200: #b4d4bf;
+  --color-brand-500: #3f8a63;
+  --color-brand-600: #2f7a55;
+  --color-brand-700: #1f5c40;
+  --color-brand-800: #1f4d36;
+  --color-brand-900: #173a29;
+
+  --font-sans: var(--font-dm), var(--font-hind), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-dm), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
+
+  --shadow-card: 0 1px 2px rgba(28, 38, 32, 0.05), 0 6px 18px rgba(28, 38, 32, 0.06);
+  --shadow-float: 0 2px 4px rgba(28, 38, 32, 0.06), 0 14px 32px rgba(28, 38, 32, 0.12);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-fade: fade 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-sheet: sheet-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
   /* Agent brand colour on buyer pages (overridden inline per agent) */
-  --agent: #0f766e;
+  --agent: #1f4d36;
+  --card: #ffffff;
+  --page: #f6f2ea;
   color-scheme: light;
+}
+
+/* ---------- dark mode: same variables, night values ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --card: #18201b;
+    --page: #101511;
+    --color-white: #18201b;
+    --color-stone-50: #101511;
+    --color-stone-100: #1c241f;
+    --color-stone-200: #29332d;
+    --color-stone-300: #36423b;
+    --color-stone-400: #66736b;
+    --color-stone-500: #97a39b;
+    --color-stone-600: #aeb8b1;
+    --color-stone-700: #c5cec7;
+    --color-stone-800: #dce3dd;
+    --color-stone-900: #eef2ec;
+    --color-stone-950: #f6f8f5;
+
+    --color-brand-50: #18291f;
+    --color-brand-100: #1e3328;
+    --color-brand-200: #2a4636;
+    --color-brand-500: #57a57c;
+    --color-brand-600: #3f8f66;
+    --color-brand-700: #2f7a55;
+    --color-brand-800: #a9dcc0;
+    --color-brand-900: #c8ead6;
+
+    --color-emerald-50: #15291e;
+    --color-emerald-100: #183222;
+    --color-emerald-200: #22452f;
+    --color-emerald-700: #7fd3a2;
+    --color-emerald-800: #98ddb4;
+    --color-emerald-900: #b5e8c9;
+    --color-amber-50: #2c2213;
+    --color-amber-100: #3a2b14;
+    --color-amber-200: #4d3a1a;
+    --color-amber-700: #f2b35a;
+    --color-amber-800: #f5c47a;
+    --color-amber-900: #f8d59c;
+    --color-red-50: #2e1717;
+    --color-red-100: #3b1c1c;
+    --color-red-200: #552626;
+    --color-red-700: #ff9a9a;
+    --color-red-800: #ffb0b0;
+    --color-rose-50: #2e1720;
+    --color-rose-100: #3b1c27;
+    --color-rose-200: #552634;
+    --color-rose-700: #ff9ab8;
+    --color-sky-50: #13232e;
+    --color-sky-100: #172b38;
+    --color-sky-200: #1f3b4d;
+    --color-sky-700: #8fcaf0;
+    --color-sky-800: #a8d6f4;
+    --color-violet-50: #221a33;
+    --color-violet-100: #2a1f40;
+    --color-violet-200: #3a2b57;
+    --color-violet-700: #c8b2ff;
+    --color-teal-50: #12282a;
+    --color-teal-700: #7fd6cf;
+
+    --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-float: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 14px 32px rgba(0, 0, 0, 0.5);
+  }
+  /* White text stays white on coloured fills; green text gets lighter to stay readable. */
+  .text-white { color: #ffffff; }
+  .text-brand-700 { color: #8fd1ad; }
+  .hover\:text-brand-800:hover { color: #c8ead6; }
 }
 
 html {
@@ -23,30 +127,129 @@ html {
 }
 body {
   @apply bg-stone-50 text-stone-900 antialiased;
+  font-feature-settings: "ss01" 0;
+}
+::selection {
+  background: color-mix(in srgb, var(--color-brand-600) 28%, transparent);
+}
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
 }
 
 .font-display {
   font-family: var(--font-display);
+}
+.tnum {
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .bg-agent { background-color: var(--agent); }
 .text-agent { color: var(--agent); }
 .border-agent { border-color: var(--agent); }
 .ring-agent { --tw-ring-color: var(--agent); }
+@media (prefers-color-scheme: dark) {
+  /* Agent colour as text on a dark page: lighten it so it stays readable. */
+  .text-agent { color: color-mix(in oklab, var(--agent) 45%, white); }
+}
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
+/* Welcome screen already shown this session */
+.pp-splashed #pp-splash { display: none; }
+
+/* ---------- surfaces ---------- */
+.surface {
+  background: var(--card);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- motion ---------- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
-.animate-fade-up { animation: fade-up 0.45s ease-out both; }
-
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
 @keyframes splash-out {
-  0%, 70% { opacity: 1; }
+  0%, 72% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; }
 }
-.animate-splash { animation: splash-out 1.5s ease-in forwards; }
+@keyframes mark-in {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Older class names kept so existing screens animate the same way */
+.animate-fade-up { animation: var(--animate-rise); }
+.animate-splash { animation: splash-out 1.6s ease-in forwards; }
+
+/* Entrances use fill-mode "backwards": once finished they leave no transform behind,
+   so fixed dialogs and sheets inside them still layer above the header. */
+/* Children enter one after another (max 8) */
+.stagger > * { animation: var(--animate-rise); }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(7) { animation-delay: 240ms; }
+.stagger > *:nth-child(n + 8) { animation-delay: 280ms; }
+
+/* Every page fades up a little when you arrive */
+.page-enter { animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+/* Pressable things shrink slightly under the finger */
+.press { transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s, box-shadow 0.2s, opacity 0.2s; }
+.press:active { transform: scale(0.97); }
+
+/* Loading placeholders */
+.skel {
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, var(--color-stone-100) 0%, var(--color-stone-200) 50%, var(--color-stone-100) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Images fade in once loaded */
+.img-fade { animation: fade 0.5s ease-out both; }
+
+/* Bottom sheets: slide up, scrim fades */
+.sheet-scrim { animation: fade 0.22s ease-out both; }
+.sheet-panel { animation: sheet-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 640px) {
+  .sheet-panel { animation: rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

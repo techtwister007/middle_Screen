@@ -63,7 +63,7 @@ export default async function Insights() {
             </div>
           ))}
         </div>
-        <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">🎉 Deals closed with buyers you shared through {"the app"}: <b>{viaApp}</b> · Leads marked closed: <b>{closed}</b></p>
+        <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">Deals closed with buyers you shared through {"the app"}: <b>{viaApp}</b> · Leads marked closed: <b>{closed}</b></p>
       </Card>
       <Card className="p-4">
         <h2 className="font-display font-bold">Most viewed properties (30 days)</h2>
@@ -72,7 +72,7 @@ export default async function Insights() {
             {top.map((t) => (
               <div key={t.title} className="flex justify-between py-2 text-sm">
                 <span className="truncate pr-3">{t.title}</span>
-                <span className="shrink-0 text-stone-500">👁 {t.views} · ♥ {t.saves}</span>
+                <span className="shrink-0 text-stone-500">{t.views} views · {t.saves} saves</span>
               </div>
             ))}
           </div>

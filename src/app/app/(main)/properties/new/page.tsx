@@ -15,8 +15,8 @@ export default function NewProperty() {
       <Card className="p-5">
         <NewListingForm action={createFromTextAction} voice={aiEnabled()} />
       </Card>
-      <a href={waLink(botNumber(), "help")} target="_blank" rel="noopener" className="mt-4 flex items-center gap-3 rounded-2xl bg-[#25D366]/10 p-4 text-sm ring-1 ring-[#25D366]/30">
-        <MessageCircle className="h-5 w-5 shrink-0 text-[#128C7E]" />
+      <a href={waLink(botNumber(), "help")} target="_blank" rel="noopener" className="mt-4 flex items-center gap-3 rounded-2xl bg-brand-50 p-4 text-sm ring-1 ring-brand-100">
+        <MessageCircle className="h-5 w-5 shrink-0 text-brand-700" />
         <span>
           <b>Even faster on WhatsApp:</b> forward the owner&apos;s photos to our number, add a voice note, type <b>done</b>.
         </span>

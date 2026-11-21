@@ -21,7 +21,7 @@ export function Unavailable({ agent, message }: { agent?: PublicAgent; message: 
             <a href={`tel:+${agent.phone}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-stone-100 font-semibold">
               <Phone className="h-4 w-4" /> Call
             </a>
-            <a href={`https://wa.me/${agent.phone}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] font-semibold text-white">
+            <a href={`https://wa.me/${agent.phone}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] font-semibold text-white">
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
           </div>

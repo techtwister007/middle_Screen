@@ -239,7 +239,7 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
   const amen = d.fields.amenities ?? [];
 
   return (
-    <div className="space-y-4 pb-28">
+    <div className="space-y-4 pb-44">
       {missing.length ? (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> Please check: <b>{missing.join(", ")}</b>. We never guess details — fill what you know.
@@ -436,7 +436,7 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
         <p className="text-xs text-stone-500">Public: shown on your agent website (and the future network). Private: only people you send the link to can see it.</p>
       </Section>
 
-      <div className="safe-bottom fixed inset-x-0 bottom-16 z-20 border-t border-stone-200 bg-white/95 backdrop-blur lg:bottom-0">
+      <div className="fixed inset-x-3 bottom-[calc(88px+env(safe-area-inset-bottom))] z-20 rounded-[22px] bg-white shadow-float [animation:rise_.45s_cubic-bezier(.22,1,.36,1)_backwards] lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:w-[min(720px,calc(100vw-2rem))] lg:-translate-x-1/2">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3">
           {err ? <p className="mr-auto line-clamp-2 text-sm text-red-600">{err}</p> : <span className="mr-auto" />}
           <button type="button" disabled={!!saving || !!uploading} onClick={() => save(false)} className="h-11 rounded-xl bg-white px-4 font-semibold ring-1 ring-stone-200 disabled:opacity-60">

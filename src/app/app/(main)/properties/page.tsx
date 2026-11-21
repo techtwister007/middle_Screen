@@ -37,7 +37,7 @@ export default async function Properties({ searchParams }: { searchParams: Promi
       </form>
       <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto">
         {tabs.map((t) => (
-          <Link key={t.key} href={`/app/properties?status=${t.key}${sp.q ? `&q=${encodeURIComponent(sp.q)}` : ""}`} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold ${status === t.key ? "bg-stone-900 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"}`}>
+          <Link key={t.key} href={`/app/properties?status=${t.key}${sp.q ? `&q=${encodeURIComponent(sp.q)}` : ""}`} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold ${status === t.key ? "bg-brand-700 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"}`}>
             {t.label}
           </Link>
         ))}

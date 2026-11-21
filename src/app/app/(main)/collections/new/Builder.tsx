@@ -28,7 +28,7 @@ export function CollectionBuilder({ items, leads, presetLead }: { items: Item[];
   };
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-44">
       <div className="space-y-2 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
         <input value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Collection title" className="block w-full rounded-xl px-3 py-2.5 font-semibold ring-1 ring-stone-300" />
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Personal note for the buyer (optional)" className="block w-full rounded-xl px-3 py-2.5 text-sm ring-1 ring-stone-300" />
@@ -58,7 +58,7 @@ export function CollectionBuilder({ items, leads, presetLead }: { items: Item[];
           );
         })}
       </div>
-      <div className="safe-bottom fixed inset-x-0 bottom-16 z-20 border-t border-stone-200 bg-white/95 backdrop-blur lg:bottom-0">
+      <div className="fixed inset-x-3 bottom-[calc(88px+env(safe-area-inset-bottom))] z-20 rounded-[22px] bg-white shadow-float [animation:rise_.45s_cubic-bezier(.22,1,.36,1)_backwards] lg:inset-x-auto lg:bottom-4 lg:left-1/2 lg:w-[min(720px,calc(100vw-2rem))] lg:-translate-x-1/2">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           <span className="mr-auto text-sm font-semibold">{sel.length} selected {err ? <span className="ml-2 text-red-600">{err}</span> : null}</span>
           <button disabled={busy || !sel.length} onClick={create} className="flex h-11 items-center gap-2 rounded-xl bg-brand-700 px-5 font-semibold text-white disabled:opacity-50">

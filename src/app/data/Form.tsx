@@ -19,7 +19,7 @@ export function DataRequestForm() {
         <option value="export">Send me a copy of my data</option>
       </select>
       <textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Anything else? (optional)" className="block w-full rounded-xl px-3 py-2.5 ring-1 ring-stone-300" />
-      <button onClick={submit} className="h-11 rounded-xl bg-stone-900 px-5 font-semibold text-white">Submit request</button>
+      <button onClick={submit} className="h-11 rounded-xl bg-brand-700 px-5 font-semibold text-white">Submit request</button>
       {msg ? <p className="text-sm">{msg}</p> : null}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft, FileText, Search, CalendarPlus, Clock } from "lucide-react";
 import type { PublicAgent, PublicListing } from "@/modules/public";
@@ -72,18 +72,28 @@ export function AgentBar({ agent, compact }: { agent: PublicAgent; compact?: boo
 
 export function Splash({ agent, onDone }: { agent: PublicAgent; onDone: () => void }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 1500);
+    const t = setTimeout(onDone, 1600);
     return () => clearTimeout(t);
   }, [onDone]);
+  const img = agent.logoUrl ?? agent.photoUrl;
   return (
     <button onClick={onDone} className="animate-splash fixed inset-0 z-50 flex flex-col items-center justify-center bg-agent px-8 text-center text-white">
-      {agent.logoUrl || agent.photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={(agent.logoUrl ?? agent.photoUrl)!} alt="" className="mb-5 h-24 w-24 rounded-full bg-white object-cover shadow-xl ring-4 ring-white/30" />
-      ) : null}
-      <p className="font-display text-3xl font-extrabold tracking-tight">{agent.displayName}</p>
-      {agent.tagline ? <p className="mt-2 max-w-xs text-white/85">{agent.tagline}</p> : <p className="mt-2 text-white/80">Presenting a property selected for you</p>}
-      <span className="mt-8 text-xs uppercase tracking-[0.2em] text-white/60">Tap to continue</span>
+      <span className="[animation:mark-in_.6s_cubic-bezier(.22,1,.36,1)_both]">
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={img} alt="" className="h-24 w-24 rounded-[28px] bg-white object-cover shadow-2xl ring-4 ring-white/25" />
+        ) : (
+          <span className="flex h-24 w-24 items-center justify-center rounded-[28px] bg-white text-3xl font-semibold text-agent shadow-2xl">
+            {agent.displayName.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("")}
+          </span>
+        )}
+      </span>
+      <p className="mt-6 text-[28px] font-semibold tracking-tight [animation:rise_.5s_.15s_cubic-bezier(.22,1,.36,1)_both]">{agent.displayName}</p>
+      <p className="mt-2 max-w-xs text-white/85 [animation:rise_.5s_.25s_cubic-bezier(.22,1,.36,1)_both]">{agent.tagline || "Presenting a property selected for you"}</p>
+      <span className="mt-9 h-1 w-24 overflow-hidden rounded-full bg-white/25">
+        <span className="block h-full w-full origin-left rounded-full bg-white/85 [animation:bar-grow_1.2s_.1s_cubic-bezier(.22,1,.36,1)_both]" />
+      </span>
+      <span className="mt-4 text-xs text-white/65">Tap to continue</span>
     </button>
   );
 }
@@ -173,190 +183,246 @@ export function ListingView({
   };
   const onIdentified = (name: string) => setState((s) => ({ ...s, identified: true, name }));
 
+  const sections = [
+    { id: "overview", label: "Overview", show: true },
+    { id: "amenities", label: "Amenities", show: l.amenities.length > 0 },
+    { id: "location", label: "Location", show: !!(l.locality || l.city) },
+  ].filter((x) => x.show);
+  const [tab, setTab] = useState("overview");
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    const els = sections.map((x) => document.getElementById(`sec-${x.id}`)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && setTab(e.target.id.replace("sec-", ""))), { rootMargin: "-45% 0px -50% 0px" });
+    els.forEach((e) => io.observe(e));
+    const onScroll = () => setStuck((tabsRef.current?.getBoundingClientRect().top ?? 99) <= 1);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { io.disconnect(); window.removeEventListener("scroll", onScroll); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const jump = (id: string) => {
+    const el = document.getElementById(`sec-${id}`);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 64;
+    window.scrollTo({ top: y, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
+  const initials = agent.displayName.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+  const card = "mx-3 rounded-[22px] bg-white p-5 shadow-card sm:mx-0";
+
   return (
-    <div style={{ ["--agent" as string]: agent.brandColor }} className="min-h-screen bg-stone-50 pb-28">
+    <div style={{ ["--agent" as string]: agent.brandColor }} className="min-h-screen bg-stone-50 pb-32">
       {splash ? <Splash agent={agent} onDone={() => setSplash(false)} /> : null}
 
-      <header className="sticky top-0 z-30 border-b border-stone-200/70 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-2.5">
-          <div className="flex min-w-0 items-center gap-2">
-            {backHref ? (
-              <Link href={backHref} aria-label="Back" className="-ml-1 rounded-full p-1.5 text-stone-600 hover:bg-stone-100">
-                <ChevronLeft className="h-5 w-5" />
-              </Link>
-            ) : null}
-            {agent.welcomeMode === "none" ? <span className="font-semibold text-stone-800">{agent.displayName}</span> : <AgentBar agent={agent} compact />}
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={share} aria-label="Share" className="rounded-full p-2 text-stone-600 hover:bg-stone-100">
-              <Share2 className="h-5 w-5" />
-            </button>
-            <button onClick={toggleSave} aria-label={state.saved ? "Saved" : "Save"} className="rounded-full p-2 hover:bg-stone-100">
-              <Heart className={`h-5 w-5 ${state.saved ? "fill-rose-500 text-rose-500" : "text-stone-600"}`} />
-            </button>
+      <main className="mx-auto max-w-3xl sm:px-4 sm:pt-4">
+        <div className="relative">
+          <Gallery images={l.images} code={code} listingId={l.id} title={l.title} hero />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3 sm:p-4">
+            <div className="pointer-events-auto flex min-w-0 items-center gap-2">
+              {backHref ? (
+                <Link href={backHref} aria-label="Back" className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-stone-900 shadow-card">
+                  <ChevronLeft className="h-5 w-5" />
+                </Link>
+              ) : null}
+              <span className="flex h-10 min-w-0 items-center gap-2 rounded-full bg-white/95 pl-1 pr-3.5 text-sm font-semibold text-stone-900 shadow-card [animation:rise_.5s_.1s_cubic-bezier(.22,1,.36,1)_both]">
+                {agent.logoUrl || agent.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(agent.logoUrl ?? agent.photoUrl)!} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-agent text-[12px] font-semibold text-white">{initials}</span>
+                )}
+                <span className="truncate">{agent.displayName}</span>
+              </span>
+            </div>
+            <div className="pointer-events-auto flex gap-2">
+              <button onClick={share} aria-label="Share" className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-stone-900 shadow-card">
+                <Share2 className="h-[18px] w-[18px]" />
+              </button>
+              <button onClick={toggleSave} aria-label={state.saved ? "Saved" : "Save"} className="press flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-stone-900 shadow-card">
+                <Heart key={String(state.saved)} className={`h-[18px] w-[18px] ${state.saved ? "fill-rose-500 text-rose-500 [animation:pop_.45s_cubic-bezier(.22,1,.36,1)]" : ""}`} />
+              </button>
+            </div>
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-3xl sm:px-4 sm:pt-4">
-        <Gallery images={l.images} code={code} listingId={l.id} title={l.title} />
-
-        <section className="animate-fade-up px-4 pt-5 sm:px-0">
-          {greetingName ? <p className="mb-2 text-sm font-medium text-agent">Hi {greetingName.split(" ")[0]}, selected for you ✨</p> : null}
+        <section className={`relative z-10 -mt-8 ${card} stagger sm:-mt-10`}>
+          {greetingName ? <p className="mb-2 text-sm font-semibold text-agent">Hi {greetingName.split(" ")[0]}, selected for you</p> : null}
           <div className="flex flex-wrap items-center gap-2">
             {sold ? (
-              <span className="rounded-full bg-stone-800 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">{l.status === "sold" ? "Sold" : "Rented"}</span>
+              <span className="rounded-full bg-[#4a544e] px-2.5 py-1 text-xs font-semibold text-white">{l.status === "sold" ? "Sold" : "Rented"}</span>
             ) : l.status === "on_hold" ? (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-800">On hold</span>
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">On hold</span>
             ) : (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">Available</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800"><span className="h-1.5 w-1.5 rounded-full bg-current" />Available</span>
             )}
-            <span className="text-xs font-medium text-stone-500">
+            <span className="text-xs text-stone-500">
               {l.typeLabel} · For {l.purpose === "rent" ? "rent" : "sale"} · #{l.ref}
             </span>
           </div>
-          <h1 className="mt-2 font-display text-[26px] font-extrabold leading-tight tracking-tight text-stone-900 sm:text-3xl">{l.title}</h1>
+          <h1 className="mt-2.5 text-[24px] font-semibold leading-tight tracking-tight text-stone-900 sm:text-3xl">{l.title}</h1>
           {l.locality || l.city ? (
-            <p className="mt-1 flex items-center gap-1.5 text-stone-600">
+            <p className="mt-1 flex items-center gap-1.5 text-[15px] text-stone-500">
               <MapPin className="h-4 w-4" /> {[l.locality, l.city].filter(Boolean).join(", ")}
             </p>
           ) : null}
-          <p className="mt-3 font-display text-3xl font-extrabold text-agent">
-            {l.price}
-            {l.negotiable ? <span className="ml-2 align-middle text-sm font-semibold text-stone-500">Negotiable</span> : null}
-          </p>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="tnum font-display text-[32px] font-bold leading-none tracking-tight text-agent">{l.price}</p>
+            {l.negotiable ? <span className="text-sm font-semibold text-stone-500">Negotiable</span> : null}
+          </div>
           {l.perSqft || l.emi ? (
-            <p className="mt-1 text-sm text-stone-500">
+            <p className="tnum mt-2 text-sm text-stone-500">
               {l.perSqft}
               {l.perSqft && l.emi ? " · " : ""}
-              {l.emi ? <>EMI from <b className="text-stone-700">{l.emi}</b><span title="Indicative: 80% loan at 8.5% for 20 years" className="cursor-help">*</span></> : null}
+              {l.emi ? <>EMI from <b className="font-semibold text-stone-800">{l.emi}</b><span title="Indicative: 80% loan at 8.5% for 20 years" className="cursor-help">*</span></> : null}
             </p>
           ) : null}
-          {l.stale ? (
-            <p className="mt-2 text-xs text-amber-700">Availability is being re-confirmed — ask {agent.displayName} for the latest status.</p>
-          ) : (
-            <p className="mt-2 text-xs text-stone-400">Updated {daysAgo(l.updatedAt)}</p>
-          )}
-          {visit ? <VisitStatus visit={visit} l={l} agent={agent} /> : null}
-
           {l.specs.length ? (
-            <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {l.specs.slice(0, 8).map((s) => (
-                <div key={s.label} className="rounded-2xl bg-white p-3 ring-1 ring-stone-200/80">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-stone-500">{s.label}</p>
-                  <p className="mt-0.5 text-[15px] font-bold text-stone-900">{s.value}</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {l.specs.slice(0, 6).map((s) => (
+                <div key={s.label} className="rounded-2xl bg-stone-100 px-2 py-3 text-center">
+                  <p className="text-[15px] font-semibold leading-tight text-stone-900">{s.value}</p>
+                  <p className="mt-1 text-xs text-stone-500">{s.label}</p>
                 </div>
               ))}
             </div>
           ) : null}
+          {l.stale ? (
+            <p className="mt-3 text-[13px] text-amber-700">Availability is being re-confirmed. Ask {agent.displayName} for the latest status.</p>
+          ) : (
+            <p className="mt-3 flex items-center gap-1.5 text-[13px] text-stone-500"><BadgeCheck className="h-4 w-4 text-emerald-700" />Updated {daysAgo(l.updatedAt)}</p>
+          )}
+          {visit ? <VisitStatus visit={visit} l={l} agent={agent} /> : null}
         </section>
 
-        {l.videos.length || l.youtubeId ? (
-          <section className="mt-7 px-4 sm:px-0">
-            <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold">
-              <Play className="h-5 w-5 text-agent" /> Walkthrough
-            </h2>
-            <div className="space-y-3">
-              {l.youtubeId ? (
-                <div className="aspect-video overflow-hidden rounded-2xl bg-black">
-                  <iframe
-                    className="h-full w-full"
-                    src={`https://www.youtube-nocookie.com/embed/${l.youtubeId}?rel=0`}
-                    title="Property video"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                    onLoad={() => {}}
-                  />
+        {sections.length > 1 ? (
+          <div ref={tabsRef} className={`sticky top-0 z-20 mt-3 px-3 py-2 transition-[background-color,box-shadow] duration-300 sm:px-0 ${stuck ? "bg-stone-50/95 shadow-[0_8px_16px_-12px_rgba(0,0,0,.25)] backdrop-blur" : ""}`}>
+            <div className="relative grid rounded-2xl bg-stone-100 p-1" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }} role="tablist" aria-label="Sections">
+              <span aria-hidden className="absolute bottom-1 top-1 rounded-[12px] bg-white shadow-card transition-[left] duration-300 ease-[cubic-bezier(.22,1,.36,1)]" style={{ width: `calc((100% - 8px) / ${sections.length})`, left: `calc(4px + ${Math.max(0, sections.findIndex((x) => x.id === tab))} * (100% - 8px) / ${sections.length})` }} />
+              {sections.map((x) => (
+                <button key={x.id} role="tab" aria-selected={tab === x.id} onClick={() => jump(x.id)} className={`relative h-10 rounded-[12px] text-sm font-semibold transition-colors ${tab === x.id ? "text-stone-900" : "text-stone-500"}`}>
+                  {x.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-2 space-y-3">
+          <div id="sec-overview" className="space-y-3">
+            {l.videos.length || l.youtubeId ? (
+              <section className={card}>
+                <h2 className="mb-3 flex items-center gap-2 text-[17px] font-semibold">
+                  <Play className="h-5 w-5 text-agent" /> Walkthrough
+                </h2>
+                <div className="space-y-3">
+                  {l.youtubeId ? (
+                    <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+                      <iframe className="h-full w-full" src={`https://www.youtube-nocookie.com/embed/${l.youtubeId}?rel=0`} title="Property video" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading="lazy" />
+                    </div>
+                  ) : null}
+                  {l.videos.map((v) => (
+                    <video key={v.id} src={v.url} controls playsInline preload="metadata" onPlay={() => track(code, "video", { id: v.id }, l.id)} className="w-full rounded-2xl bg-black" />
+                  ))}
                 </div>
-              ) : null}
-              {l.videos.map((v) => (
-                <video key={v.id} src={v.url} controls playsInline preload="metadata" onPlay={() => track(code, "video", { id: v.id }, l.id)} className="w-full rounded-2xl bg-black" />
-              ))}
+              </section>
+            ) : null}
+
+            {l.description ? (
+              <section className={card}>
+                <h2 className="mb-2 text-[17px] font-semibold">About this property</h2>
+                <div className="space-y-3 whitespace-pre-line text-[15px] leading-relaxed text-stone-700">{l.description}</div>
+              </section>
+            ) : null}
+
+            {l.docs.length ? (
+              <section className={card}>
+                <h2 className="mb-3 text-[17px] font-semibold">Floor plan & documents</h2>
+                <div className="space-y-2">
+                  {l.docs.map((d) => (
+                    <a key={d.id} href={d.url} target="_blank" rel="noopener" onClick={() => track(code, "gallery", { doc: d.id }, l.id)} className="press flex items-center gap-3 rounded-2xl bg-stone-100 p-3">
+                      <FileText className="h-5 w-5 text-agent" /> <span className="font-medium">{d.name}</span> <span className="ml-auto text-sm font-semibold text-agent">Open</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+
+          {l.amenities.length ? (
+            <section id="sec-amenities" className={card}>
+              <h2 className="mb-3 text-[17px] font-semibold">Amenities</h2>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {l.amenities.map((a) => (
+                  <span key={a} className="flex items-center gap-2 rounded-2xl bg-stone-100 px-3 py-3 text-sm font-medium text-stone-800">
+                    <BadgeCheck className="h-[18px] w-[18px] shrink-0 text-agent" /> {a}
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {l.locality || l.city ? (
+            <section id="sec-location" className={card}>
+              <h2 className="mb-3 text-[17px] font-semibold">Location</h2>
+              <Location l={l} code={code} />
+            </section>
+          ) : null}
+
+          <div className="px-3 sm:px-0">
+            <button onClick={() => setSheet("req")} className={`press flex w-full items-center gap-3 rounded-[22px] p-4 text-left ${sold ? "bg-agent text-white" : "bg-white shadow-card"}`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${sold ? "bg-white/20" : "bg-stone-100 text-agent"}`}><Search className="h-5 w-5" /></span>
+              <span className="min-w-0">
+                <span className="block font-semibold">{sold ? "This one's gone — want similar options?" : "Not quite right?"}</span>
+                <span className={`block text-sm ${sold ? "text-white/85" : "text-stone-500"}`}>Tell {agent.displayName} what you&apos;re looking for and get matching properties.</span>
+              </span>
+            </button>
+          </div>
+
+          <section className={card}>
+            <div className="flex items-center gap-3">
+              {agent.logoUrl || agent.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={(agent.logoUrl ?? agent.photoUrl)!} alt="" className="h-14 w-14 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-agent text-lg font-semibold text-white">{initials}</span>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-[17px] font-semibold">{agent.displayName}</p>
+                <p className="truncate text-sm text-stone-500">{agent.company && agent.name ? `${agent.name} · ` : ""}Your property consultant</p>
+              </div>
             </div>
-          </section>
-        ) : null}
-
-        {l.description ? (
-          <section className="mt-7 px-4 sm:px-0">
-            <h2 className="mb-2 font-display text-lg font-bold">About this property</h2>
-            <div className="space-y-3 whitespace-pre-line text-[15px] leading-relaxed text-stone-700">{l.description}</div>
-          </section>
-        ) : null}
-
-        {l.amenities.length ? (
-          <section className="mt-7 px-4 sm:px-0">
-            <h2 className="mb-3 font-display text-lg font-bold">Amenities</h2>
-            <div className="flex flex-wrap gap-2">
-              {l.amenities.map((a) => (
-                <span key={a} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm text-stone-700 ring-1 ring-stone-200">
-                  <BadgeCheck className="h-4 w-4 text-agent" /> {a}
-                </span>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {l.docs.length ? (
-          <section className="mt-7 px-4 sm:px-0">
-            <h2 className="mb-3 font-display text-lg font-bold">Floor plan & documents</h2>
-            <div className="space-y-2">
-              {l.docs.map((d) => (
-                <a key={d.id} href={d.url} target="_blank" rel="noopener" onClick={() => track(code, "gallery", { doc: d.id }, l.id)} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-stone-200">
-                  <FileText className="h-5 w-5 text-agent" /> <span className="font-medium">{d.name}</span> <span className="ml-auto text-sm font-semibold text-agent">Open</span>
-                </a>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <section className="mt-7 px-4 sm:px-0">
-          <h2 className="mb-3 font-display text-lg font-bold">Location</h2>
-          <Location l={l} code={code} />
-        </section>
-
-        <section className="mt-8 px-4 sm:px-0">
-          <button onClick={() => setSheet("req")} className={`mb-4 flex w-full items-center gap-3 rounded-2xl p-4 text-left ring-1 ${sold ? "bg-agent text-white ring-transparent" : "bg-white ring-stone-200"}`}>
-            <Search className={`mr-3 h-5 w-5 shrink-0 ${sold ? "" : "text-agent"}`} />
-            <span className="min-w-0">
-              <span className="block font-semibold">{sold ? "This one's gone — want similar options?" : "Not quite right?"}</span>
-              <span className={`block text-sm ${sold ? "text-white/85" : "text-stone-500"}`}>Tell {agent.displayName} what you&apos;re looking for and get matching properties.</span>
-            </span>
-          </button>
-          <div className="rounded-3xl bg-white p-5 ring-1 ring-stone-200">
-            <AgentBar agent={agent} />
             {agent.tagline ? <p className="mt-3 text-sm text-stone-600">{agent.tagline}</p> : null}
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <a href={`tel:+${agent.phone}`} onClick={() => track(code, "call", {}, l.id)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-stone-100 font-semibold text-stone-800">
+              <a href={`tel:+${agent.phone}`} onClick={() => track(code, "call", {}, l.id)} className="press flex h-12 items-center justify-center gap-2 rounded-[14px] bg-stone-100 font-semibold text-stone-900">
                 <Phone className="h-4 w-4" /> Call
               </a>
-              <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] font-semibold text-white">
+              <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} className="press flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#1f8f4e] font-semibold text-white">
                 <MessageCircle className="h-4 w-4" /> WhatsApp
               </a>
             </div>
-            <Link href={`/${agent.handle}`} className="mt-3 block text-center text-sm font-semibold text-agent">
+            <Link href={`/${agent.handle}`} className="mt-4 block text-center text-sm font-semibold text-agent">
               See all properties from {agent.displayName} →
             </Link>
-          </div>
-          <div className="mt-6 flex items-center justify-between text-xs text-stone-400">
-            <button onClick={() => setSheet("report")} className="inline-flex items-center gap-1 hover:text-stone-600">
+          </section>
+
+          <div className="flex items-center justify-between px-5 pt-3 text-[13px] text-stone-500 sm:px-1">
+            <PoweredBy />
+            <button onClick={() => setSheet("report")} className="inline-flex items-center gap-1 hover:text-stone-700">
               <Flag className="h-3.5 w-3.5" /> Report listing
             </button>
-            <PoweredBy />
           </div>
-        </section>
+        </div>
       </main>
 
       {!sold ? (
-        <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto grid max-w-3xl grid-cols-[auto_auto_1fr] gap-2 px-4 py-3">
-            <button onClick={() => setSheet("ask")} className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-stone-100 px-4 text-sm font-semibold text-stone-800">
+        <div className="fixed inset-x-3 bottom-[calc(10px+env(safe-area-inset-bottom))] z-30 [animation:rise_.5s_.3s_cubic-bezier(.22,1,.36,1)_backwards]">
+          <div className="mx-auto grid max-w-3xl grid-cols-[auto_auto_1fr] gap-2 rounded-[22px] bg-white p-2 shadow-float">
+            <button onClick={() => setSheet("ask")} className="press flex h-12 items-center justify-center gap-1.5 rounded-[14px] bg-stone-100 px-4 text-sm font-semibold text-stone-900">
               <HelpCircle className="h-4 w-4" /> Ask
             </button>
-            <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} aria-label="WhatsApp agent" className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#25D366] text-white">
+            <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} aria-label="WhatsApp agent" className="press flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#1f8f4e] text-white">
               <MessageCircle className="h-5 w-5" />
             </a>
-            <button onClick={() => setSheet("visit")} disabled={visitBooked} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-agent text-[15px] font-bold text-white disabled:opacity-70">
+            <button onClick={() => setSheet("visit")} disabled={visitBooked} className="press flex h-12 items-center justify-center gap-2 rounded-[14px] bg-agent text-[15px] font-semibold text-white disabled:opacity-70">
               <CalendarCheck className="h-5 w-5" /> {visit?.status === "confirmed" || visit?.status === "rescheduled" ? "Visit booked ✓" : visitBooked ? "Visit requested" : "Book site visit"}
             </button>
           </div>
@@ -379,9 +445,12 @@ function daysAgo(iso: string) {
 
 export function PoweredBy() {
   return (
-    <a href="/" className="hover:text-stone-600">
-      Powered by <span className="font-semibold">{brand.name}</span>
-    </a>
+    <span>
+      with <span className="text-rose-500">❤</span> from{" "}
+      <a href={brand.companyUrl} target="_blank" rel="noopener" className="font-semibold text-stone-700 underline decoration-stone-300 underline-offset-[3px] hover:decoration-stone-500">
+        {brand.name}
+      </a>
+    </span>
   );
 }
 
@@ -406,7 +475,7 @@ function ReportSheet({ open, onClose, listingId }: { open: boolean; onClose: () 
             <option value="other">Other</option>
           </select>
           <textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Details (optional)" className="block min-h-20 w-full rounded-xl px-3 py-3 ring-1 ring-stone-300" />
-          <button onClick={submit} className="h-11 w-full rounded-xl bg-stone-900 font-semibold text-white">Submit report</button>
+          <button onClick={submit} className="press h-12 w-full rounded-[14px] bg-brand-700 font-semibold text-white">Submit report</button>
         </div>
       )}
     </Sheet>

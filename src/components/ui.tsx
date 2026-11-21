@@ -6,15 +6,15 @@ export { clsx as cx };
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "whatsapp" | "agent";
 const variants: Record<Variant, string> = {
-  primary: "bg-brand-700 text-white hover:bg-brand-800 shadow-sm",
-  secondary: "bg-white text-stone-800 ring-1 ring-stone-200 hover:bg-stone-50 shadow-sm",
+  primary: "bg-brand-700 text-white hover:bg-brand-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]",
+  secondary: "bg-white text-stone-800 ring-1 ring-stone-200 hover:bg-stone-100",
   ghost: "text-stone-700 hover:bg-stone-100",
   danger: "bg-red-600 text-white hover:bg-red-700",
-  whatsapp: "bg-[#25D366] text-white hover:bg-[#1ebe5a] shadow-sm",
-  agent: "bg-agent text-white hover:opacity-90 shadow-sm",
+  whatsapp: "bg-[#1f8f4e] text-white hover:bg-[#1a7d44]",
+  agent: "bg-agent text-white hover:opacity-90",
 };
-const sizes = { sm: "h-8 px-3 text-sm", md: "h-10 px-4 text-sm", lg: "h-12 px-5 text-base" };
-const base = "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
+const sizes = { sm: "h-9 px-3.5 text-sm", md: "h-11 px-4 text-[15px]", lg: "h-[52px] px-5 text-base" };
+const base = "press inline-flex items-center justify-center gap-2 rounded-[14px] font-semibold disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
 
 export function Button({ variant = "primary", size = "md", className, ...p }: ComponentProps<"button"> & { variant?: Variant; size?: keyof typeof sizes }) {
   return <button className={clsx(base, variants[variant], sizes[size], className)} {...p} />;
@@ -29,7 +29,7 @@ export function A({ variant = "primary", size = "md", className, ...p }: Compone
 }
 
 export function Card({ className, ...p }: ComponentProps<"div">) {
-  return <div className={clsx("rounded-2xl bg-white ring-1 ring-stone-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)]", className)} {...p} />;
+  return <div className={clsx("rounded-[20px] bg-white shadow-card", className)} {...p} />;
 }
 
 export function Label({ className, ...p }: ComponentProps<"label">) {
@@ -37,7 +37,7 @@ export function Label({ className, ...p }: ComponentProps<"label">) {
 }
 
 const inputCls =
-  "block w-full rounded-xl border-0 bg-white px-3.5 py-2.5 text-[15px] text-stone-900 ring-1 ring-stone-300 placeholder:text-stone-400 focus:ring-2 focus:ring-brand-600 outline-none";
+  "block w-full rounded-[14px] border-0 bg-white px-3.5 py-3 text-[15px] text-stone-900 ring-1 ring-stone-200 placeholder:text-stone-500 focus:ring-2 focus:ring-brand-600 outline-none transition-shadow";
 
 export function Input({ className, ...p }: ComponentProps<"input">) {
   return <input className={clsx(inputCls, className)} {...p} />;
@@ -74,14 +74,14 @@ export function Badge({ tone = "stone", className, ...p }: ComponentProps<"span"
 
 export function PageHeader({ title, subtitle, action, back }: { title: string; subtitle?: ReactNode; action?: ReactNode; back?: string }) {
   return (
-    <div className="mb-5 flex items-start justify-between gap-3">
+    <div className="page-enter mb-5 flex items-start justify-between gap-3">
       <div className="min-w-0">
         {back ? (
           <Link href={back} className="mb-1 inline-block text-sm font-medium text-stone-500 hover:text-stone-800">
             ← Back
           </Link>
         ) : null}
-        <h1 className="font-display text-2xl font-bold tracking-tight text-stone-900">{title}</h1>
+        <h1 className="font-display text-[26px] font-semibold leading-tight tracking-tight text-stone-900">{title}</h1>
         {subtitle ? <p className="mt-0.5 text-sm text-stone-500">{subtitle}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -92,7 +92,7 @@ export function PageHeader({ title, subtitle, action, back }: { title: string; s
 export function Empty({ icon, title, body, action }: { icon?: ReactNode; title: string; body?: ReactNode; action?: ReactNode }) {
   return (
     <Card className="flex flex-col items-center px-6 py-10 text-center">
-      {icon ? <div className="mb-3 text-stone-400">{icon}</div> : null}
+      {icon ? <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">{icon}</div> : null}
       <p className="font-semibold text-stone-800">{title}</p>
       {body ? <p className="mt-1 max-w-sm text-sm text-stone-500">{body}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
@@ -103,8 +103,8 @@ export function Empty({ icon, title, body, action }: { icon?: ReactNode; title: 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
     <Card className="p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
-      <p className="mt-1 font-display text-2xl font-bold text-stone-900">{value}</p>
+      <p className="text-[13px] text-stone-500">{label}</p>
+      <p className="tnum mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-stone-900">{value}</p>
       {hint ? <p className="mt-0.5 text-xs text-stone-500">{hint}</p> : null}
     </Card>
   );

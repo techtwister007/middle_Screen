@@ -7,7 +7,7 @@ export const metadata = { title: "Add lead" };
 export default function NewLead() {
   return (
     <div className="mx-auto max-w-xl">
-      <PageHeader title="Add a lead" back="/app/leads" subtitle="Tip: on WhatsApp, just forward a contact card to our number." />
+      <PageHeader title="Add a buyer" back="/app/leads" subtitle="Tip: on WhatsApp, just forward a contact card to our number." />
       <Card className="p-5">
         <form action={createLeadAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -16,7 +16,7 @@ export default function NewLead() {
           </div>
           <p className="text-sm font-semibold text-stone-700">What are they looking for? <span className="font-normal text-stone-500">(optional — powers matching)</span></p>
           <RequirementFields />
-          <Button type="submit" size="lg" className="w-full">Save lead</Button>
+          <Button type="submit" size="lg" className="w-full">Save buyer</Button>
         </form>
       </Card>
     </div>

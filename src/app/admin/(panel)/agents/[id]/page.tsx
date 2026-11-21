@@ -30,7 +30,7 @@ export default async function AdminAgent({ params }: { params: Promise<{ id: str
           <p className="text-sm text-stone-500">{a.company} · {formatPhone(a.phone)} · /{a.handle} · joined {dateLabel(a.createdAt)} · bot {timeAgo(a.lastInboundAt)}</p>
         </div>
         <div className="flex gap-2">
-          <form action={impersonateAction.bind(null, id)}><button className="h-9 rounded-lg bg-stone-900 px-3 text-sm font-semibold text-white">Open as agent</button></form>
+          <form action={impersonateAction.bind(null, id)}><button className="h-9 rounded-lg bg-brand-700 px-3 text-sm font-semibold text-white">Open as agent</button></form>
           <form action={toggleAgentAction.bind(null, id)}><button className="h-9 rounded-lg bg-white px-3 text-sm font-semibold text-red-600 ring-1 ring-stone-200">{a.disabled ? "Enable" : "Disable"}</button></form>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default async function AdminAgent({ params }: { params: Promise<{ id: str
           <p className="font-semibold">Extend trial / access by days</p>
           <form action={extendTrialAction.bind(null, id)} className="flex gap-2">
             <input name="days" type="number" min={1} max={90} defaultValue={7} className="w-20 rounded-lg px-2 py-1.5 ring-1 ring-stone-300" />
-            <button className="rounded-lg bg-stone-900 px-3 text-sm font-semibold text-white">Extend</button>
+            <button className="rounded-lg bg-brand-700 px-3 text-sm font-semibold text-white">Extend</button>
           </form>
         </Card>
         <Card className="p-4">

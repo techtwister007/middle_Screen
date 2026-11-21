@@ -105,7 +105,7 @@ export function BillingClient({ plans, qrs, upiId, upiName, razorpay, agent }: {
             <label htmlFor="utr" className="mb-1 block text-sm font-medium text-stone-700">After paying, enter the UTR / reference number</label>
             <input id="utr" value={utr} onChange={(e) => setUtr(e.target.value)} placeholder="12-digit UTR" className="block w-full rounded-xl px-3.5 py-2.5 ring-1 ring-stone-300" />
           </div>
-          <button disabled={pending || utr.length < 6} onClick={submitUtr} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-stone-900 font-semibold text-white disabled:opacity-50">
+          <button disabled={pending || utr.length < 6} onClick={submitUtr} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 font-semibold text-white disabled:opacity-50">
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} I&apos;ve paid — submit
           </button>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X, MessageCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { X, MessageCircle, Loader2 } from "lucide-react";
 import { buyerAction } from "./api";
 
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
@@ -13,11 +13,12 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
-      <div className="animate-fade-up safe-bottom w-full max-w-md rounded-t-3xl bg-white p-5 shadow-xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-scrim fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
+      <div className="sheet-panel safe-bottom max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[28px] bg-stone-50 p-5 pt-2.5 shadow-float sm:rounded-[28px] sm:pt-5" onClick={(e) => e.stopPropagation()}>
+        <div aria-hidden className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-stone-300 sm:hidden" />
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-bold">{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-1.5 text-stone-500 hover:bg-stone-100">
+          <h3 className="text-[19px] font-semibold tracking-tight">{title}</h3>
+          <button onClick={onClose} aria-label="Close" className="press flex h-9 w-9 items-center justify-center rounded-full bg-white text-stone-600 shadow-card">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -27,7 +28,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   );
 }
 
-const input = "block w-full rounded-xl border-0 px-3.5 py-3 text-[15px] ring-1 ring-stone-300 focus:ring-2 focus:ring-agent outline-none";
+const input = "block w-full rounded-[14px] border-0 bg-white px-3.5 py-3 text-[15px] ring-1 ring-stone-200 focus:ring-2 focus:ring-agent outline-none";
 
 /** Name + mobile form, plus one-tap "Confirm on WhatsApp" (verified number, free). */
 export function IdentifyFields({ code, agentName, onDone, cta }: { code: string; agentName: string; onDone: (name: string) => void; cta: string }) {
@@ -76,13 +77,13 @@ export function IdentifyFields({ code, agentName, onDone, cta }: { code: string;
       <input className={input} placeholder="Your name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
       <input className={input} placeholder="Mobile number" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
-      <button disabled={busy} onClick={submit} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-agent font-semibold text-white disabled:opacity-60">
+      <button disabled={busy} onClick={submit} className="flex h-12 w-full items-center justify-center gap-2 press rounded-[14px] bg-agent font-semibold text-white disabled:opacity-60">
         {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : null} {cta}
       </button>
       <div className="flex items-center gap-3 text-xs text-stone-400">
         <span className="h-px flex-1 bg-stone-200" /> or <span className="h-px flex-1 bg-stone-200" />
       </div>
-      <button onClick={viaWhatsApp} disabled={waWaiting} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] font-semibold text-white disabled:opacity-80">
+      <button onClick={viaWhatsApp} disabled={waWaiting} className="flex h-12 w-full items-center justify-center gap-2 press rounded-[14px] bg-[#1f8f4e] font-semibold text-white disabled:opacity-80">
         {waWaiting ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
         {waWaiting ? "Waiting for your WhatsApp message…" : "Confirm with WhatsApp (1 tap)"}
       </button>
@@ -94,8 +95,11 @@ export function IdentifyFields({ code, agentName, onDone, cta }: { code: string;
 function Done({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center py-4 text-center">
-      <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-      <p className="mt-3 font-semibold">{text}</p>
+      <svg viewBox="0 0 64 64" className="h-16 w-16 [animation:mark-in_.45s_cubic-bezier(.22,1,.36,1)_both]" aria-hidden>
+        <circle cx="32" cy="32" r="31" className="fill-emerald-50" />
+        <path d="M20 33l8 8 17-18" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="44" strokeDashoffset="44" className="text-emerald-700" style={{ animation: "draw .55s .15s cubic-bezier(.22,1,.36,1) forwards" }} />
+      </svg>
+      <p className="mt-3 font-semibold [animation:rise_.4s_.2s_cubic-bezier(.22,1,.36,1)_both]">{text}</p>
     </div>
   );
 }
@@ -125,7 +129,7 @@ export function AskSheet(props: { open: boolean; onClose: () => void; code: stri
           </div>
           <textarea className={`${input} min-h-24`} placeholder="Type your question…" value={text} onChange={(e) => setText(e.target.value)} />
           {err ? <p className="text-sm text-red-600">{err}</p> : null}
-          <button onClick={send} className="h-12 w-full rounded-xl bg-agent font-semibold text-white">Send to {props.agentName}</button>
+          <button onClick={send} className="h-12 w-full press rounded-[14px] bg-agent font-semibold text-white">Send to {props.agentName}</button>
         </div>
       ) : step === "identify" ? (
         <IdentifyFields code={props.code} agentName={props.agentName} cta="Send question" onDone={async (n) => { props.onIdentified(n); await send(); }} />
@@ -161,7 +165,7 @@ export function VisitSheet(props: { open: boolean; onClose: () => void; code: st
     setStep("done");
     props.onRequested({ date, slot });
   };
-  const chip = (on: boolean) => `rounded-xl px-3 py-2.5 text-sm font-semibold ring-1 transition ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
+  const chip = (on: boolean) => `press rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
   return (
     <Sheet open={props.open} onClose={props.onClose} title={step === "identify" ? "Your contact details" : "Request a site visit"}>
       {step === "pick" ? (
@@ -188,7 +192,7 @@ export function VisitSheet(props: { open: boolean; onClose: () => void; code: st
           </div>
           <input className={input} placeholder="Message (optional)" value={message} onChange={(e) => setMessage(e.target.value)} />
           {err ? <p className="text-sm text-red-600">{err}</p> : null}
-          <button onClick={send} className="h-12 w-full rounded-xl bg-agent font-semibold text-white">Request visit</button>
+          <button onClick={send} className="h-12 w-full press rounded-[14px] bg-agent font-semibold text-white">Request visit</button>
           <p className="text-center text-xs text-stone-500">{props.agentName} will confirm the exact time with you.</p>
         </div>
       ) : step === "identify" ? (
@@ -231,7 +235,7 @@ export function RequirementSheet(props: { open: boolean; onClose: () => void; co
     if (!r.ok) return setErr(r.error ?? "Failed");
     setStep("done");
   };
-  const chip = (on: boolean) => `rounded-xl px-3 py-2 text-sm font-semibold ring-1 ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
+  const chip = (on: boolean) => `press rounded-2xl px-3.5 py-2.5 text-sm font-semibold ring-1 ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
   return (
     <Sheet open={props.open} onClose={props.onClose} title={step === "identify" ? "Where should we send options?" : "What are you looking for?"}>
       {step === "form" ? (
@@ -255,7 +259,7 @@ export function RequirementSheet(props: { open: boolean; onClose: () => void; co
           <input className={input} placeholder="Preferred areas (e.g. Gotri, Vasna)" value={areas} onChange={(e) => setAreas(e.target.value)} />
           <input className={input} placeholder="Anything else? (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
           {err ? <p className="text-sm text-red-600">{err}</p> : null}
-          <button onClick={send} className="h-12 w-full rounded-xl bg-agent font-semibold text-white">Send to {props.agentName}</button>
+          <button onClick={send} className="h-12 w-full press rounded-[14px] bg-agent font-semibold text-white">Send to {props.agentName}</button>
         </div>
       ) : step === "identify" ? (
         <IdentifyFields code={props.code} agentName={props.agentName} cta="Send my requirement" onDone={async (n) => { props.onIdentified(n); await send(); }} />

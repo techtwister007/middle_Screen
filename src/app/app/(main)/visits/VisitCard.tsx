@@ -66,7 +66,7 @@ export function VisitCard({ v, lead, listing }: { v: V; lead: { id: string; name
             )}
             {lead?.phone ? (
               <>
-                <a href={`https://wa.me/${lead.phone}?text=${encodeURIComponent(confirmMsg)}`} target="_blank" rel="noopener" className="flex h-9 items-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-sm font-semibold text-white">
+                <a href={`https://wa.me/${lead.phone}?text=${encodeURIComponent(confirmMsg)}`} target="_blank" rel="noopener" className="flex h-9 items-center gap-1.5 rounded-lg bg-[#1f8f4e] px-3 text-sm font-semibold text-white">
                   <MessageCircle className="h-4 w-4" /> {v.status === "requested" ? "Message" : "Send confirmation"}
                 </a>
                 <a href={`tel:+${lead.phone}`} aria-label="Call" className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100"><Phone className="h-4 w-4" /></a>
@@ -80,7 +80,7 @@ export function VisitCard({ v, lead, listing }: { v: V; lead: { id: string; name
               <div className="grid grid-cols-3 gap-2">
                 <button onClick={() => run("complete", { outcome: "liked", feedback: fb })} className="h-9 rounded-lg bg-emerald-600 text-sm font-semibold text-white">Liked it</button>
                 <button onClick={() => run("complete", { outcome: "negotiating", feedback: fb })} className="h-9 rounded-lg bg-amber-500 text-sm font-semibold text-white">Negotiating</button>
-                <button onClick={() => run("complete", { outcome: "not_liked", feedback: fb })} className="h-9 rounded-lg bg-stone-700 text-sm font-semibold text-white">Not for them</button>
+                <button onClick={() => run("complete", { outcome: "not_liked", feedback: fb })} className="h-9 rounded-lg bg-[#4a544e] text-sm font-semibold text-white">Not for them</button>
               </div>
             </div>
           ) : null}

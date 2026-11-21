@@ -44,7 +44,7 @@ export default async function CollectionDetail({ params, searchParams }: { param
             <div key={r.l.id} className="flex items-center justify-between gap-2 p-3.5">
               <Link href={`/app/properties/${r.l.id}`} className="min-w-0">
                 <p className="truncate font-semibold">{r.l.title}</p>
-                <p className="text-xs text-stone-500">{priceLabel(r.l)} · 👁 {r.views}</p>
+                <p className="text-xs text-stone-500">{priceLabel(r.l)} · {r.views} views</p>
               </Link>
               <div className="flex shrink-0 gap-1">
                 {a.filter((x) => x.reaction === "like").length ? <Badge tone="green"><ThumbsUp className="h-3 w-3" /> {a.filter((x) => x.reaction === "like").length}</Badge> : null}

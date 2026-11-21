@@ -647,3 +647,20 @@ For Indian buyers, *where* matters as much as *what*: school runs, parents' hosp
 - **Phase 2 (buyer surfaces):** summary tiles, ladder, radial diagram, compass, transport, lazy full map.
 - **Phase 3 (customisation):** agent landmark editor, category toggles.
 - **Phase 5 (quick wins):** Add your place, commute compare, buyer-place insight for agents, commute-aware matching.
+
+---
+
+## Part F: Build log
+
+### Round 1 (shipped)
+Direction: the approved whole-product look (forest green on warm paper, DM Sans, rounded surfaces, soft depth), from `prototype/look.html`.
+
+- **Foundation** (`src/app/globals.css`, `src/app/layout.tsx`): neutral and brand palettes redefined, so every screen takes the look; automatic **dark mode** (`prefers-color-scheme`) remapping the same tokens; DM Sans + Hind Vadodara self-hosted with `next/font` (no render-blocking font request); `lang="en-IN"`.
+- **Motion**: page entrance on every app navigation (`(main)/template.tsx`), staggered sections, press feedback on buttons/links, sliding nav and tab indicators, slide-up sheets, animated success tick, heart pop, image fade-in, shimmer skeletons. Entrances use `animation-fill-mode: backwards` so they never trap fixed dialogs. Reduced-motion respected globally.
+- **Welcome / loading**: branded agent-app welcome screen once per session (`AppSplash`, gated by a `beforeInteractive` script); redesigned buyer welcome splash (logo/initials reveal + progress); buyer page loading skeletons (`/p`, `/c`, agent site).
+- **Screens rebuilt**: buyer property page (hero photo with agent pill, overlapping summary card, sticky jump tabs, section cards, floating action bar), agent home, buyer (lead) detail (profile card, intent meter, next-action card, icon timeline), floating bottom navigation ("Buyers" naming), UI kit.
+- **Cleanup**: decorative emojis removed; one WhatsApp green; "Leads" → "Buyers" on screens; footer "with ❤ from PropPulse".
+- **Fixes found on the way**: an inline script in the app layout broke server-action redirects (moved to `next/script beforeInteractive`); app-wide `loading.tsx` turned 404s into 200s (removed); action bars repositioned above the floating nav; share E2E test now waits for the "opened" event before closing the buyer tab.
+
+### Next rounds
+Collection page and agent website in the new layout; property editor steps; visits/insights polish; neighbourhood section (Part E); quick wins (Part D §28).

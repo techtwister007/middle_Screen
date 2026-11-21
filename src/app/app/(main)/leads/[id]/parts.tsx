@@ -13,7 +13,7 @@ const stages: { v: LeadStage; l: string }[] = [
   { v: "interested", l: "Interested" },
   { v: "visit", l: "Site visit" },
   { v: "negotiating", l: "Negotiating" },
-  { v: "closed", l: "Closed 🎉" },
+  { v: "closed", l: "Closed" },
   { v: "lost", l: "Lost" },
 ];
 
@@ -80,7 +80,7 @@ export function NoteForm({ id }: { id: string }) {
   return (
     <div className="space-y-2">
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} placeholder="Call notes, budget, family preferences…" aria-label="New note" className="block w-full rounded-xl px-3 py-2 text-sm ring-1 ring-stone-300" />
-      <button disabled={pending || !text.trim()} onClick={() => start(async () => { const r = await addNoteAction(id, text); if (r.ok) setText(""); router.refresh(); })} className="h-9 w-full rounded-lg bg-stone-900 text-sm font-semibold text-white disabled:opacity-50">
+      <button disabled={pending || !text.trim()} onClick={() => start(async () => { const r = await addNoteAction(id, text); if (r.ok) setText(""); router.refresh(); })} className="h-9 w-full rounded-lg bg-brand-700 text-sm font-semibold text-white disabled:opacity-50">
         Add note
       </button>
     </div>
