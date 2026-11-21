@@ -1,177 +1,253 @@
-# Property Listing Platform — Product Plan (draft for discussion)
+# Property Listing Platform — Product Plan (v2, for discussion)
 
-Status: **brainstorm / not frozen**. Nothing gets built until this is confirmed.
+Status: **brainstorm, not frozen**. Nothing gets built until you confirm.
+Product name: **TBD** (working name "the app"). Hosted on a subdomain of `vectorscale.in`.
 
 ---
 
-## 1. What we are building (one line)
+## 1. What we are building
 
-A WhatsApp-first tool for real estate agents: the agent sends the property's photos, videos and a voice note.
-They get back one short, branded, beautiful property link. Then they see exactly which buyer opened it, what that buyer liked and who wants a site visit.
+A WhatsApp-first sales assistant for real estate agents:
+1. **Send** photos, videos and a voice note on WhatsApp, and get back a beautiful branded property link in about a minute.
+2. **Share** it to a buyer in one tap, and see exactly what that buyer did with it.
+3. **Run the whole day from it:** inventory, leads, follow-ups, site visits. It becomes the agent's "business in their pocket".
 
-> The microsite gets us adopted. The lead tracking makes agents stay. The data network is the long-term asset.
+Price: **₹500–1,000/month**. At this price the agent must *see* value every day, not once.
 
-### Decisions already taken (from the ChatGPT chat)
-| Question | Your answer | Final stance |
+### Decisions locked
+| Topic | Decision |
+|---|---|
+| Lead ownership | Agent owns the lead. We provide CRM + analytics. |
+| Aggregator | One-time opt-in at signup (default ON). Per-listing "private" toggle. Private collections never public. |
+| Listing creation | WhatsApp (main) + web dashboard |
+| Customers | Individual agents for the pilot. Architecture ready for teams/builders. |
+| WhatsApp | **Baileys** for testing, **Chatsync** (official API provider) for production |
+| AI | Online **OpenAI-compatible** provider (laptop is i3, no GPU). Free tiers first. |
+| Language | English only for the pilot. The AI still understands Hindi/Gujarati/Hinglish voice and text. |
+| Video | Upload (compressed) **or** YouTube link |
+| Buyer login | Never required |
+| Agent login | Once, via WhatsApp magic link. Stays logged in. |
+| Pilot city | Any — see §9 |
+
+---
+
+## 2. Competitor check: PropSite (propsite.in)
+
+What they offer (from their site):
+- Send photos + text on WhatsApp, and a listing page is ready in ~1 minute
+- Agent website at `yourname.propsite.in`, listing URLs like `/3-bhk-satellite`
+- Full-screen gallery, PDF brochure, collections ("For Mr. Mehta · 3 homes")
+- Buyer taps to WhatsApp/call the agent directly
+- Hindi/Hinglish/English input becomes a clean English page
+- "1,200+ brokers", first listing free. Pricing isn't public.
+
+**What they do NOT show:** buyer tracking, a lead CRM, site-visit booking, follow-up reminders, lead timelines, inventory search on WhatsApp, or a co-broker network.
+
+**Conclusion:** the listing page is now *table stakes*. It has to be as good and as fast as PropSite's, but it is not our reason to exist. **Our edge is everything that happens after the link is shared.** PropSite stops at "buyer reaches you". We tell the agent *who* is interested, *what* they liked, *when* to call and *what* to show next.
+
+Our one-line pitch:
+> "PropSite makes your property look good. We tell you which buyer is ready to visit."
+
+---
+
+## 3. Tracking: can we capture the buyer's number on click?
+
+**No — technically impossible.** When someone taps a link inside WhatsApp, WhatsApp opens it in a browser and sends us **no phone number** and no WhatsApp identity. No website can read it, and this is by design.
+
+What we do instead (all free):
+
+| Method | What we get | When |
 |---|---|---|
-| Who owns the buyer? | Agent owns the lead; platform provides CRM + analytics | ✅ Keep |
-| Listings into future aggregator? | Automatic, no consent each time | ✅ One-time opt-in at signup (single checkbox, default ON), per-listing "private" toggle. Private collections never go public. |
-| How are listings created? | Both WhatsApp + dashboard | ✅ Keep — WhatsApp is the main path |
-| Target customer | All | ⚠️ Architecture supports all; **pilot sells only to individual agents** (15–20). Teams/builders later. |
-| Welcome screen | Agent name/photo/company | ✅ 3 modes: none / minimal header (default) / full branded splash (max ~1.5s, skippable) |
-| Login | Second priority, seamless | ✅ Buyers never log in. Agents log in once via WhatsApp magic link. |
-| Links | Short and beautiful | ✅ `domain/p/xxxx`, `/c/xxxx`, `/agentname` |
+| **Per-lead link** (main method) | The agent picks or types the lead's name + number while sharing, so every open of that link is "Rahul opened it" | Always |
+| **"Continue on WhatsApp" verification** | Buyer taps "Save / Get updates on WhatsApp". WhatsApp opens with a pre-filled message to our number (e.g. `SAVE A82K`), they press send, and we now have their **real, verified WhatsApp number**. Free (buyer-initiated chat). Replaces SMS OTP. | Anonymous/forwarded viewers who want to save or enquire |
+| Form (name + mobile) | Unverified number | Site visit / question |
+| Anonymous session | "Someone opened it" + what they viewed | Forwarded links |
+
+Honest labelling in the dashboard: **"Opened via Rahul's link"** vs **"Verified: +91 98xxx"** vs **"Anonymous viewer"**.
+
+Forwarded links count as a feature: if Rahul forwards to his wife, we show "Rahul's link opened on 2 devices". That signals family discussion and high intent.
 
 ---
 
-## 2. Gaps in the ChatGPT plan (and fixes)
+## 4. The anti-bypass promise (shown everywhere, not hidden in T&C)
 
-ChatGPT did the strategy well but missed several real-world and practical issues.
+The agent's fear: *"If I share a nice page, the buyer or another broker will go to the owner directly, or your platform will steal my buyers."* We answer it with a written **Agent Promise**, shown at onboarding, in the dashboard footer and on the pricing page:
 
-### A. Real-world agent concerns it ignored
-1. **The agent's fear of being bypassed.** Agents often hide the exact address or building, so the buyer or another broker can't reach the owner directly. This is the #1 reason an agent would refuse to share a "nice detailed page".
-   - Fix: a location privacy setting per listing: *exact pin / area only (~500 m circle) / hidden*. Building name and flat number are optional and hidden by default.
-2. **Watermarks.** Agents get photos from other brokers that carry those brokers' watermarks, and they want their own brand on their images.
-   - Fix: auto-watermark with the agent's name/logo (toggle). Removing another broker's watermark is not offered.
-3. **Co-broking.** Many listings are shared broker-to-broker, so a "one property, many agents" model matters from day 1. ChatGPT mentioned this but put it in later phases.
-   - Fix: build the `Property` vs `Listing` split now (cheap to do now, very expensive later).
-4. **Price display.** Exact / "₹90–95 L" range / "Price on request" / negotiable flag.
-5. **Property types differ.** Flat, villa, plot, shop/office, rental, PG each need different fields (a plot has no BHK; a rental needs deposit and furnishing).
-   - Fix: one listing schema with type-specific field sets.
-6. **Language.** Voice notes will be in Gujarati, Hindi or Hinglish.
-   - Fix: the AI extraction must handle these. The buyer page needs an English + Gujarati/Hindi toggle (phase 1.5).
-7. **Shared numbers and phones.** Agents often run their business from a personal WhatsApp on a single phone.
+> **Your buyers are yours. Always.**
+> 1. We never contact your buyers for marketing, never sell or share their numbers, never show them other agents' properties.
+> 2. Your property pages show **only your** name, phone and WhatsApp. No "similar listings from others".
+> 3. Owner details, exact address and flat number are **never shown** unless you choose to.
+> 4. Your leads and notes are visible only to you. Not to other agents, not to builders.
+> 5. Future network listings: any buyer enquiry always goes to **the listing agent**.
 
-### B. Technical gaps
-1. **Grouping WhatsApp media into one listing.** An agent forwards 15 photos as 15 separate messages, so the bot has to know when one property ends.
-   - Fix: a session approach. Media arriving within ~10 minutes counts as one draft. The bot replies "Got 15 photos, 2 videos. Send more or type *done*". Typing *new* starts the next property.
-2. **WhatsApp compresses images** and limits video size (~16 MB through the API).
-   - Fix: accept the quality. For better photos, the agent can upload them as "document" or through the web upload.
-3. **Link previews.** The WhatsApp preview (photo, title, price) only works if the page is server-rendered with Open Graph tags. A pure client-side app breaks this, so it affects the stack choice.
-4. **"Who opened it" really needs per-lead links.** A generic link only tells us "someone opened it".
-   - Fix: when sharing, the agent picks or creates a lead and gets a unique link for that person. This is the single most important tracking mechanism, and it costs nothing.
-5. **Capturing the buyer's number.** Opening a link reveals no number, and ChatGPT was right about that. With per-lead links, the agent already supplied the number. For forwarded or anonymous views, we ask for name + mobile only when the buyer saves, enquires or requests a visit. In the pilot this is unverified, since SMS OTP costs money. WhatsApp-click verification can come later.
-6. **Storage blows up with videos.**
-   - Fix: compress on upload (720p). Keep originals only on the laptop or not at all. Optionally allow a YouTube-unlisted link instead of upload.
-7. **Notifications cost money on WhatsApp.** Messages we start outside the 24-hour window are paid templates. ChatGPT's "daily brief on WhatsApp" is not free.
-   - Fix: use free **PWA web-push notifications** for agents. A WhatsApp message goes out only when the agent has messaged us in the last 24 hours (free service window).
-8. **Duplicate detection** (same flat from 4 brokers): phase 2. For now, just store an image hash + rough location so we can do it later.
-
-### C. Business and process gaps
-1. **The MVP was too big for a free, solo build.** It is cut down in §5.
-2. **Payments for the pilot:** manual UPI + a "plan" field set by admin. No payment gateway.
-3. **Feedback loop for the pilot** (your goal): an in-app "Give feedback" button, a usage-metrics admin page and a weekly 10-minute call per agent.
-4. **Privacy (DPDP Act):** short privacy notice and consent text on buyer forms, a delete-my-data request, and agent-scoped data access. This is cheap to add now and painful to retrofit.
-5. **Abuse:** a "Report listing" button, admin can disable a listing or an agent, and listings auto-expire after X days unless re-verified.
+Product features that back the promise:
+- **Location privacy per listing:** exact pin / area only (~500 m circle, default) / hidden
+- Building name and unit number hidden by default
+- **Auto-watermark** with the agent's name/logo on every photo
+- Buyer page has no platform-brand links that lead the buyer away (only a tiny "Powered by" footer)
+- Data export for the agent's own leads (builds trust; the DPDP Act expects it anyway)
 
 ---
 
-## 3. The three journeys (final)
+## 5. Daily use + stickiness (why they pay ₹500–1,000 and never leave)
+
+Stickiness must come from **value and accumulated history**, not from trapping data. Agents talk to each other, and a reputation for hostage-taking kills sales. These are the honest lock-ins:
+
+### A. Natural lock-ins (switching cost grows every day)
+1. **Every link they ever shared lives on our domain.** Hundreds of links sit in buyers' WhatsApp chats. If the agent leaves, those go dead. *This is the strongest lock-in, and it's built into the product.*
+2. **Their agent website** `name.vectorscale.in` (or a custom domain later) goes on visiting cards, Instagram bio and WhatsApp status.
+3. **Complete lead history:** every buyer, every property shown, every note, every visit, every follow-up. Rebuilding that elsewhere is impossible.
+4. **Their entire inventory, organised:** all properties with media, status and price history in one searchable place, instead of scattered WhatsApp chats.
+5. **Habit:** the daily routine runs through our bot (below).
+
+### B. Daily-use features (dead simple, all from WhatsApp)
+| Feature | What the agent does | Why it's daily |
+|---|---|---|
+| **Inventory search bot** ⭐ | Types "2bhk gotri under 60L" to our WhatsApp number. Bot replies with matching listings + one collection link to forward | Every time a client calls |
+| **"Who's hot" alerts** | Push: "Rahul viewed Gotri flat 3× and saved it — call now" | Several times a day |
+| **Morning summary** | Opens app/PWA: today's visits, hot leads, follow-ups due | Every morning |
+| **Follow-up reminders** | "Call Priya today (you set this)" | Daily |
+| **Site visit planner** | Buyer requests → agent confirms with one tap → reminder to both | Weekly+ |
+| **Quick share** | Bot: "share A82K to Rahul" → per-lead link ready | Many times a day |
+| **Mark sold/rented** | Bot: "sold A82K" → page shows *Sold*, removed from collections | Weekly |
+| **Requirement matching** | Saves "Rahul: 3BHK, 80L–1Cr, Gotri". When a matching property is added: "2 buyers match — share?" | Every new listing |
+| **Digital visiting card** | Agent profile page with all live listings + QR | Constant |
+| **Weekly report** | "This week: 42 views, 6 saves, 3 visits. Most-loved: Gotri 3BHK" | Weekly — *this is the visible value that justifies the bill* |
+
+### C. "See the value" moments (shown inside the app)
+- After the first share: *"Rahul opened your property 4 minutes after you sent it."*
+- Monthly: *"You shared 38 properties, 11 buyers engaged, 4 site visits came through the app."*
+- Collection link: *"Priya ranked Vasna #1 — she's ready to visit."*
+
+**Rule:** any feature that needs more than 2 taps or any typing beyond a short phrase goes to "later" or gets redesigned.
+
+---
+
+## 6. The three journeys (final)
 
 ### Agent
-1. **Onboard (under 2 min):** message our WhatsApp number "hi", give name, company (optional), photo or logo (optional). That's it. A web dashboard magic link arrives on WhatsApp.
-2. **Create listing:** forward media and a voice note, then type *done*. AI drafts the listing. The bot sends back a preview link with options: **Publish / Edit / Discard**.
-3. **Edit (if needed):** a one-page editor on the web. AI-filled fields are highlighted, and missing ones are flagged. The AI never invents specs.
-4. **Share:** "Share with whom?" Pick an existing lead or type a name + number. That creates a unique short link and a ready-made WhatsApp message (`wa.me` deep link), so the agent taps once and it's sent from their own WhatsApp.
-5. **Collections:** select 3–10 listings for one lead and share one link.
-6. **Track:** the dashboard home answers "who needs my attention today". It shows a lead timeline: opened → viewed gallery → saved → site-visit request. Push notifications fire only for meaningful events: first open, save, enquiry, visit request.
-7. **Manage:** listing status (available / sold / rented / on hold), price edits keep the same link, notes and follow-up date per lead, and site-visit confirm/reschedule.
+1. **Onboard (under 2 min):** message our WhatsApp "hi" → name → company (optional) → photo/logo (optional) → done. Accept the Agent Promise + network opt-in. Dashboard magic link arrives on WhatsApp.
+2. **Create:** forward photos/videos/YouTube link + a voice note or text → type *done* (or a 10-minute silence closes the batch). The AI drafts it. The bot sends a preview with **Publish / Edit / Discard**.
+3. **Edit (optional):** one-page web editor. AI-filled fields are highlighted, missing ones are flagged. The AI never invents specs.
+4. **Share:** "Share with?" Pick or type a lead → per-lead short link + a ready `wa.me` message sent from *their own* WhatsApp in one tap.
+5. **Collections:** pick 3–10 listings → one link for one buyer.
+6. **Track + act:** hot-lead alerts, lead timeline, notes, follow-up date, visit confirm/reschedule/complete, feedback after the visit.
+7. **Manage:** status (available / on hold / sold / rented), price change keeps the same link, 30-day "still available?" check (one-tap Yes on WhatsApp).
 
 ### Buyer
-1. Receives the WhatsApp message with a rich preview.
-2. Opens it with no login and no app. It loads fast on 4G. They see the agent's header or splash.
-3. Sees the gallery (sections), video, key specs, description, amenities, location (per privacy setting), agent call/WhatsApp buttons.
-4. Actions: **Save ♥, Ask a question, Request site visit (Today / Tomorrow / Pick date + morning/afternoon/evening), Share with family**.
-5. Collections: a list of properties, mark ♥ / 👎, rank them, compare 2–3 side by side.
-6. Name + mobile are asked only on save, ask or visit, with a one-line consent: *"Shared with Sharma Properties only."*
+1. Gets a WhatsApp message with a rich preview (photo, title, price, agent name).
+2. Opens it: no login, fast on 4G, agent header (or optional splash, max 1.5 s, skippable).
+3. Gallery (full-screen swipe), video/YouTube, key specs, description, amenities, location (per privacy), call/WhatsApp agent.
+4. Actions: **♥ Save · Ask · Request visit (Today / Tomorrow / Pick date + morning/afternoon/evening) · Share with family**.
+5. Collections: ♥ / 👎, rank, compare 2–3 side by side.
+6. Identity asked only when needed, with consent: *"Shared only with Sharma Properties."*
 
 ### Us (platform)
-- Every listing becomes a structured record (type, price, area, locality, config, amenities, media, agent).
-- Every buyer action becomes an event tied to share → lead → agent.
-- Locality and demand data is aggregated anonymously. This is the future aggregator asset.
-- The admin panel (on laptop) covers agents, listings, usage, feedback and abuse reports.
+- Structured records for every property/listing (type, price, area, locality, config, amenities, media, agent)
+- Every buyer action becomes an event: share → lead → agent
+- Aggregated, anonymous locality/demand data feeds the future aggregator
+- Admin (on laptop): agents, plans, payments (manual UPI), usage, feedback, reports
 
 ---
 
-## 4. Architecture — free, and only the 24×7 parts hosted
+## 7. Gaps fixed vs the ChatGPT plan (summary)
+1. Anti-bypass: location privacy, watermark, hidden unit number, written promise (§4)
+2. Per-lead links + WhatsApp-click verification instead of paid OTP (§3)
+3. Media batching on WhatsApp (*done* / 10-min window)
+4. Server-rendered pages for WhatsApp link previews
+5. Paid WhatsApp templates avoided: free web push + replies inside the 24-hour window
+6. `Property` vs `Listing` split for co-broking from day 1
+7. Type-specific fields (plot / flat / villa / shop / rental), price display modes
+8. MVP cut to what a free, solo build can ship (§10)
+9. Pilot ops: manual UPI, feedback button, usage metrics, weekly agent call
 
-### What must be online 24×7 (cloud, free tier)
-| Piece | Why always on | Free option |
-|---|---|---|
-| Buyer pages (`/p`, `/c`, agent profile) + link previews | Buyers open links anytime | Cloudflare Pages/Workers (SSR) or Vercel hobby |
-| Event tracking + buyer forms API | Every open/save/visit request | Same Worker / API routes |
-| Agent dashboard (web/PWA) | Agent checks anytime | Same app |
-| Database | Everything | Supabase free (Postgres 500 MB) or Neon free |
-| Media storage + CDN | Images/videos | Cloudflare R2 (10 GB free, no bandwidth fee) |
-| WhatsApp webhook receiver (production) | Agent messages arrive anytime | Same API; just **stores** the media and queues a job |
-| Push notifications | Alert agent | Web Push (free) |
+---
 
-### What can live on your laptop
-| Piece | Why it's OK offline |
+## 8. Architecture — free tier, only 24×7 parts hosted
+
+Since AI runs on an online API, **the laptop is no longer on the critical path.** Listings get processed in the cloud even when your laptop is off.
+
+### Hosted 24×7 (free)
+| Piece | Free option |
 |---|---|
-| **AI processing worker** (voice → text, extract details, sort photos, write description, compress video, watermark) | It pulls queued jobs when the laptop is on. Agents see "Draft processing…". |
-| Baileys WhatsApp bot (testing only) | Testing doesn't need 24×7 |
-| Admin panel + analytics/intelligence reports | Only you use it |
-| Original-quality media backup | Not needed online |
+| Buyer pages, agent site, dashboard (PWA), API, WhatsApp webhook | **Next.js on Vercel (Hobby)** — SSR for link previews, serverless functions for the API |
+| Database | **Supabase free** (Postgres 500 MB; also file auth helpers) |
+| Media storage + CDN | **Cloudflare R2** (10 GB free, zero bandwidth fees) |
+| AI: voice → text | **Groq free tier** (Whisper large-v3, OpenAI-compatible) |
+| AI: extract details + write description | Groq / Gemini OpenAI-compatible endpoint, free tier (swappable via `OPENAI_BASE_URL`) |
+| Background jobs (AI processing, batching timeouts) | Supabase table queue + Vercel cron / Supabase pg_cron |
+| Agent notifications | Web Push (free) |
+| DNS | Cloudflare free (manages `vectorscale.in`) |
 
-⚠️ **Trade-off to accept:** if the laptop is off, new listings wait in the queue. Fallback: the agent can always fill the web form manually and publish instantly with no AI needed, so the product never fully blocks.
+### On your laptop
+| Piece | Why |
+|---|---|
+| **Baileys test bot** | Testing only. Use a spare SIM — it can get banned. |
+| Admin panel | Only you use it (it can also just be a protected page in the main app — to decide) |
+| Weekly DB + media backups | Safety |
+| Heavy video re-compression (optional) | Only if uploaded videos are too big. Most videos come compressed from WhatsApp, or as YouTube links. |
 
-### AI at zero cost
-- Speech-to-text: **Whisper (local, on laptop)** handles Hindi/Gujarati reasonably.
-- Detail extraction + description: a free-tier hosted LLM API or a local model (Ollama). To decide based on your laptop's RAM/GPU.
-- Photo sorting (living/kitchen/bedroom…): a small local vision model, or skip it in v1 and let the agent reorder by drag.
+### WhatsApp abstraction
+One `WhatsAppProvider` interface with two adapters: `BaileysAdapter` (laptop, testing) and `ChatsyncAdapter` (webhook, production). Same bot logic, so the switch is a config change.
 
-### WhatsApp
-- **Testing:** Baileys (unofficial WhatsApp Web library) on a spare number. Risk: the number can get banned, so never use your main number.
-- **Production:** your chosen provider at chatsyncs.com (to confirm what it is — see questions). Agent-initiated chats (service conversations) are free on the official API. Our proactive messages are paid templates, so we minimise them.
-- Code has one `WhatsAppProvider` interface with two adapters (Baileys / production), so switching needs no rewrite.
+### Domain plan (`vectorscale.in`, your agency site stays at the root)
+| URL | Use |
+|---|---|
+| `vectorscale.in` | Your agency website (separate, untouched) |
+| `app.vectorscale.in` | Agent dashboard |
+| `go.vectorscale.in/p/a82k` | Short property link |
+| `go.vectorscale.in/c/r7mk` | Collection link |
+| `sharma.vectorscale.in` | Agent website (wildcard subdomain, free on Vercel + Cloudflare) |
 
-### Data model (core entities)
-`Agent` · `Brand` · `Property` (physical asset) · `Listing` (agent's version: price, media, status, privacy) · `Media` · `Lead` (agent-owned) · `Share` (listing/collection → lead, unique short code) · `Collection` · `Event` (open, view, save, ask, visit…) · `VisitRequest` · `Note` · `Feedback`
+Later: buy a short, product-branded domain (~₹200–800/yr) and point it at the same app. Old links keep working.
 
-### Suggested stack
-- **Next.js** (SSR for link previews, PWA for the agent dashboard) on Vercel/Cloudflare
-- **Postgres** (Supabase/Neon) + **R2** for media
-- **Python worker** on laptop (Whisper, LLM calls, image/video processing via ffmpeg/Pillow)
-- **Node** WhatsApp bot (Baileys for test)
+**Total cost for the pilot: ₹0** (domain already owned). Watch-outs: free-tier limits on AI calls/day and 10 GB of storage. Fine for 20 agents; revisit at ~100.
 
-Only real cost: a **domain** (~₹800–1,200/year), unless chatsyncs.com is your own domain to use.
+### Core data model
+`Agent` · `Brand` · `Property` (physical asset) · `Listing` (agent's version: price, media, status, privacy) · `Media` · `Lead` (agent-owned) · `Requirement` · `Share` (listing/collection → lead, short code) · `Collection` · `Event` · `VisitRequest` · `Note` · `FollowUp` · `Feedback`
 
 ---
 
-## 5. Pilot MVP scope (build → test → give to 15–20 agents)
+## 9. Does the pilot city matter?
 
-**In**
-- Agent onboarding via WhatsApp + magic-link login to the dashboard
-- Create listing: WhatsApp media + voice note → AI draft, and a manual web form
-- One-page listing editor, status, price edit, location privacy, watermark
-- Branding: name, photo, logo, colour, welcome-screen mode
-- Short links + rich WhatsApp previews
-- Per-lead share links + `wa.me` one-tap send
-- Collections (multi-property link) with ♥ / rank / compare
-- Buyer: save, ask, site-visit request, share
-- Lead list + lead timeline + notes + follow-up date
-- Site visits: request → confirm/reschedule/complete
-- Push notifications for key events
-- Admin (laptop): agents, plans (manual UPI), listings, usage metrics, feedback, reports
-- Feedback button, privacy notice, delete request
+For the **product: no**, it works anywhere. It matters for two things:
+1. **The future aggregator/data network:** 20 agents in one city give dense, connected inventory (co-broking, demand by locality). 20 agents spread across India give scattered data with no network effect.
+2. **Support and selling:** you can meet agents in person, watch them use it and fix issues fast.
 
-**Later (after pilot feedback)**
-Teams/brokerages, builder project pages, PDF brochure, buyer requirement matching, AI follow-up suggestions, daily WhatsApp brief, OTP verification, custom domains, Gujarati/Hindi UI, duplicate detection, public aggregator, payment gateway, native apps.
+→ Pick **the city where you can personally meet 15–20 agents**. Ideally most of them work in overlapping areas.
+
+---
+
+## 10. Pilot MVP scope
+
+**Build now**
+- WhatsApp bot: onboarding, media batching, *done*, publish/edit, share, search, sold/available commands
+- AI draft from voice/text (Hindi/Gujarati/Hinglish in, English out). Manual web form as a fallback.
+- One-page editor; status; price modes; location privacy; watermark; YouTube/video
+- Branding: name, photo, logo, colour, welcome mode; agent website
+- Short links + rich previews; per-lead shares; `wa.me` one-tap send
+- Collections with ♥ / rank / compare
+- Buyer: save, ask, visit request, share; WhatsApp-click verification
+- Lead list, timeline, notes, follow-ups, requirements + matching (simple filters, not AI)
+- Site visits: request → confirm/reschedule/complete → feedback
+- Hot-lead push alerts, morning summary screen, weekly value report
+- Agent Promise, privacy notice, data export/delete
+- Admin: agents, plan/payment status (manual UPI), usage metrics, feedback, abuse reports
+
+**Later**
+PDF brochure, teams/brokerages, builder projects, AI follow-up suggestions, custom domains, Gujarati/Hindi UI, duplicate detection, public aggregator, payment gateway, native apps.
 
 ### Pilot success metrics
 - 15+ of 20 agents active weekly
-- Listings created per agent per week
+- Bot searches + shares per agent per week (the habit metric)
 - % of shares opened, % with a save/ask/visit
-- Visit requests per agent
-- How many would pay ₹299–699/month at the end
+- Visit requests per agent per month
+- How many convert at ₹500–1,000/month
 
 ---
 
-## 6. Open questions for you
-1. **"Ballies"** — is this **Baileys** (the free WhatsApp Web library)? I've assumed so.
-2. **chatsyncs.com** — is it a WhatsApp API provider you'll use for production, or your own domain where the app will be hosted? This decides the short-link domain.
-3. **Laptop specs** (RAM, GPU, OS)? This decides local AI vs a free API.
-4. **Pilot city/area** — Vadodara?
-5. **Buyer page language** for the pilot — English only OK?
-6. **Video:** upload into our storage, or allow YouTube links to save space?
+## 11. Still open
+1. **Product name** (we need one for the bot, pages and pitch). Want me to suggest a few?
+2. Is **Chatsync** already set up with a number (Meta-verified business)? Its pricing for incoming messages and webhooks? (Some providers charge a platform fee on top of Meta.)
+3. Admin panel: a separate laptop app, or a protected page in the main app? (Recommend the latter — simpler, and still free.)
+4. Free-trial policy for the pilot: free for the first month, then ₹500?
