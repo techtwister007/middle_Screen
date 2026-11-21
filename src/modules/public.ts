@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { publicNearby, type PublicNearby } from "@/lib/geo";
 import { and, eq, inArray } from "drizzle-orm";
 import { env } from "@/config/env";
@@ -141,7 +142,11 @@ export function toPublicAgent(a: typeof agents.$inferSelect): PublicAgent {
   };
 }
 
-export async function loadPublicListings(ids: string[]) {
+export function loadPublicListings(ids: string[]) {
+  return loadByKey(ids.join(","));
+}
+
+async function loadPublicListingsUncached(ids: string[]) {
   if (!ids.length) return [];
   const rows = await db.select({ l: listings, p: properties }).from(listings).innerJoin(properties, eq(properties.id, listings.propertyId)).where(inArray(listings.id, ids));
   const ms = await mediaForListings(ids);
@@ -159,3 +164,6 @@ export async function agentPublicListings(agentId: string) {
     .where(and(eq(listings.agentId, agentId), inArray(listings.status, ["available", "on_hold"]), eq(listings.visibility, "network"), eq(listings.disabledByAdmin, false)));
   return loadPublicListings(rows.map((r) => r.id));
 }
+
+/** Memoised per request by a stable key (metadata + page render share one query). */
+const loadByKey = cache((key: string) => loadPublicListingsUncached(key ? key.split(",") : []));

@@ -35,6 +35,9 @@ Neighbourhood data comes from OpenStreetMap through Photon (free). It is compute
 
 ## Run it on your laptop (Windows 11)
 
+> **Full real-world test with your own WhatsApp and phones:** follow [docs/LOCAL_TESTING.md](docs/LOCAL_TESTING.md) —
+> after setup it's one command: `npm run local`.
+
 **Install once:** [Node.js 22 LTS](https://nodejs.org), [Git](https://git-scm.com), and [PostgreSQL 16](https://www.postgresql.org/download/windows/) (remember the password you set for user `postgres`).
 
 ```powershell

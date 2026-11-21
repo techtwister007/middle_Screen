@@ -1,0 +1,1 @@
+ALTER TABLE "wa_messages" ADD COLUMN "claimed_at" timestamp with time zone;

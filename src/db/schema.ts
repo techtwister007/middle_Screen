@@ -340,7 +340,7 @@ export const shares = pgTable(
     lastOpenedAt: ts("last_opened_at"),
     createdAt: created(),
   },
-  (t) => [index("shares_listing_idx").on(t.listingId), index("shares_lead_idx").on(t.leadId), index("shares_agent_idx").on(t.agentId)],
+  (t) => [index("shares_listing_idx").on(t.listingId), index("shares_lead_idx").on(t.leadId), index("shares_agent_idx").on(t.agentId), index("shares_collection_idx").on(t.collectionId)],
 );
 
 /** Anonymous buyer browser session; linked to a lead once identified. */
@@ -412,7 +412,7 @@ export const buyerActions = pgTable(
     rank: integer("rank"),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.sessionId, t.listingId] }), index("buyer_actions_lead_idx").on(t.leadId)],
+  (t) => [primaryKey({ columns: [t.sessionId, t.listingId] }), index("buyer_actions_lead_idx").on(t.leadId), index("buyer_actions_listing_idx").on(t.listingId)],
 );
 
 export const questions = pgTable("questions", {
@@ -423,7 +423,7 @@ export const questions = pgTable("questions", {
   text: text("text").notNull(),
   answeredAt: ts("answered_at"),
   createdAt: created(),
-});
+}, (t) => [index("questions_agent_idx").on(t.agentId, t.createdAt), index("questions_lead_idx").on(t.leadId)]);
 
 export type VisitStatus = "requested" | "confirmed" | "rescheduled" | "declined" | "completed" | "cancelled" | "no_show";
 export const visits = pgTable(
@@ -445,7 +445,7 @@ export const visits = pgTable(
     remindedAt: ts("reminded_at"),
     createdAt: created(),
   },
-  (t) => [index("visits_agent_idx").on(t.agentId, t.status)],
+  (t) => [index("visits_agent_idx").on(t.agentId, t.status), index("visits_lead_idx").on(t.leadId), index("visits_listing_idx").on(t.listingId)],
 );
 
 export const notes = pgTable(
@@ -523,7 +523,9 @@ export const waMessages = pgTable(
     mediaUrl: text("media_url"),
     providerId: text("provider_id"),
     /** For outbound: queued (bridge picks up) → sent | failed. */
-    status: text("status").$type<"received" | "queued" | "sent" | "failed">().notNull(),
+    status: text("status").$type<"received" | "queued" | "sending" | "sent" | "failed">().notNull(),
+    /** When the Baileys bridge claimed it (re-handed out if no ack within 3 min). */
+    claimedAt: ts("claimed_at"),
     error: text("error"),
     createdAt: created(),
   },

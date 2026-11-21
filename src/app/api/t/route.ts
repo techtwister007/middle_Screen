@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { bad, buyerSid, deviceOf, json } from "@/lib/http";
 import { getShare } from "@/modules/shares";
+import { after } from "next/server";
 import { recordEvent } from "@/modules/tracking";
 
 const Body = z.object({
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
   }
   const safeMeta = Object.fromEntries(Object.entries(meta).slice(0, 8).map(([k, v]) => [k.slice(0, 24), typeof v === "string" ? v.slice(0, 120) : v]));
   const sid = await buyerSid();
-  await recordEvent(sid, { code: share.code, agentId: share.agentId, listingId: share.listingId, collectionId: share.collectionId, leadId: share.leadId }, type, safeMeta, { listingId: lid, device });
+  const rec = () => recordEvent(sid, { code: share.code, agentId: share.agentId, listingId: share.listingId, collectionId: share.collectionId, leadId: share.leadId }, type, safeMeta, { listingId: lid, device });
+  // "open" drives the agent's instant alert → record before responding. Frequent minor events (gallery, dwell…) after.
+  if (type === "open") await rec();
+  else after(() => rec().then(() => {}));
   return json({ ok: true });
 }

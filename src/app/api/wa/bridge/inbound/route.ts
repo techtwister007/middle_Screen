@@ -4,6 +4,7 @@ import { bridgeAuthorized } from "@/lib/bridge-auth";
 import { bad, json } from "@/lib/http";
 import { handleInbound } from "@/modules/bot";
 import { runDueJobs } from "@/modules/jobs";
+import { claimOutbox } from "@/lib/wa/outbox";
 
 const Msg = z.object({
   from: z.string(),
@@ -24,5 +25,6 @@ export async function POST(req: Request) {
   const m = p.data;
   await handleInbound({ ...m, media: m.media ? { data: Buffer.from(m.media.base64, "base64"), mime: m.media.mime, filename: m.media.filename } : undefined });
   after(() => runDueJobs(5).then(() => {}));
-  return json({ ok: true });
+  // Hand the bot's replies straight back → instant replies without waiting for the next poll.
+  return json({ ok: true, messages: await claimOutbox(20) });
 }

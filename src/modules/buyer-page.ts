@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -12,7 +13,9 @@ import type { ShareCtx } from "./tracking";
 export const BUYER_COOKIE = "pp_sid";
 
 /** Resolves a short code into everything a buyer page needs (or a reason it can't be shown). */
-export async function resolveBuyerPage(code: string) {
+export const resolveBuyerPage = cache(resolveBuyerPageUncached);
+
+async function resolveBuyerPageUncached(code: string) {
   const share = await getShare(code);
   if (!share) return { kind: "missing" as const };
   const agent = await db.query.agents.findFirst({ where: eq(agents.id, share.agentId) });
