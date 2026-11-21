@@ -387,13 +387,107 @@ Approach: I review each skill's contents first (they are third-party code/instru
 
 Every phase ends with typecheck + unit + E2E (+ new visual tests), then commit and push to `property-listing-app`.
 
-### 21. Decisions needed from you
+### 21. Decisions (answered)
 
-1. **Inspiration:** re-send the Dribbble screenshots/links (they didn't arrive).
-2. **Looks:** go with the 4 proposed (Signature, Minimal, Luxe, Bold)? Rename or swap any?
-3. **Buyer dark mode:** should the agent's choice win, or should Auto (follow the buyer's phone) be the default? *Recommendation: default Auto for Minimal/Signature/Bold; Luxe defaults to Dark.*
-4. **Agent app theming:** fixed PropPulse product theme with light/dark (recommended), or should the agent's palette also colour their own dashboard?
-5. **PropPulse's own brand:** refresh the product's logo/colour identity as part of this, or keep teal?
-6. **Skills:** OK to review and install Impeccable, Unslop, Taste, Emil Kowalski and Vercel guidelines into the project?
-7. **Rename "Leads" → "Buyers"** in the agent app: OK?
-8. **Start:** begin with Phase 0 style tiles once you've answered 1–3?
+| # | Question | Decision |
+|---|---|---|
+| 1 | Inspiration | 6 Dribbble references received (analysed in §22); more may follow |
+| 2 | Looks | **4 looks, each done in full detail:** Signature, Minimal, Luxe, Bold |
+| 3 | Buyer dark mode | Default **Auto** (follows buyer's phone); Luxe defaults to Dark; agent can force Light/Dark |
+| 4 | Agent app theming | **Fixed PropPulse product theme** with Light/Dark/Auto; the agent's palette appears in previews, their logo/avatar in the header. A consistent dashboard is easier to learn and support. |
+| 5 | PropPulse brand | **Refresh** the product identity (logo, colour, type); 2–3 directions shown in Phase 0 |
+| 6 | Design skills | Approved: review, then install into the project `.claude/skills/` |
+| 7 | Leads → Buyers | Approved |
+
+---
+
+## Part C: Additions after your answers
+
+### 22. What we take from the references (inspiration, not copies)
+
+| Ref | What works | What we take | Goes into |
+|---|---|---|---|
+| **1. Warm peach, frosted** | Soft tinted background, frosted cards, a floating pill "dock" nav, very large numbers, one **black emphasis card** among light ones, interactive mortgage slider, agent "available to call" strip | Big-number price hierarchy; **interactive EMI calculator** (slider for down payment, tenure, rate) replacing today's static "EMI from" line; one high-contrast emphasis card per screen; floating dock nav | Bold look; property page; agent app nav |
+| **2. Sage, soft** | Title set beside/over a cut-out hero, "Available" pill, icon spec tiles, **map with a named area polygon**, round arrow CTA, floating round dock | Area polygon map is exactly our **"area only" privacy mode** made beautiful; icon spec tiles; soft single-hue backgrounds | Signature look; location section |
+| **3. Blue, conventional** | Very clear, scannable: image-left list rows, category icon row, labelled bottom nav, filter button by search | Information density and clarity for the **agent app** lists (Listings, Buyers); labelled nav (no icon-only) | Agent app |
+| **4. Monochrome** | Full-bleed photo welcome with big confident type, **black pill buttons**, outline secondary pill, facility chips, agent mini-card with map snippet, sticky "Reserve visit" pill | Almost a direct definition of the **Minimal** look and the **Cover** welcome style; agent mini-card + map snippet | Minimal look; welcome screen; agent card |
+| **5. Navy, hotel** | Title + **price tag overlaid on hero**, amenity icon row, photo preview strip, heart square + "Book" pill, 360° view | Hero overlay composition; amenity icon row; preview strip; 360° tour as a later feature | Signature & Luxe looks |
+| **6. Findora** | **Logo badge on photo** + curved photo-to-white transition welcome, heavy "WELCOME" type, 2-column cards with price badge on image, **verified shield** | Curved-edge welcome; 2-col compact grid for the agent website; **"Verified" badge** (we already confirm availability every 30 days, so show it) | Welcome screen; agent website; trust badges |
+
+**Important difference from the references:** they use perfect 3D renders. Our agents upload phone photos of mixed quality. So the design must make *ordinary photos look good*:
+- Consistent aspect ratios and smart crop (centre of interest), never stretched
+- Gentle automatic enhancement at upload (sharp: normalise levels, slight saturation/sharpen, auto-rotate); original kept
+- Scrim gradients behind any text on photos
+- Cover photo auto-chosen (brightest, widest, landscape) and changeable in one tap
+
+**What we deliberately avoid:** heavy glass blur on low-end Android (we use solid tinted surfaces with a blur only where cheap), USD-style Western layouts that ignore lakh/crore, emoji in headings ("Let's start exploring 👋").
+
+**Mapped to our 4 looks**
+- **Signature:** refs 2 + 5 (overlay title/price on hero, soft single-hue surfaces, icon spec tiles, area map)
+- **Minimal:** ref 4 (monochrome, black pills, big confident type, hairlines)
+- **Luxe:** ref 5's depth, dark-first with champagne accents and serif type
+- **Bold:** refs 1 + 6 (warm tints, rounded, big numbers, black emphasis card, heavy grotesk, floating dock)
+
+### 23. Automatic logo and brand kit (no design skill needed)
+
+Many agents have no logo. **Nothing should require one.**
+
+**Flow:** the agent enters only their name (or company). A logo already exists.
+1. On signup (web or WhatsApp) we generate a **monogram logo** from the name: "Sharma Properties" → **SP**, "Rakesh Sharma" → **RS**.
+2. It is rendered as an **SVG** in the agent's palette and the look's typography, plus PNG versions (via sharp) for watermarks, WhatsApp previews and favicons.
+3. **6 ready styles** to pick from in one tap: circle, rounded square, roof-line mark (a simple house-roof stroke over the initials), shield/crest, wordmark only, initials + full-name lockup.
+4. It updates automatically when the name, palette or look changes, until the agent uploads their own logo (then theirs always wins; they can switch back any time).
+5. Light and dark variants are generated automatically, so the logo is visible on every background.
+6. Also generated from it: favicon / PWA icon for the agent website, the watermark, and the welcome-screen mark.
+
+The same "auto first, customise later" idea is applied to the whole brand kit:
+| Item | Automatic default | Agent can change |
+|---|---|---|
+| Logo | Monogram (above) | Upload / pick another style |
+| Colours | Palette from logo, or a curated default | Pick palette / custom |
+| Look | Signature | Any of 4, globally or per listing |
+| Website link | From name (`/sharma-properties`) | Edit |
+| Tagline | Suggested from city/areas: "Homes in Gotri & Alkapuri, Vadodara" | Edit |
+| Name | From WhatsApp profile name where the provider sends it | Edit |
+| Welcome screen | Logo reveal | Style, text, background |
+
+### 24. Other ways to make things effortless
+
+**For the agent: less typing, more done for them**
+- **WhatsApp Status image (high value):** every new listing auto-gets a 9:16 story image in the agent's look (photo, price, BHK, area, logo, short link). Indian agents post listings on WhatsApp Status daily, so this is free reach for them and for us. Delivered via the bot ("Here's your Status image") and a Download button.
+- **Digital visiting card:** auto-generated card image + vCard + QR for the agent website, ready to share or print.
+- **Auto cover photo, auto enhancement, auto captions** (room type from AI where available), auto title/description (exists), auto highlights (3 bullets)
+- **Smart defaults:** remembers the agent's city, common amenities, furnishing; repeat building → prefill floors/amenities
+- **Ready share messages** in English or Hinglish, personalised with the buyer's name
+- **Duplicate listing** ("Same building, different flat")
+- **Bulk actions:** mark sold, change look, share several as a collection
+- **Voice everywhere:** voice note → notes, follow-ups, listing edits ("price 92 lakh")
+- **One-tap follow-up suggestions** after events ("Priya liked 2, send a visit slot?")
+- **Brochure PDF** in the agent's look, auto-generated (already "later" in the product plan; the theme system makes it straightforward)
+
+**For the buyer: zero friction**
+- Opens instantly, no login; "Save contact" (vCard) of the agent
+- Interactive EMI calculator
+- Share with family in one tap (WhatsApp)
+- Visit booking with quick slots (Today / Tomorrow / weekend)
+- "Not right? Tell me what you need": a 3-tap requirement form
+
+**For us: zero operations**
+- All images, logos, story images and OG cards are generated automatically at upload/publish
+- Onboarding needs only phone + name; everything else has a good default
+
+### 25. Our branding on every page ("Made with ♥")
+
+A small, tasteful, always-present credit that builds VectorScale/PropPulse visibility without taking anything away from the agent:
+- **Buyer pages & agent website footer:** `Made with ♥ on PropPulse · by VectorScale`, in the look's muted text colour, with a tiny PropPulse mark. Links to the landing page with `?ref={agent-handle}` so we can track which agent's pages bring new agents.
+- **Growth loop:** the landing page visited via that link shows "Like Rakesh's page? Get yours free for 30 days." **Referral reward:** the referring agent gets a free month when the new agent pays (uses the existing billing period-extension logic).
+- **Generated images** (WhatsApp Status, visiting card, brochure): a tiny "PropPulse" corner mark.
+- **WhatsApp preview (OG) card:** no branding (the agent's moment; keeps it clean and trusted).
+- **Welcome screen:** agent only.
+- Tone stays premium: one line, small, never a banner. A paid **"Remove PropPulse branding"** option can come later as an upsell.
+
+### 26. Next steps
+
+1. **Phase 0 starts:** review and install the design skills; product brand directions (2–3 options for PropPulse); static **style tiles** of the property page, collection card, welcome screen and WhatsApp preview card in the 4 looks × light/dark, plus 6 auto-logo samples.
+2. Further Dribbble references you send are folded into the moodboard as they arrive.
+3. You pick and adjust; then Phase 1 (foundation) begins.
