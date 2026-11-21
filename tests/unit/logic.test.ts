@@ -84,7 +84,7 @@ describe("public listing (Agent Promise)", () => {
     negotiable: false, fields: {}, showBuilding: false, youtubeUrl: "https://youtu.be/dQw4w9WgXcQ", status: "available" as const, visibility: "network" as const, missing: [],
     aiGenerated: false, verifiedAt: new Date(), verifyAskedAt: null, disabledByAdmin: false, closedLeadId: null, closedAt: null, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
   };
-  const prop = { id: "p", type: "flat" as const, locality: "Gotri", city: "Vadodara", lat: 22.312345, lng: 73.143219, building: "Sunrise Heights", unit: "B-504", createdAt: new Date() };
+  const prop = { id: "p", type: "flat" as const, locality: "Gotri", city: "Vadodara", lat: 22.312345, lng: 73.143219, building: "Sunrise Heights", unit: "B-504", nearby: null, createdAt: new Date() };
   it("never exposes unit, hides building, fuzzes area location", () => {
     const pub = toPublicListing({ ...base, locationPrivacy: "area" }, prop, []);
     expect(JSON.stringify(pub)).not.toContain("B-504");

@@ -11,6 +11,7 @@ import { notifyAgent } from "./notify";
 import { sendRenewalReminders } from "./billing";
 import { sendVisitReminders } from "./visits";
 import { M } from "./bot/messages";
+import { computeNearby } from "./nearby";
 
 const DAY = 86400000;
 
@@ -23,6 +24,10 @@ registerJob("finalize_draft", async ({ draftId }) => {
     const { sendDraftReady } = await import("./bot");
     await sendDraftReady(agent, r.listing.id, r.extracted.missing, r.unheardVoice);
   }
+});
+
+registerJob("compute_nearby", async ({ propertyId }) => {
+  await computeNearby(String(propertyId));
 });
 
 registerJob("match_listing", async ({ listingId }) => {

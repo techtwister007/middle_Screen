@@ -20,6 +20,7 @@ export const E2E_ENV = {
   VAPID_PUBLIC_KEY: "",
   VAPID_PRIVATE_KEY: "",
   DRAFT_BATCH_MINUTES: "10",
+  NEARBY_PROVIDER: "off",
 };
 
 export default defineConfig({

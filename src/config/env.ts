@@ -30,6 +30,10 @@ const schema = z.object({
   AI_MODEL: z.string().default("llama-3.3-70b-versatile"),
   AI_TRANSCRIBE_MODEL: z.string().default("whisper-large-v3"),
 
+  /** Neighbourhood data and buyer place search (OpenStreetMap via Photon). "off" disables all calls. */
+  NEARBY_PROVIDER: z.enum(["photon", "off"]).default("photon"),
+  PHOTON_URL: z.string().default("https://photon.komoot.io"),
+
   WA_PROVIDER: z.enum(["console", "baileys", "chatsync"]).default("console"),
   /** Bot WhatsApp number in international format without + (e.g. 919812345678). */
   WA_NUMBER: z.string().default("919999999999"),

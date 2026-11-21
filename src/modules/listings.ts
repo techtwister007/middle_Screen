@@ -115,10 +115,23 @@ export function extractedToInput(e: Extracted, extra: Partial<ListingInput> = {}
 export async function updateListing(agentId: string, listingId: string, input: ListingInput) {
   const l = await getOwnListing(agentId, listingId);
   if (!l) throw new Error("not found");
+  const [prev] = await db.select().from(properties).where(eq(properties.id, l.propertyId));
+  const placeChanged = !prev || prev.locality !== input.locality || prev.city !== input.city || (input.lat != null && (prev.lat !== input.lat || prev.lng !== input.lng));
   await db
     .update(properties)
-    .set({ type: input.type, locality: input.locality, city: input.city, lat: input.lat ?? null, lng: input.lng ?? null, building: input.building ?? null, unit: input.unit ?? null })
+    .set({
+      type: input.type,
+      locality: input.locality,
+      city: input.city,
+      // keep an auto-located point unless the agent set a pin or moved the property to another area
+      lat: input.lat ?? (placeChanged ? null : prev?.lat ?? null),
+      lng: input.lng ?? (placeChanged ? null : prev?.lng ?? null),
+      ...(placeChanged ? { nearby: null } : {}),
+      building: input.building ?? null,
+      unit: input.unit ?? null,
+    })
     .where(eq(properties.id, l.propertyId));
+  if (l.status !== "draft") await enqueue("compute_nearby", { propertyId: l.propertyId });
   const priceChanged = l.price !== input.price;
   await db
     .update(listings)
@@ -165,6 +178,7 @@ export async function publishListing(agentId: string, listingId: string) {
     await db.update(listings).set({ status: "available", publishedAt: l.publishedAt ?? new Date(), verifiedAt: new Date(), updatedAt: new Date() }).where(eq(listings.id, listingId));
   const share = await generalListingShare(agentId, listingId);
   if (first) await enqueue("match_listing", { listingId });
+  await enqueue("compute_nearby", { propertyId: l.propertyId });
   return share;
 }
 

@@ -1,3 +1,4 @@
+import type { Nearby } from "../lib/geo";
 import {
   pgTable,
   text,
@@ -143,6 +144,8 @@ export const properties = pgTable(
     lng: doublePrecision("lng"),
     building: text("building"), // private
     unit: text("unit"), // private
+    /** Nearby schools, hospitals, shops, parks and transport, computed in the background (see modules/nearby). */
+    nearby: jsonb("nearby").$type<Nearby | null>(),
     createdAt: created(),
   },
   (t) => [index("properties_locality_idx").on(t.city, t.locality)],
@@ -363,6 +366,7 @@ export type EventType =
   | "visit_request"
   | "share"
   | "requirement"
+  | "place"
   | "dwell";
 
 export const events = pgTable(

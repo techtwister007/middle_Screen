@@ -1,4 +1,5 @@
 import "server-only";
+import { publicNearby, type PublicNearby } from "@/lib/geo";
 import { and, eq, inArray } from "drizzle-orm";
 import { env } from "@/config/env";
 import { db } from "@/db";
@@ -31,6 +32,7 @@ export type PublicListing = {
   city: string | null;
   building: string | null;
   location: { mode: "exact" | "area" | "hidden"; lat: number | null; lng: number | null };
+  nearby: PublicNearby | null;
   images: { id: string; lg: string; md: string; sm: string; w: number | null; h: number | null }[];
   videos: { id: string; url: string; mime: string | null }[];
   docs: { id: string; url: string; name: string }[];
@@ -101,6 +103,7 @@ export function toPublicListing(l: typeof listings.$inferSelect, p: typeof prope
       lat: loc === "hidden" || p.lat == null ? null : loc === "area" ? fuzz(p.lat) : p.lat,
       lng: loc === "hidden" || p.lng == null ? null : loc === "area" ? fuzz(p.lng) : p.lng,
     },
+    nearby: publicNearby(p.nearby, loc),
     images: ms.filter((m) => m.kind === "image").map((m) => ({ id: m.id, lg: m.url, md: m.urlMd ?? m.url, sm: m.urlSm ?? m.url, w: m.width, h: m.height })),
     videos: ms.filter((m) => m.kind === "video").map((m) => ({ id: m.id, url: m.url, mime: m.mime })),
     docs: ms.filter((m) => m.kind === "doc").map((m, i) => ({ id: m.id, url: m.url, name: m.hash || (i === 0 ? "Floor plan / brochure" : `Document ${i + 1}`) })),

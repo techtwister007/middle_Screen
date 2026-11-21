@@ -5,7 +5,7 @@ import { recordEvent } from "@/modules/tracking";
 
 const Body = z.object({
   code: z.string().min(3).max(16),
-  type: z.enum(["open", "gallery", "video", "map", "call", "whatsapp", "share", "compare", "dwell"]),
+  type: z.enum(["open", "gallery", "video", "map", "call", "whatsapp", "share", "compare", "place", "dwell"]),
   meta: z.record(z.string(), z.unknown()).optional(),
   listingId: z.string().max(40).optional(),
 });

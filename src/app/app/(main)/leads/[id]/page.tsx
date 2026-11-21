@@ -33,6 +33,7 @@ const ev: Record<string, string> = {
   visit_request: "Requested a site visit",
   share: "Shared with someone",
   dwell: "Spent time viewing",
+  place: "Checked the distance to their place",
 };
 
 export default async function LeadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -202,6 +203,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                     <p className="text-sm">
                       <b>{ev[t.e.type] ?? t.e.type}</b>
                       {t.e.type === "dwell" && t.e.meta?.sec ? ` (${Math.round(Number(t.e.meta.sec) / 60) || "<1"} min)` : ""}
+                      {t.e.type === "place" && t.e.meta?.name ? `: ${String(t.e.meta.name)} (${String(t.e.meta.km)} km)` : ""}
                       {t.title ? <span className="text-stone-500"> — {t.title}</span> : null}
                     </p>
                     <p className="text-xs text-stone-500">{dateLabel(t.e.createdAt, true)}</p>
@@ -261,7 +263,7 @@ function TlIcon({ type }: { type: string }) {
   const c = "h-4 w-4";
   if (type === "open" || type === "dwell") return <Eye className={c} />;
   if (type === "gallery" || type === "video") return <Images className={c} />;
-  if (type === "map") return <MapPin className={c} />;
+  if (type === "map" || type === "place") return <MapPin className={c} />;
   if (type === "call") return <Phone className={c} />;
   if (type === "whatsapp") return <MessageCircle className={c} />;
   if (type === "save" || type === "unsave") return <Heart className={c} />;

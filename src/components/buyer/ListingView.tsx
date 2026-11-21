@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft, FileText, Search, CalendarPlus, Clock } from "lucide-react";
 import type { PublicAgent, PublicListing } from "@/modules/public";
 import { Gallery } from "./Gallery";
+import { Neighbourhood } from "./Neighbourhood";
 import { AskSheet, VisitSheet, IdentifySheet, Sheet, RequirementSheet, shouldPromptIdentity } from "./Sheets";
 import { buyerAction, startDwell, track } from "./api";
 import { brand } from "@/config/brand";
@@ -120,7 +121,7 @@ function Location({ l, code }: { l: PublicListing; code: string }) {
       {embed ? (
         <div className="relative overflow-hidden rounded-2xl ring-1 ring-stone-200">
           <iframe title="Map" src={embed} className="h-56 w-full" loading="lazy" />
-          {mode === "area" ? <span className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-stone-700 shadow">Approximate area</span> : null}
+          {mode === "area" ? <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-stone-800 shadow-card">Approximate area</span> : null}
         </div>
       ) : null}
       <a href={maps} target="_blank" rel="noopener" onClick={() => track(code, "map", {}, l.id)} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-agent">
@@ -364,6 +365,12 @@ export function ListingView({
             <section id="sec-location" className={card}>
               <h2 className="mb-3 text-[17px] font-semibold">Location</h2>
               <Location l={l} code={code} />
+              {l.nearby || l.location.lat != null ? (
+                <div className="mt-5 border-t border-stone-100 pt-5">
+                  <h3 className="mb-3 text-[17px] font-semibold">Neighbourhood</h3>
+                  <Neighbourhood nearby={l.nearby} lat={l.location.lat} lng={l.location.lng} code={code} listingId={l.id} agentName={agent.displayName} />
+                </div>
+              ) : null}
             </section>
           ) : null}
 
