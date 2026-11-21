@@ -17,3 +17,5 @@ backups/
 .impeccable/questions/
 .impeccable/mocks/
 .impeccable/review/
+# built moodboard embeds third-party reference screenshots; source is moodboard-src.html
+prototype/moodboard.html
