@@ -48,7 +48,7 @@ export function BillingClient({ plans, qrs, upiId, upiName, razorpay, agent }: {
       name: upiName,
       description: `${plan.label} plan`,
       prefill: { name: agent.name, contact: `+${agent.phone}` },
-      theme: { color: "#0f766e" },
+      theme: { color: "#1f4d36" },
       handler: verify,
     }).open();
   };

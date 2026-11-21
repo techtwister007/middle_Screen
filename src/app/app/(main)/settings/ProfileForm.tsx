@@ -6,8 +6,8 @@ import { Loader2, Upload } from "lucide-react";
 import { updateProfileAction } from "@/app/app/_actions/misc";
 
 type P = { name: string; company: string; tagline: string; city: string; areas: string; handle: string; brandColor: string; welcomeMode: "none" | "minimal" | "splash"; watermark: boolean; networkOptIn: boolean; photoUrl: string | null; logoUrl: string | null };
-const COLORS = ["#0f766e", "#1d4ed8", "#7c3aed", "#be123c", "#b45309", "#15803d", "#0f172a", "#9333ea", "#0369a1", "#c2410c"];
-const input = "block w-full rounded-xl px-3.5 py-2.5 text-[15px] ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-brand-600 bg-white";
+const COLORS: [string, string][] = [["#1f4d36", "Forest"], ["#0f6b5f", "Teal"], ["#2b3c8c", "Indigo"], ["#1e3a5f", "Navy"], ["#7a1f2b", "Maroon"], ["#a3401f", "Terracotta"], ["#5b2a5e", "Plum"], ["#8a5a12", "Mustard"], ["#2b2d31", "Charcoal"], ["#0369a1", "Ocean"]];
+const input = "block w-full rounded-[14px] px-3.5 py-3 text-[15px] ring-1 ring-stone-200 outline-none focus:ring-2 focus:ring-brand-600 bg-white placeholder:text-stone-500";
 
 function Img({ kind, url, label }: { kind: "photo" | "logo"; url: string | null; label: string }) {
   const [u, setU] = useState(url);
@@ -51,11 +51,11 @@ export function ProfileForm({ initial, appUrl }: { initial: P; appUrl: string })
         router.refresh();
       } else setMsg(r.error);
     });
-  const chip = (on: boolean) => `rounded-xl px-3 py-2 text-sm font-semibold ring-1 ${on ? "bg-brand-700 text-white ring-brand-700" : "bg-white ring-stone-200"}`;
+  const chip = (on: boolean) => `press rounded-2xl px-3 py-2.5 text-sm font-semibold ring-1 ${on ? "bg-brand-700 text-white ring-brand-700" : "bg-white ring-stone-200"}`;
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+      <div className="space-y-3 rounded-[20px] bg-white p-4 shadow-card">
         <div className="grid grid-cols-2 gap-3">
           <Img kind="photo" url={p.photoUrl} label="Your photo" />
           <Img kind="logo" url={p.logoUrl} label="Company logo" />
@@ -76,15 +76,16 @@ export function ProfileForm({ initial, appUrl }: { initial: P; appUrl: string })
         </div>
       </div>
 
-      <div className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
-        <p className="font-display font-bold">Brand colour</p>
+      <div className="space-y-3 rounded-[20px] bg-white p-4 shadow-card">
+        <p className="text-[16px] font-semibold">Brand colour</p>
         <div className="flex flex-wrap gap-2">
-          {COLORS.map((c) => (
-            <button key={c} type="button" aria-label={c} onClick={() => set("brandColor", c)} className={`h-9 w-9 rounded-full ring-2 ring-offset-2 ${p.brandColor === c ? "ring-stone-900" : "ring-transparent"}`} style={{ background: c }} />
+          {COLORS.map(([c, n]) => (
+            <button key={c} type="button" aria-label={n} title={n} onClick={() => set("brandColor", c)} className={`press h-10 w-10 rounded-full ring-2 ring-offset-2 ring-offset-white ${p.brandColor === c ? "ring-stone-900" : "ring-transparent"}`} style={{ background: c }} />
           ))}
           <input type="color" value={p.brandColor} onChange={(e) => set("brandColor", e.target.value)} aria-label="Custom colour" className="h-9 w-9 cursor-pointer rounded-full" />
         </div>
-        <p className="font-display font-bold">When a buyer opens your link</p>
+        <Preview p={p} />
+        <p className="text-[16px] font-semibold">When a buyer opens your link</p>
         <div className="grid grid-cols-3 gap-2">
           <button type="button" className={chip(p.welcomeMode === "none")} onClick={() => set("welcomeMode", "none")}>Straight to property</button>
           <button type="button" className={chip(p.welcomeMode === "minimal")} onClick={() => set("welcomeMode", "minimal")}>Small header</button>
@@ -105,6 +106,32 @@ export function ProfileForm({ initial, appUrl }: { initial: P; appUrl: string })
         </button>
         {msg ? <span className="text-sm text-stone-600">{msg}</span> : null}
         <a href={`/${p.handle}`} target="_blank" className="ml-auto text-sm font-semibold text-brand-700">View my website →</a>
+      </div>
+    </div>
+  );
+}
+
+/** Live preview of how a buyer sees the agent's brand: name tag, price in their colour, action button. */
+function Preview({ p }: { p: P }) {
+  const name = p.company || p.name || "Your name";
+  const initials = name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+  const img = p.logoUrl ?? p.photoUrl;
+  return (
+    <div style={{ ["--agent" as string]: p.brandColor }} className="overflow-hidden rounded-[18px] bg-stone-100">
+      <p className="px-4 pt-3 text-[13px] text-stone-500">Preview: what buyers see</p>
+      <div className="m-3 rounded-[16px] bg-white p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          {img ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={img} alt="" className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-semibold text-white transition-colors duration-300" style={{ background: p.brandColor }}>{initials}</span>
+          )}
+          <span className="truncate text-sm font-semibold">{name}</span>
+        </div>
+        <p className="mt-3 text-[15px] font-semibold">3 BHK flat in {p.areas?.split(",")[0]?.trim() || p.city || "your area"}</p>
+        <p className="tnum mt-1 text-[24px] font-bold tracking-tight transition-colors duration-300" style={{ color: p.brandColor }}>₹95 L</p>
+        <div className="mt-3 flex h-11 items-center justify-center rounded-[14px] text-sm font-semibold text-white transition-colors duration-300" style={{ background: p.brandColor }}>Book site visit</div>
       </div>
     </div>
   );

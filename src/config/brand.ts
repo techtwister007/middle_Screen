@@ -12,7 +12,7 @@ export const brand = {
     "Send property photos on WhatsApp, get a beautiful branded link, and see exactly which buyer opened it, liked it and wants a site visit.",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@vectorscale.in",
   /** Primary brand colour (used for the product UI, not agent pages). */
-  primary: "#0f766e",
+  primary: "#1f4d36",
 } as const;
 
 export const poweredBy = `Powered by ${brand.name} · a ${brand.company} product`;

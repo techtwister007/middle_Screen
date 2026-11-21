@@ -43,7 +43,7 @@ export const agents = pgTable(
     tagline: text("tagline"),
     city: text("city"),
     areas: text("areas"),
-    brandColor: text("brand_color").notNull().default("#0f766e"),
+    brandColor: text("brand_color").notNull().default("#1f4d36"),
     welcomeMode: text("welcome_mode").$type<WelcomeMode>().notNull().default("minimal"),
     watermark: boolean("watermark").notNull().default(true),
     networkOptIn: boolean("network_opt_in").notNull().default(true),

@@ -4,7 +4,7 @@ import { brand } from "@/config/brand";
 
 export function Unavailable({ agent, message }: { agent?: PublicAgent; message: string }) {
   return (
-    <div style={{ ["--agent" as string]: agent?.brandColor ?? "#0f766e" }} className="flex min-h-screen items-center justify-center bg-stone-50 p-6">
+    <div style={{ ["--agent" as string]: agent?.brandColor ?? "#1f4d36" }} className="flex min-h-screen items-center justify-center bg-stone-50 p-6">
       <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center ring-1 ring-stone-200">
         {agent ? (
           <>

@@ -65,13 +65,13 @@ const labels: Partial<Record<keyof ListingFields, string>> = {
 };
 const numeric = new Set<keyof ListingFields>(["bhk", "areaSqft", "carpetSqft", "plotSqyd", "totalFloors", "bathrooms", "balconies", "ageYears"]);
 
-const inputCls = "block w-full rounded-xl px-3.5 py-2.5 text-[15px] ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-brand-600 bg-white";
-const chip = (on: boolean) => `rounded-xl px-3 py-2 text-sm font-semibold ring-1 transition ${on ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-stone-700 ring-stone-200 hover:bg-stone-50"}`;
+const inputCls = "block w-full rounded-[14px] px-3.5 py-3 text-[15px] ring-1 ring-stone-200 outline-none focus:ring-2 focus:ring-brand-600 bg-white placeholder:text-stone-500";
+const chip = (on: boolean) => `press rounded-2xl px-3.5 py-2.5 text-sm font-semibold ring-1 ${on ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-stone-700 ring-stone-200 hover:bg-stone-50"}`;
 
 function Section({ title, children, warn }: { title: string; children: React.ReactNode; warn?: boolean }) {
   return (
-    <section className="rounded-2xl bg-white p-4 ring-1 ring-stone-200 sm:p-5">
-      <h2 className="mb-3 flex items-center gap-2 font-display font-bold">
+    <section className="rounded-[20px] bg-white p-4 shadow-card sm:p-5">
+      <h2 className="mb-3 flex items-center gap-2 text-[17px] font-semibold">
         {title} {warn ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : null}
       </h2>
       <div className="space-y-3">{children}</div>
@@ -239,7 +239,8 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
   const amen = d.fields.amenities ?? [];
 
   return (
-    <div className="space-y-4 pb-44">
+    <div className="stagger space-y-4 pb-44">
+      <Strength d={d} media={media} />
       {missing.length ? (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> Please check: <b>{missing.join(", ")}</b>. We never guess details — fill what you know.
@@ -249,21 +250,21 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
       <Section title="Photos & video">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {media.map((m, i) => (
-            <div key={m.id} className="group relative aspect-square overflow-hidden rounded-xl bg-stone-100 ring-1 ring-stone-200">
+            <div key={m.id} className="group relative aspect-square overflow-hidden rounded-2xl bg-stone-100 [animation:rise_.35s_cubic-bezier(.22,1,.36,1)_backwards]">
               {m.kind === "image" ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={m.thumb} alt="" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center text-stone-500">{m.kind === "doc" ? <FileText className="h-6 w-6" /> : <Video className="h-6 w-6" />}</div>
               )}
-              {i === 0 ? <span className="absolute left-1.5 top-1.5 rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-bold text-white">COVER</span> : null}
-              <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/60 p-1">
-                <div className="flex gap-0.5">
-                  <button type="button" aria-label="Move left" onClick={() => move(i, -1)} className="rounded bg-white/90 p-1"><ArrowUp className="h-3 w-3 -rotate-90" /></button>
-                  <button type="button" aria-label="Move right" onClick={() => move(i, 1)} className="rounded bg-white/90 p-1"><ArrowDown className="h-3 w-3 -rotate-90" /></button>
-                  {i > 0 && m.kind === "image" ? <button type="button" aria-label="Make cover" onClick={() => move(i, "top")} className="rounded bg-white/90 p-1"><Star className="h-3 w-3" /></button> : null}
+              {i === 0 ? <span className="absolute left-1.5 top-1.5 rounded-full bg-brand-700 px-2 py-0.5 text-[11px] font-semibold text-white shadow-card">Cover</span> : null}
+              {i > 0 && m.kind === "image" ? <button type="button" aria-label="Make cover" onClick={() => move(i, "top")} className="press absolute left-1.5 top-1.5 flex h-7 items-center gap-1 rounded-full bg-white/95 px-2 text-[11px] font-semibold text-stone-900 shadow-card"><Star className="h-3 w-3" />Set cover</button> : null}
+              <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/55 to-transparent p-1.5 pt-4">
+                <div className="flex gap-1">
+                  <button type="button" aria-label="Move left" onClick={() => move(i, -1)} className="press flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/95 text-stone-900"><ArrowUp className="h-4 w-4 -rotate-90" /></button>
+                  <button type="button" aria-label="Move right" onClick={() => move(i, 1)} className="press flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/95 text-stone-900"><ArrowDown className="h-4 w-4 -rotate-90" /></button>
                 </div>
-                <button type="button" aria-label="Delete" onClick={() => remove(m.id)} className="rounded bg-white/90 p-1 text-red-600"><Trash2 className="h-3 w-3" /></button>
+                <button type="button" aria-label="Delete" onClick={() => remove(m.id)} className="press flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/95 text-red-600"><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           ))}
@@ -448,5 +449,43 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Listing strength": a quick, honest checklist with the next thing to add. Better listings get opened and shared more. */
+function Strength({ d, media }: { d: EditorData; media: { kind: string }[] }) {
+  const photos = media.filter((m) => m.kind === "image").length;
+  const f = d.fields;
+  const checks = [
+    { ok: photos >= 5, w: 25, tip: photos ? `Add ${5 - photos} more photo${5 - photos === 1 ? "" : "s"}. Homes with 5+ photos get opened more.` : "Add photos. They are the first thing buyers look at." },
+    { ok: d.price != null || d.priceMode === "on_request", w: 15, tip: "Add the price, or choose “On request”." },
+    { ok: !!d.locality, w: 15, tip: "Add the locality so buyers know where it is." },
+    { ok: d.description.trim().length >= 80, w: 10, tip: "Write 2–3 lines about what makes it special." },
+    { ok: !!(f.bhk || f.areaSqft || f.carpetSqft || f.plotSqyd), w: 10, tip: "Add BHK or area." },
+    { ok: (f.amenities?.length ?? 0) >= 3, w: 10, tip: "Tick at least 3 amenities." },
+    { ok: !!(f.furnishing || f.facing || f.floor), w: 10, tip: "Add furnishing, floor or facing." },
+    { ok: d.lat != null, w: 5, tip: "Drop a map pin (or paste a Google Maps link) for nearby schools and hospitals." },
+  ];
+  const score = checks.reduce((a, c) => a + (c.ok ? c.w : 0), 0);
+  const next = checks.filter((c) => !c.ok).slice(0, 2);
+  return (
+    <section className="rounded-[20px] bg-white p-4 shadow-card sm:p-5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-[17px] font-semibold">Listing strength</h2>
+        <span className="tnum text-sm font-semibold text-brand-700">{score}%</span>
+      </div>
+      <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-stone-100">
+        <div className={`h-full rounded-full transition-[width] duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${score >= 80 ? "bg-brand-600" : score >= 50 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${score}%` }} />
+      </div>
+      {next.length ? (
+        <ul className="mt-3 space-y-1.5 text-sm text-stone-600">
+          {next.map((c) => (
+            <li key={c.tip} className="flex gap-2"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />{c.tip}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-stone-600">Looks great. This listing has everything buyers look for.</p>
+      )}
+    </section>
   );
 }

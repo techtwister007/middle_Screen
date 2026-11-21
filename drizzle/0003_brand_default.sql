@@ -1,0 +1,1 @@
+ALTER TABLE "agents" ALTER COLUMN "brand_color" SET DEFAULT '#1f4d36';
