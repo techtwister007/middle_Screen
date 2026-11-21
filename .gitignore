@@ -14,3 +14,6 @@ bridge/baileys/auth/
 bridge/baileys/node_modules/
 backups/
 /storage-test/
+.impeccable/questions/
+.impeccable/mocks/
+.impeccable/review/
