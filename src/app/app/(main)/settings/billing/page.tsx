@@ -54,7 +54,10 @@ export default async function Billing() {
                   <p className="font-semibold">₹{p.amountInr.toLocaleString("en-IN")} · {p.months} month{p.months > 1 ? "s" : ""}</p>
                   <p className="text-xs text-stone-500">{p.method.toUpperCase()} {p.reference ? `· ${p.reference}` : ""} · {dateLabel(p.createdAt)}</p>
                 </div>
-                <Badge tone={p.status === "confirmed" ? "green" : p.status === "pending" ? "amber" : "red"}>{p.status === "pending" && p.method === "upi" ? "Verifying" : p.status}</Badge>
+                <span className="flex items-center gap-2">
+                  {p.status === "confirmed" ? <a href={`/receipt/${p.id}`} className="text-xs font-semibold text-brand-700">Receipt</a> : null}
+                  <Badge tone={p.status === "confirmed" ? "green" : p.status === "pending" ? "amber" : "red"}>{p.status === "pending" && p.method === "upi" ? "Verifying" : p.status}</Badge>
+                </span>
               </div>
             ))}
           </div>

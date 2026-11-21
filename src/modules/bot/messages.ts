@@ -14,8 +14,10 @@ export const M = {
   firstMedia: () => `📥 Got it! Keep sending photos, videos and details (text or voice note).\nType *done* when finished.`,
   textDraftStarted: () => `📝 Got the details. Now send the photos / videos (optional).\nType *done* when finished.`,
   processing: (img: number, vid: number) => `⏳ Creating your listing from ${img} photo${img === 1 ? "" : "s"}${vid ? ` and ${vid} video${vid === 1 ? "" : "s"}` : ""}…`,
-  draftReady: (title: string, price: string, ref: string, preview: string, missing: string[], unheardVoice: boolean) =>
-    `✅ *Draft ready* — ${title}\n${price} · Ref *${ref}*\n\nPreview: ${preview}${missing.length ? `\n\n⚠️ Please check: ${missing.join(", ")}` : ""}${unheardVoice ? `\n\n🎙️ Voice note saved but couldn't be transcribed — add the details as text if anything is missing.` : ""}\n\nReply:\n*1* Publish & get link\n*2* Edit (opens editor)\n*3* Discard`,
+  draftReady: (title: string, price: string, ref: string, preview: string, missing: string[], unheardVoice: boolean, updated?: string[]) =>
+    `${updated?.length ? `✏️ Updated: ${updated.join(", ")}` : "✅ *Draft ready*"} — ${title}\n${price} · Ref *${ref}*\n\nPreview: ${preview}${missing.length ? `\n\n⚠️ Missing: *${missing.join(", ")}* — just reply with them, e.g. _95 lakh, Gotri, 1450 sqft_` : ""}${unheardVoice ? `\n\n🎙️ Voice note saved but couldn't be transcribed — type the details if anything is missing.` : ""}\n\nReply:\n*1* Publish & get link\n*2* Edit (opens editor)\n*3* Discard`,
+  shareWho: (publicUrl: string | null) =>
+    `👤 Who is it for? Send the buyer's *contact card* or type *Name 98xxxxxxxx* — you'll get a personal link that tells you when they open it.${publicUrl ? `\n\nOr forward the public link (groups / status):\n${publicUrl}` : ""}`,
   nothingToFinish: () => `There's nothing to finish. Forward property photos or type the details to start a listing.`,
   published: (title: string, url: string, ref: string) =>
     `🚀 *Live!* ${title}\n\n🔗 ${url}\n\nTo share with a buyer and track them:\n*share ${ref} to Rahul 98xxxxxxxx*\n\nOr forward the link anywhere.`,
@@ -40,7 +42,7 @@ export const M = {
   verifiedOk: (title: string) => `👍 Thanks! ${title} marked as available (verified today).`,
   contactAdded: (name: string, url: string) => `👤 Added *${name}* to your leads.\n${url}`,
   help: () =>
-    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M to Rahul 98xxxxxxxx* — personal tracked link\n💰 *price K7Q2M 92L* — change price\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
+    `*${brand.name} — commands*\n\n📸 *Add property:* send photos/videos + details, then *done*\n🔎 *find 2bhk gotri under 60L* — search your inventory\n🔗 *share K7Q2M* then send a contact card — personal tracked link (add more refs for a shortlist)\n💰 *price K7Q2M 92L* — change price\n✅ *sold K7Q2M* / *rented* / *hold* / *available*\n📋 *list* — your active properties\n🔥 *leads* — hot & recent buyers\n📅 *today* — visits & follow-ups\n🔐 *login* — dashboard link\n🆕 *new* — finish current & start another`,
   unknown: () => `🤔 I didn't get that. Type *help* to see what I can do, or just forward property photos.`,
   buyerUnknown: () => `Hi! 👋 This number is used by property agents on ${brand.name}. If you're viewing a property, please contact the agent who shared it with you.`,
 };

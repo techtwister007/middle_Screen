@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, ImagePlus, Loader2, LocateFixed, Star, Trash2, Video, AlertTriangle } from "lucide-react";
+import { ArrowDown, ArrowUp, ImagePlus, Loader2, LocateFixed, Star, Trash2, Video, AlertTriangle, FileText } from "lucide-react";
 import type { ListingFields, LocationPrivacy, PriceMode, PropertyType, Purpose } from "@/db/schema";
 import { parseAmount } from "@/lib/ai/parse";
 import { inr } from "@/lib/format";
@@ -96,6 +96,15 @@ async function compressImage(file: File): Promise<Blob> {
   }
 }
 
+/** 9500000 → "95L", 21000000 → "2.1cr", 18000 → "18000" (what agents type). */
+function compact(n: number | null) {
+  if (!n) return "";
+  const t = (x: number) => x.toFixed(2).replace(/\.?0+$/, "");
+  if (n >= 1e7) return `${t(n / 1e7)}cr`;
+  if (n >= 1e5) return `${t(n / 1e5)}L`;
+  return String(n);
+}
+
 /** Extract coordinates from a Google Maps link or "lat, lng". */
 function parseCoords(s: string): { lat: number; lng: number } | null {
   const m = s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ?? s.match(/[?&](?:q|query|ll)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/) ?? s.match(/^\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
@@ -108,8 +117,8 @@ function parseCoords(s: string): { lat: number; lng: number } | null {
 export function Editor({ id, initial, media: initialMedia, missing, isDraft }: { id: string; initial: EditorData; media: EditorMedia[]; missing: string[]; isDraft: boolean }) {
   const router = useRouter();
   const [d, setD] = useState<EditorData>(initial);
-  const [priceText, setPriceText] = useState(initial.price ? String(initial.price) : "");
-  const [priceMaxText, setPriceMaxText] = useState(initial.priceMax ? String(initial.priceMax) : "");
+  const [priceText, setPriceText] = useState(compact(initial.price));
+  const [priceMaxText, setPriceMaxText] = useState(compact(initial.priceMax));
   const [media, setMedia] = useState(initialMedia);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState<null | "save" | "publish">(null);
@@ -118,6 +127,7 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
   const [customAmenity, setCustomAmenity] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
+  const docRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof EditorData>(k: K, v: EditorData[K]) => setD((x) => ({ ...x, [k]: v }));
   const setF = <K extends keyof ListingFields>(k: K, v: ListingFields[K] | undefined) => setD((x) => ({ ...x, fields: { ...x.fields, [k]: v } }));
@@ -244,7 +254,7 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={m.thumb} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center text-stone-500"><Video className="h-6 w-6" /></div>
+                <div className="flex h-full items-center justify-center text-stone-500">{m.kind === "doc" ? <FileText className="h-6 w-6" /> : <Video className="h-6 w-6" />}</div>
               )}
               {i === 0 ? <span className="absolute left-1.5 top-1.5 rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-bold text-white">COVER</span> : null}
               <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/60 p-1">
@@ -264,6 +274,23 @@ export function Editor({ id, initial, media: initialMedia, missing, isDraft }: {
             <Video className="h-6 w-6" /> Add video
           </button>
         </div>
+        <button type="button" onClick={() => docRef.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold text-stone-600 ring-1 ring-stone-200">
+          <FileText className="h-4 w-4" /> Add floor plan / brochure (PDF)
+        </button>
+        <input ref={docRef} type="file" accept="application/pdf" hidden onChange={async (e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (!f) return;
+          if (f.size > 10 * 1024 * 1024) return setErr("PDF is over 10 MB");
+          setUploading("Uploading document…");
+          const fd = new FormData();
+          fd.append("file", f);
+          fd.append("listingId", id);
+          const r = await fetch("/api/upload", { method: "POST", body: fd }).then((x) => x.json()).catch(() => ({ ok: false, error: "Network error" }));
+          setUploading(null);
+          if (!r.ok) setErr(r.error);
+          router.refresh();
+        }} />
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }} data-testid="photo-input" />
         <input ref={videoRef} type="file" accept="video/*" hidden onChange={(e) => { uploadVideo(e.target.files?.[0]); e.target.value = ""; }} />
         {uploading ? <p className="flex items-center gap-2 text-sm text-brand-700"><Loader2 className="h-4 w-4 animate-spin" /> {uploading}</p> : null}

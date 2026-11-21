@@ -65,6 +65,19 @@ export async function saveVideo(agentId: string, input: Buffer, mime: string, ow
   return { id: mid };
 }
 
+export const MAX_DOC_BYTES = 10 * 1024 * 1024;
+
+/** Floor plans / brochures (PDF or image docs kept as files). */
+export async function saveDocument(agentId: string, input: Buffer, mime: string, owner: Owner, filename?: string) {
+  if (input.byteLength > MAX_DOC_BYTES) throw new Error("Document too large (max 10 MB)");
+  if (mime !== "application/pdf") throw new Error("Only PDF documents are supported");
+  const mid = id();
+  const key = `a/${agentId}/d/${mid}.pdf`;
+  const url = await storage.put(key, input, mime);
+  await db.insert(media).values({ id: mid, agentId, listingId: owner.listingId ?? null, draftId: owner.draftId ?? null, kind: "doc", key, url, mime, bytes: input.byteLength, hash: (filename ?? "").slice(0, 80) || null, position: await nextPosition(owner) });
+  return { id: mid };
+}
+
 /** Register a video that the browser uploaded directly to storage via a pre-signed URL. */
 export async function registerUploadedVideo(agentId: string, key: string, mime: string, bytes: number, owner: Owner) {
   if (!key.startsWith(`a/${agentId}/v/`)) throw new Error("bad key");

@@ -42,6 +42,7 @@ export default async function PropertyPage({ params }: Props) {
       code={code}
       greetingName={r.greetingName}
       showSplash={r.showSplash}
+      visit={await r.visitFor(l.id)}
       initial={{ identified: r.identified, name: r.lead?.name ?? null, saved: !!a?.saved, reaction: a?.reaction ?? null }}
     />
   );

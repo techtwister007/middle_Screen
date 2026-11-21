@@ -180,7 +180,12 @@ export default async function PropertyDetail({ params, searchParams }: { params:
           </Card>
           <Card className="p-4">
             <h3 className="mb-2 text-sm font-bold text-stone-700">Status</h3>
-            <StatusControls id={id} status={l.status} />
+            <StatusControls
+              id={id}
+              status={l.status}
+              closedWith={l.closedLeadId ? ([...engaged.map((e) => e.lead), ...sharedTo.map((x) => x.lead)].find((x) => x.id === l.closedLeadId)?.name ?? "a buyer") : null}
+              buyers={[...new Map([...engaged.map((e) => e.lead), ...sharedTo.map((x) => x.lead)].map((x) => [x.id, { id: x.id, name: x.name || x.phone || "Buyer" }])).values()]}
+            />
           </Card>
           <Card className="p-4 text-xs text-stone-500">
             <p>Visibility: <b>{l.visibility === "network" ? "Public (agent site & future network)" : "Private (link only)"}</b></p>

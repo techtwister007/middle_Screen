@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
-import { Phone, MessageCircle, Flame, Heart, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Flame, Heart, ThumbsDown, ThumbsUp } from "lucide-react";
 import { db } from "@/db";
 import { questions, visits, listings } from "@/db/schema";
 import { requireAgent } from "@/lib/auth/session";
-import { formatPhone, waLink } from "@/lib/phone";
+import { formatPhone } from "@/lib/phone";
 import { dateLabel, priceLabel, timeAgo } from "@/lib/format";
 import { getOwnLead, leadIntent, leadNotes, leadProperties, leadTimeline, stageLabels } from "@/modules/leads";
 import { matchingListingsForLead } from "@/modules/matching";
 import { leadOptions } from "@/modules/lead-options";
 import { Avatar, Badge, Card, PageHeader } from "@/components/ui";
 import { ShareButton } from "@/components/app/ShareDialog";
+import { ContactButtons, ReplyToQuestion } from "@/components/app/ContactButtons";
 import { RequirementFields, requirementSummary } from "@/components/app/RequirementFields";
 import { saveRequirementAction, deleteLeadAction } from "@/app/app/_actions/leads";
 import { StageSelect, FollowUp, NoteForm, EditInfo, SubmitReq } from "./parts";
@@ -77,8 +78,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
             <div className="mt-4 grid grid-cols-3 gap-2">
               {lead.phone ? (
                 <>
-                  <a href={`tel:+${lead.phone}`} className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-stone-100 text-sm font-semibold"><Phone className="h-4 w-4" /> Call</a>
-                  <a href={waLink(lead.phone, waMsg)} target="_blank" rel="noopener" className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#25D366] text-sm font-semibold text-white"><MessageCircle className="h-4 w-4" /> WhatsApp</a>
+                  <ContactButtons leadId={id} phone={lead.phone} message={waMsg} />
                 </>
               ) : (
                 <div className="col-span-2"><EditInfo id={id} name={lead.name} phone={lead.phone ?? ""} /></div>
@@ -143,7 +143,10 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                 {qs.map((q) => (
                   <div key={q.q.id} className="rounded-xl bg-sky-50 p-3 text-sm">
                     <p className="font-medium text-sky-900">“{q.q.text}”</p>
-                    <p className="text-xs text-sky-700">{q.title} · {timeAgo(q.q.createdAt)}</p>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="text-xs text-sky-700">{q.title} · {timeAgo(q.q.createdAt)}</p>
+                      <ReplyToQuestion questionId={q.q.id} phone={lead.phone} question={q.q.text} title={q.title} answered={!!q.q.answeredAt} />
+                    </div>
                   </div>
                 ))}
                 {vs.map((v) => (

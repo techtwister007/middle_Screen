@@ -133,7 +133,7 @@ test("billing: UPI payment submitted → admin confirms → plan active", async 
   await admin.goto("/admin/login");
   await admin.getByLabel("Admin password").fill(E2E_ENV.ADMIN_PASSWORD);
   await admin.getByRole("button", { name: "Log in" }).click();
-  await expect(admin.getByText("Pilot dashboard")).toBeVisible();
+  await expect(admin.getByRole("heading", { name: "Pilot dashboard" })).toBeVisible();
   await expect(admin.getByText(/UPI payment\(s\) to verify/)).toBeVisible();
   await admin.goto("/admin/payments");
   await expect(admin.getByText("412345678901").first()).toBeVisible();

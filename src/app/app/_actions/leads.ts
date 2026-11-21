@@ -105,3 +105,23 @@ export async function deleteLeadAction(leadId: string) {
   revalidatePath("/app/leads");
   redirect("/app/leads");
 }
+
+/** Called when the agent taps Call / WhatsApp: clears the lead from "Needs attention" until new buyer activity. */
+export async function markContactedAction(leadId: string) {
+  return safe(async () => {
+    const agent = await activeAgent();
+    await db.update(leads).set({ lastContactedAt: new Date() }).where(and(eq(leads.id, leadId), eq(leads.agentId, agent.id)));
+    revalidatePath("/app");
+  });
+}
+
+export async function markAnsweredAction(questionId: string) {
+  return safe(async () => {
+    const agent = await activeAgent();
+    const { questions } = await import("@/db/schema");
+    const [q] = await db.update(questions).set({ answeredAt: new Date() }).where(and(eq(questions.id, questionId), eq(questions.agentId, agent.id))).returning();
+    if (q?.leadId) await db.update(leads).set({ lastContactedAt: new Date() }).where(eq(leads.id, q.leadId));
+    revalidatePath("/app");
+    if (q?.leadId) revalidatePath(`/app/leads/${q.leadId}`);
+  });
+}

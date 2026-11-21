@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { agents, collections, leads } from "@/db/schema";
 import { getShare } from "./shares";
 import { getAccess } from "./billing";
-import { buyerActionsFor, currentLeadForSession } from "./buyer";
+import { buyerActionsFor, buyerVisitFor, currentLeadForSession } from "./buyer";
 import { toPublicAgent } from "./public";
 import type { ShareCtx } from "./tracking";
 
@@ -38,5 +38,6 @@ export async function resolveBuyerPage(code: string) {
     collection,
     // Show splash only on the first visit of this session (sid cookie not yet set)
     showSplash: agent.welcomeMode === "splash" && !sid,
+    visitFor: (listingId: string) => buyerVisitFor(lead?.id, listingId),
   };
 }

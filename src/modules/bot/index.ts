@@ -14,7 +14,7 @@ import { createLoginToken } from "@/lib/auth/session";
 import { agentDisplayName, createAgent, getAgentByPhone, setBotContext } from "../agents";
 import { getAccess } from "../billing";
 import { addDraftMedia, addDraftText, discardDraft, draftCounts, finalizeDraft, getOrCreateDraft, openDraft, setDraftFields } from "../drafts";
-import { getListingByRef, getOwnListing, markVerified as markListingVerified, publishListing, searchListings, setListingPrice, setListingStatus, agentListings } from "../listings";
+import { applyCorrection, getListingByRef, getOwnListing, markVerified as markListingVerified, publishListing, searchListings, setListingPrice, setListingStatus, agentListings } from "../listings";
 import { findOrCreateLead } from "../leads";
 import { leadShare, listingUrl, collectionUrl, generalCollectionShare } from "../shares";
 import { createCollection } from "../collections";
@@ -105,12 +105,14 @@ export async function handleInbound(msg: InboundMessage & { mediaRef?: string },
         ? "video"
         : msg.type === "audio"
           ? "audio"
-          : null;
+          : msg.type === "document" && msg.media?.mime === "application/pdf"
+            ? "doc"
+            : null;
   if (kind) {
     const { draft, created } = await getOrCreateDraft(agent.id);
     try {
       const m = await loadMedia();
-      await addDraftMedia(agent, draft.id, kind, m.data, m.mime);
+      await addDraftMedia(agent, draft.id, kind, m.data, m.mime, msg.media?.filename);
     } catch (e) {
       console.error("[bot] media failed", e);
       return reply(from, `⚠️ Couldn't save that ${kind}: ${(e as Error).message}`, agent.id);
@@ -129,8 +131,14 @@ export async function handleInbound(msg: InboundMessage & { mediaRef?: string },
     const phone = normalizePhone(msg.contact.phone);
     if (!phone) return reply(from, "⚠️ That contact has no valid phone number.", agent.id);
     const lead = await findOrCreateLead(agent.id, { name: msg.contact.name, phone, source: "bot" });
+    const pending = (await getAgentByPhone(from))?.botContext.pendingShare;
+    if (pending?.listingIds.length) {
+      await setBotContext(agent.id, {});
+      return shareTo(agent, pending.listingIds, lead);
+    }
     return reply(from, M.contactAdded(lead.name || phone, `${appUrl}/app/leads/${lead.id}`), agent.id);
   }
+  if (msg.type === "document") return reply(from, "📄 I can attach PDFs (floor plans, brochures), photos and videos. That file type isn't supported.", agent.id);
   if (!text) return;
 
   return command(agent, from, text);
@@ -263,24 +271,50 @@ async function command(agent: Agent, from: string, text: string) {
     return reply(from, M.priceUpdated(l.title, inr(amount)), agent.id);
   }
 
-  // share REF to NAME PHONE
-  m = t.match(new RegExp(`^share\\s+${REF}(?:\\s+(?:to|with))?\\s+(.+)$`, "i"));
-  if (m || /^share\b/i.test(t)) {
-    if (!m) return reply(from, M.shareUsage(), agent.id);
-    const l = await getListingByRef(agent.id, m[1]);
-    if (!l) return reply(from, M.notFound(m[1]), agent.id);
-    const rest = m[2];
+  // share REF [REF2 …] [to NAME PHONE]  — several refs become one shortlist link
+  if (/^share\b/i.test(t)) {
+    const body = t.replace(/^share\s*/i, "");
+    const refs: string[] = [];
+    let rest = body;
+    for (;;) {
+      const mm = rest.match(/^([A-Z0-9]{5})\b[\s,]*/i);
+      if (!mm) break;
+      refs.push(mm[1].toUpperCase());
+      rest = rest.slice(mm[0].length);
+    }
+    if (!refs.length) return reply(from, M.shareUsage(), agent.id);
+    const ls = [];
+    for (const r of refs) {
+      const l = await getListingByRef(agent.id, r);
+      if (!l) return reply(from, M.notFound(r), agent.id);
+      if (l.status === "draft") await publishListing(agent.id, l.id);
+      ls.push(l);
+    }
+    rest = rest.replace(/^(to|with)\s+/i, "").trim();
     const phoneMatch = rest.match(/(\+?\d[\d\s-]{8,16}\d)/);
     const phone = normalizePhone(phoneMatch?.[1]);
     const name = rest.replace(phoneMatch?.[1] ?? "", "").replace(/[,:]/g, " ").trim().slice(0, 60);
-    if (!name && !phone) return reply(from, M.shareUsage(), agent.id);
-    if (l.status === "draft") await publishListing(agent.id, l.id);
+    if (!name && !phone) {
+      // No buyer given: remember, and offer the public link meanwhile.
+      await setBotContext(agent.id, { pendingShare: { listingIds: ls.map((l) => l.id) } });
+      const { generalListingShare } = await import("../shares");
+      const pub = ls.length === 1 ? listingUrl((await generalListingShare(agent.id, ls[0].id)).code) : null;
+      return reply(from, M.shareWho(pub), agent.id);
+    }
     const lead = await findOrCreateLead(agent.id, { name, phone, source: "share" });
-    const share = await leadShare(agent.id, { listingId: l.id }, lead.id);
-    const url = listingUrl(share.code);
-    const first = (lead.name || name || "there").split(" ")[0];
-    const msgText = `Hi ${first}! Sharing the details of ${l.title} — photos, price and location here:\n${url}`;
-    return reply(from, M.shareReady(lead.name || name || phone!, url, phone ? waLink(phone, msgText) : `https://wa.me/?text=${encodeURIComponent(msgText)}`), agent.id);
+    return shareTo(agent, ls.map((l) => l.id), lead);
+  }
+
+  // Completing a pending share with "Name 98xxxxxxxx"
+  if (ctx.pendingShare?.listingIds.length) {
+    const phoneMatch = t.match(/(\+?\d[\d\s-]{8,16}\d)/);
+    const phone = normalizePhone(phoneMatch?.[1]);
+    if (phone) {
+      const name = t.replace(phoneMatch![1], "").replace(/[,:]/g, " ").trim().slice(0, 60);
+      await setBotContext(agent.id, {});
+      const lead = await findOrCreateLead(agent.id, { name, phone, source: "share" });
+      return shareTo(agent, ctx.pendingShare.listingIds, lead);
+    }
   }
 
   if (/^(list|properties|inventory|my properties)$/i.test(t)) {
@@ -334,6 +368,16 @@ async function command(agent: Agent, from: string, text: string) {
   const isSearch = /^(find|search|show|need|looking for|any|get)\b/i.test(t) || (!d && /\b(under|below|upto|within|budget)\b/i.test(t));
   if (isSearch) return search(agent, from, t.replace(/^(find|search|show|need|looking for|any|get)\s*/i, ""));
 
+  // Corrections to the draft just created ("95 lakh, Gotri") — no need to open the editor.
+  const pendingDraft = ctx.pendingListingId ? await getOwnListing(agent.id, ctx.pendingListingId) : null;
+  if (!d && pendingDraft?.status === "draft" && t.split(/\s+/).length <= 10) {
+    const changed = await applyCorrection(agent.id, pendingDraft.id, t);
+    if (changed.length) {
+      const l = await getOwnListing(agent.id, pendingDraft.id);
+      if (l) return sendDraftReady(agent, l.id, l.missing, false, changed);
+    }
+  }
+
   // Otherwise: property details text → draft
   if (d) return addDraftText(d.id, t);
   const looksLikeProperty = /\b(\d\s*bhk|bhk|flat|apartment|villa|bungalow|plot|shop|office|sq\.?\s*ft|sqft|lakh|lac|cr|crore|rent|sale|furnished)\b/i.test(t);
@@ -364,10 +408,28 @@ async function search(agent: Agent, from: string, q: string) {
   return reply(from, M.searchResults(lines, url), agent.id);
 }
 
-export async function sendDraftReady(agent: Agent, listingId: string, missing: string[], unheardVoice: boolean) {
+export async function sendDraftReady(agent: Agent, listingId: string, missing: string[], unheardVoice: boolean, updated?: string[]) {
   const l = await getOwnListing(agent.id, listingId);
   if (!l) return;
   await setBotContext(agent.id, { pendingListingId: l.id });
   const preview = await magicLink(agent.id, `/app/properties/${l.id}`);
-  await reply(agent.phone, M.draftReady(l.title, priceLabel(l), l.ref, preview, missing, unheardVoice), agent.id);
+  await reply(agent.phone, M.draftReady(l.title, priceLabel(l), l.ref, preview, missing, unheardVoice, updated), agent.id);
+}
+
+/** Personal link (1 property) or shortlist link (2+ properties) for one buyer. */
+async function shareTo(agent: Agent, listingIds: string[], lead: { id: string; name: string; phone: string | null }) {
+  const first = (lead.name || "there").split(" ")[0];
+  let url: string;
+  let msgText: string;
+  if (listingIds.length === 1) {
+    const l = (await getOwnListing(agent.id, listingIds[0]))!;
+    url = listingUrl((await leadShare(agent.id, { listingId: l.id }, lead.id)).code);
+    msgText = `Hi ${first}! Sharing the details of ${l.title} — photos, price and location here:\n${url}`;
+  } else {
+    const c = await createCollection(agent.id, { title: `Properties selected for ${first}`, listingIds, leadId: lead.id });
+    url = collectionUrl((await leadShare(agent.id, { collectionId: c.id }, lead.id)).code);
+    msgText = `Hi ${first}! I've shortlisted ${listingIds.length} properties for you. Like the ones you prefer and I'll arrange visits:\n${url}`;
+  }
+  const who = lead.name || (lead.phone ? `+${lead.phone}` : "your buyer");
+  return reply(agent.phone, M.shareReady(who, url, lead.phone ? waLink(lead.phone, msgText) : `https://wa.me/?text=${encodeURIComponent(msgText)}`), agent.id);
 }

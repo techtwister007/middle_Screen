@@ -22,7 +22,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ w
     db.select({ n: count() }).from(listings).where(and(eq(listings.agentId, aid), inArray(listings.status, ["available", "on_hold"]))),
     db.select({ n: count() }).from(leads).where(and(eq(leads.agentId, aid), inArray(leads.stage, ["new", "exploring", "interested", "visit", "negotiating"]))),
     todaysVisits(aid),
-    db.select().from(leads).where(and(eq(leads.agentId, aid), gte(leads.intentScore, 22), inArray(leads.stage, ["new", "exploring", "interested", "visit", "negotiating"]))).orderBy(desc(leads.intentScore), desc(leads.lastActivityAt)).limit(5),
+    db.select().from(leads).where(and(eq(leads.agentId, aid), gte(leads.intentScore, 22), inArray(leads.stage, ["new", "exploring", "interested", "visit", "negotiating"]), sql`(${leads.lastContactedAt} is null or ${leads.lastContactedAt} < ${leads.lastActivityAt})`)).orderBy(desc(leads.intentScore), desc(leads.lastActivityAt)).limit(5),
     db.select({ v: visits, name: leads.name, title: listings.title }).from(visits).leftJoin(leads, eq(leads.id, visits.leadId)).leftJoin(listings, eq(listings.id, visits.listingId)).where(and(eq(visits.agentId, aid), eq(visits.status, "requested"))).orderBy(desc(visits.createdAt)).limit(5),
     db.select().from(leads).where(and(eq(leads.agentId, aid), isNotNull(leads.nextFollowUpAt), lte(leads.nextFollowUpAt, endOfDay))).orderBy(leads.nextFollowUpAt).limit(5),
     db.select({ q: questions, name: leads.name }).from(questions).leftJoin(leads, eq(leads.id, questions.leadId)).where(and(eq(questions.agentId, aid), isNull(questions.answeredAt), gte(questions.createdAt, sql`now() - interval '7 days'`))).orderBy(desc(questions.createdAt)).limit(5),

@@ -179,6 +179,8 @@ const STOP = new Set([
   "sale", "rent", "the", "a", "an", "good", "prime", "posh", "main", "road", "area", "location", "society", "near", "with", "and", "for",
   "ready", "move", "price", "only", "under", "below", "above", "budget", "lakh", "lakhs", "crore", "cr", "furnished", "semi", "unfurnished",
   "flat", "flats", "apartment", "bhk", "plot", "house", "villa", "shop", "office", "sq", "ft", "sqft",
+  "ok", "okay", "thanks", "thank", "you", "yes", "no", "hello", "hi", "sure", "great", "nice", "fine", "good", "done", "please", "pls",
+  "update", "change", "correct", "correction", "price", "area", "locality", "is", "its", "it's", "the", "of",
 ]);
 
 function extractLocality(text: string, city?: string): string | undefined {

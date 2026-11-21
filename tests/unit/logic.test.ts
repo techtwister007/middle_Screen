@@ -82,7 +82,7 @@ describe("public listing (Agent Promise)", () => {
   const base = {
     id: "l1", ref: "ABCDE", agentId: "a", propertyId: "p", purpose: "sale" as const, title: "T", description: "", priceMode: "exact" as const, price: 1e6, priceMax: null,
     negotiable: false, fields: {}, showBuilding: false, youtubeUrl: "https://youtu.be/dQw4w9WgXcQ", status: "available" as const, visibility: "network" as const, missing: [],
-    aiGenerated: false, verifiedAt: new Date(), verifyAskedAt: null, disabledByAdmin: false, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
+    aiGenerated: false, verifiedAt: new Date(), verifyAskedAt: null, disabledByAdmin: false, closedLeadId: null, closedAt: null, publishedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
   };
   const prop = { id: "p", type: "flat" as const, locality: "Gotri", city: "Vadodara", lat: 22.312345, lng: 73.143219, building: "Sunrise Heights", unit: "B-504", createdAt: new Date() };
   it("never exposes unit, hides building, fuzzes area location", () => {

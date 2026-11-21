@@ -107,3 +107,34 @@ export async function requestVisit(
   });
   return vid;
 }
+
+/**
+ * Buyer says what they're actually looking for ("not this one — 3 BHK under 1 Cr in Gotri").
+ * Saved on the agent's lead (powers matching) and feeds aggregated demand data for the platform.
+ */
+export async function saveBuyerRequirement(cookieSid: string, share: ShareCtx, leadId: string, req: import("@/db/schema").Requirement) {
+  const lead = await db.query.leads.findFirst({ where: eq(leads.id, leadId) });
+  if (!lead) return 0;
+  const merged = { ...lead.requirement, ...Object.fromEntries(Object.entries(req).filter(([, v]) => v !== undefined && !(Array.isArray(v) && !v.length))) };
+  await db.update(leads).set({ requirement: merged }).where(eq(leads.id, leadId));
+  await recordEvent(cookieSid, share, "requirement", req as Record<string, unknown>);
+  const { matchingListingsForLead } = await import("./matching");
+  const matches = await matchingListingsForLead(share.agentId, leadId);
+  const { requirementSummary } = await import("@/components/app/RequirementFields");
+  await notifyAgent(share.agentId, {
+    kind: "requirement",
+    title: `🔎 ${lead.name || "A buyer"} is looking for: ${requirementSummary(merged) || "something else"}`,
+    body: matches.length ? `${matches.length} of your properties match — send them in one tap.` : "No match in your inventory yet — worth a call.",
+    href: `/app/leads/${leadId}`,
+    important: true,
+  });
+  await refreshLeadIntent(leadId);
+  return matches.length;
+}
+
+/** The buyer's own site-visit status for a listing (shown back to them on the page). */
+export async function buyerVisitFor(leadId: string | null | undefined, listingId: string) {
+  if (!leadId) return null;
+  const v = await db.query.visits.findFirst({ where: and(eq(visits.leadId, leadId), eq(visits.listingId, listingId)), orderBy: (x, { desc }) => [desc(x.createdAt)] });
+  return v ? { status: v.status, scheduledAt: v.scheduledAt ? new Date(v.scheduledAt).toISOString() : null, requestedDate: v.requestedDate, requestedSlot: v.requestedSlot } : null;
+}

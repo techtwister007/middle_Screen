@@ -3,7 +3,7 @@ import { bad, json } from "@/lib/http";
 import { agentDisplayName } from "@/modules/agents";
 import { getAccess } from "@/modules/billing";
 import { getOwnListing } from "@/modules/listings";
-import { saveImage, saveVideo, MAX_IMAGES_PER_LISTING } from "@/modules/media";
+import { saveDocument, saveImage, saveVideo, MAX_IMAGES_PER_LISTING } from "@/modules/media";
 import { db } from "@/db";
 import { media } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
@@ -25,7 +25,11 @@ export async function POST(req: Request) {
       const r = await saveVideo(agent.id, buf, file.type, { listingId });
       return json({ ok: true, id: r.id });
     }
-    if (!file.type.startsWith("image/")) return bad("Only images and videos");
+    if (file.type === "application/pdf") {
+      const r = await saveDocument(agent.id, buf, file.type, { listingId }, file.name.replace(/\.pdf$/i, ""));
+      return json({ ok: true, id: r.id });
+    }
+    if (!file.type.startsWith("image/")) return bad("Only photos, videos and PDF floor plans");
     const [{ n }] = await db.select({ n: count() }).from(media).where(and(eq(media.listingId, listingId), eq(media.kind, "image")));
     if (n >= MAX_IMAGES_PER_LISTING) return bad(`Max ${MAX_IMAGES_PER_LISTING} photos per property`);
     const r = await saveImage(agent.id, buf, { listingId }, agent.watermark ? agentDisplayName(agent) : null);

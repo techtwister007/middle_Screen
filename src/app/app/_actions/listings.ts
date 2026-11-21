@@ -131,3 +131,18 @@ export async function deleteMediaAction(listingId: string, mediaId: string) {
     revalidatePath(`/app/properties/${listingId}`);
   });
 }
+
+/** Mark sold/rented and (optionally) record which buyer closed — proof of value for the agent & pilot. */
+export async function closeDealAction(listingId: string, status: "sold" | "rented", leadId: string | null) {
+  return safe(async () => {
+    const agent = await activeAgent();
+    await setListingStatus(agent.id, listingId, status);
+    const { db } = await import("@/db");
+    const { listings, leads } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    await db.update(listings).set({ closedLeadId: leadId, closedAt: new Date() }).where(and(eq(listings.id, listingId), eq(listings.agentId, agent.id)));
+    if (leadId) await db.update(leads).set({ stage: "closed" }).where(and(eq(leads.id, leadId), eq(leads.agentId, agent.id)));
+    revalidatePath(`/app/properties/${listingId}`);
+    revalidatePath("/app/properties");
+  });
+}

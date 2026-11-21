@@ -9,7 +9,7 @@ import { transcribe } from "@/lib/ai/client";
 import { extractListing } from "@/lib/ai/extract";
 import { agentDisplayName } from "./agents";
 import { createListing, extractedToInput } from "./listings";
-import { moveDraftMediaToListing, saveImage, saveVideo } from "./media";
+import { moveDraftMediaToListing, saveDocument, saveImage, saveVideo } from "./media";
 import { enqueue } from "./jobs";
 
 export async function openDraft(agentId: string) {
@@ -33,8 +33,10 @@ export async function addDraftText(draftId: string, text: string) {
   await touch(draftId);
 }
 
-export async function addDraftMedia(agent: typeof agents.$inferSelect, draftId: string, kind: "image" | "video" | "audio", data: Buffer, mime: string) {
-  if (kind === "image") {
+export async function addDraftMedia(agent: typeof agents.$inferSelect, draftId: string, kind: "image" | "video" | "audio" | "doc", data: Buffer, mime: string, filename?: string) {
+  if (kind === "doc") {
+    await saveDocument(agent.id, data, mime, { draftId }, filename);
+  } else if (kind === "image") {
     await saveImage(agent.id, data, { draftId }, agent.watermark ? agentDisplayName(agent) : null);
   } else if (kind === "video") {
     await saveVideo(agent.id, data, mime, { draftId });
@@ -102,6 +104,8 @@ export async function finalizeDraft(draftId: string, opts: { force?: boolean } =
     }
     const raw = [...d.texts, ...transcripts].join("\n").trim();
     const ex = await extractListing(raw, { city: agent.city });
+    // Learn the agent's city from their first listing (no extra onboarding question needed).
+    if (!agent.city && ex.city) await db.update(agents).set({ city: ex.city }).where(eq(agents.id, agent.id));
     const listing = await createListing(
       agent.id,
       extractedToInput(ex, {

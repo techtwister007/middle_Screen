@@ -27,6 +27,7 @@ export default async function Insights() {
       .limit(5),
   ]);
   const [{ n: closed }] = await db.select({ n: count() }).from(leads).where(and(eq(leads.agentId, aid), eq(leads.stage, "closed")));
+  const [{ n: viaApp }] = await db.select({ n: count() }).from(listings).where(and(eq(listings.agentId, aid), isNotNull(listings.closedLeadId)));
   const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
   const funnel = [
     { l: "Personal links sent", v: sent.n },
@@ -62,7 +63,7 @@ export default async function Insights() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-stone-500">Deals marked closed (all time): <b>{closed}</b></p>
+        <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">🎉 Deals closed with buyers you shared through {"the app"}: <b>{viaApp}</b> · Leads marked closed: <b>{closed}</b></p>
       </Card>
       <Card className="p-4">
         <h2 className="font-display font-bold">Most viewed properties (30 days)</h2>

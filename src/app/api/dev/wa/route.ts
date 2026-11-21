@@ -15,10 +15,10 @@ import { runDueJobs } from "@/modules/jobs";
  */
 const Body = z.object({
   from: z.string(),
-  type: z.enum(["text", "image", "video", "audio", "location", "contact"]).default("text"),
+  type: z.enum(["text", "image", "video", "audio", "document", "location", "contact"]).default("text"),
   text: z.string().optional(),
   pushName: z.string().optional(),
-  media: z.object({ base64: z.string(), mime: z.string() }).optional(),
+  media: z.object({ base64: z.string(), mime: z.string(), filename: z.string().optional() }).optional(),
   location: z.object({ lat: z.number(), lng: z.number() }).optional(),
   contact: z.object({ name: z.string(), phone: z.string() }).optional(),
 });
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const from = normalizePhone(p.data.from);
   if (!from) return bad("bad phone");
   const started = new Date();
-  await handleInbound({ ...p.data, from, media: p.data.media ? { data: Buffer.from(p.data.media.base64, "base64"), mime: p.data.media.mime } : undefined });
+  await handleInbound({ ...p.data, from, media: p.data.media ? { data: Buffer.from(p.data.media.base64, "base64"), mime: p.data.media.mime, filename: p.data.media.filename } : undefined });
   await runDueJobs(10);
   const replies = await db.select().from(waMessages).where(and(eq(waMessages.phone, from), eq(waMessages.direction, "out"), gt(waMessages.createdAt, started))).orderBy(asc(waMessages.createdAt));
   return json({ ok: true, replies: replies.map((r) => r.text) });

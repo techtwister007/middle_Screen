@@ -146,7 +146,7 @@ function nextDays() {
   return out;
 }
 
-export function VisitSheet(props: { open: boolean; onClose: () => void; code: string; listingId: string; agentName: string; onIdentified: (n: string) => void; onRequested: () => void }) {
+export function VisitSheet(props: { open: boolean; onClose: () => void; code: string; listingId: string; agentName: string; onIdentified: (n: string) => void; onRequested: (v: { date: string; slot: string }) => void }) {
   const days = nextDays();
   const [date, setDate] = useState(days[1].value);
   const [slot, setSlot] = useState<"morning" | "afternoon" | "evening">("morning");
@@ -159,7 +159,7 @@ export function VisitSheet(props: { open: boolean; onClose: () => void; code: st
     if (r.needIdentity) return setStep("identify");
     if (!r.ok) return setErr(r.error ?? "Failed");
     setStep("done");
-    props.onRequested();
+    props.onRequested({ date, slot });
   };
   const chip = (on: boolean) => `rounded-xl px-3 py-2.5 text-sm font-semibold ring-1 transition ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
   return (
@@ -206,4 +206,71 @@ export function IdentifySheet(props: { open: boolean; onClose: () => void; code:
       <IdentifyFields code={props.code} agentName={props.agentName} cta={props.cta} onDone={(n) => { props.onDone(n); props.onClose(); }} />
     </Sheet>
   );
+}
+
+const BUDGETS_SALE = [["", "Any budget"], ["3000000", "Up to ₹30 L"], ["5000000", "Up to ₹50 L"], ["7500000", "Up to ₹75 L"], ["10000000", "Up to ₹1 Cr"], ["15000000", "Up to ₹1.5 Cr"], ["25000000", "Up to ₹2.5 Cr"], ["50000000", "Up to ₹5 Cr"]];
+const BUDGETS_RENT = [["", "Any budget"], ["10000", "Up to ₹10k/mo"], ["15000", "Up to ₹15k/mo"], ["25000", "Up to ₹25k/mo"], ["40000", "Up to ₹40k/mo"], ["75000", "Up to ₹75k/mo"], ["150000", "Up to ₹1.5 L/mo"]];
+
+/** "Not quite right? Tell me what you're looking for" — turns a dead end into a requirement + match. */
+export function RequirementSheet(props: { open: boolean; onClose: () => void; code: string; agentName: string; identified: boolean; defaultPurpose: "sale" | "rent"; onIdentified: (n: string) => void }) {
+  const [purpose, setPurpose] = useState<"sale" | "rent">(props.defaultPurpose);
+  const [bhk, setBhk] = useState<number[]>([]);
+  const [budget, setBudget] = useState("");
+  const [areas, setAreas] = useState("");
+  const [notes, setNotes] = useState("");
+  const [step, setStep] = useState<"form" | "identify" | "done">("form");
+  const [err, setErr] = useState("");
+  useEffect(() => { if (props.open) { setStep("form"); setErr(""); } }, [props.open]);
+  const send = async () => {
+    const r = await buyerAction({
+      code: props.code,
+      action: "requirement",
+      requirement: { purpose, bhk: bhk.length ? bhk : undefined, budgetMax: budget ? Number(budget) : undefined, localities: areas.split(",").map((a) => a.trim()).filter(Boolean).slice(0, 5), notes: notes.trim() || undefined },
+    });
+    if (r.needIdentity) return setStep("identify");
+    if (!r.ok) return setErr(r.error ?? "Failed");
+    setStep("done");
+  };
+  const chip = (on: boolean) => `rounded-xl px-3 py-2 text-sm font-semibold ring-1 ${on ? "bg-agent text-white ring-transparent" : "bg-white text-stone-700 ring-stone-200"}`;
+  return (
+    <Sheet open={props.open} onClose={props.onClose} title={step === "identify" ? "Where should we send options?" : "What are you looking for?"}>
+      {step === "form" ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <button className={chip(purpose === "sale")} onClick={() => setPurpose("sale")}>Buy</button>
+            <button className={chip(purpose === "rent")} onClick={() => setPurpose("rent")}>Rent</button>
+          </div>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((b) => (
+              <button key={b} className={`${chip(bhk.includes(b))} flex-1`} onClick={() => setBhk((x) => (x.includes(b) ? x.filter((y) => y !== b) : [...x, b]))}>
+                {b}{b === 5 ? "+" : ""} BHK
+              </button>
+            ))}
+          </div>
+          <select aria-label="Budget" value={budget} onChange={(e) => setBudget(e.target.value)} className={input}>
+            {(purpose === "rent" ? BUDGETS_RENT : BUDGETS_SALE).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+          <input className={input} placeholder="Preferred areas (e.g. Gotri, Vasna)" value={areas} onChange={(e) => setAreas(e.target.value)} />
+          <input className={input} placeholder="Anything else? (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          {err ? <p className="text-sm text-red-600">{err}</p> : null}
+          <button onClick={send} className="h-12 w-full rounded-xl bg-agent font-semibold text-white">Send to {props.agentName}</button>
+        </div>
+      ) : step === "identify" ? (
+        <IdentifyFields code={props.code} agentName={props.agentName} cta="Send my requirement" onDone={async (n) => { props.onIdentified(n); await send(); }} />
+      ) : (
+        <Done text={`Got it! ${props.agentName} will send you matching options.`} />
+      )}
+    </Sheet>
+  );
+}
+
+/** Show the prompt to save contact details at most once per browser session. */
+export function shouldPromptIdentity(): boolean {
+  try {
+    if (sessionStorage.getItem("pp_idprompt")) return false;
+    sessionStorage.setItem("pp_idprompt", "1");
+  } catch {}
+  return true;
 }

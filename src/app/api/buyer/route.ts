@@ -3,13 +3,13 @@ import { db } from "@/db";
 import { bad, buyerSid, json } from "@/lib/http";
 import { normalizePhone } from "@/lib/phone";
 import { getShare } from "@/modules/shares";
-import { askQuestion, currentLeadForSession, identifyBuyer, requestVisit, setBuyerAction } from "@/modules/buyer";
+import { askQuestion, currentLeadForSession, identifyBuyer, requestVisit, saveBuyerRequirement, setBuyerAction } from "@/modules/buyer";
 import { getAccess } from "@/modules/billing";
 import type { ShareCtx } from "@/modules/tracking";
 
 const Body = z.object({
   code: z.string().min(3).max(16),
-  action: z.enum(["save", "unsave", "react", "rank", "ask", "visit", "identify"]),
+  action: z.enum(["save", "unsave", "react", "rank", "ask", "visit", "identify", "requirement"]),
   listingId: z.string().max(40).optional(),
   reaction: z.enum(["like", "dislike"]).nullable().optional(),
   rank: z.number().int().min(1).max(50).nullable().optional(),
@@ -18,6 +18,15 @@ const Body = z.object({
   slot: z.enum(["morning", "afternoon", "evening"]).optional(),
   name: z.string().max(80).optional(),
   phone: z.string().max(20).optional(),
+  requirement: z
+    .object({
+      purpose: z.enum(["sale", "rent"]).optional(),
+      bhk: z.array(z.number().int().min(1).max(9)).max(5).optional(),
+      budgetMax: z.number().positive().max(5e10).optional(),
+      localities: z.array(z.string().max(40)).max(5).optional(),
+      notes: z.string().max(300).optional(),
+    })
+    .optional(),
 });
 
 /** Buyer actions on property/collection pages. Identity is only required for ask & visit. */
@@ -45,6 +54,12 @@ export async function POST(req: Request) {
     if (!b.name || b.name.trim().length < 2) return bad("Please enter your name");
     await identifyBuyer(sid, ctx, { name: b.name.trim(), phone });
     return json({ ok: true, lead: { name: b.name.trim() } });
+  }
+  if (b.action === "requirement") {
+    const lead = await currentLeadForSession(sid, ctx);
+    if (!lead?.phone) return json({ ok: false, needIdentity: true });
+    const n = await saveBuyerRequirement(sid, ctx, lead.id, b.requirement ?? {});
+    return json({ ok: true, matches: n });
   }
   if (!listingId) return bad("invalid property");
 

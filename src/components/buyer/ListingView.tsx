@@ -2,14 +2,54 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft } from "lucide-react";
+import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft, FileText, Search, CalendarPlus, Clock } from "lucide-react";
 import type { PublicAgent, PublicListing } from "@/modules/public";
 import { Gallery } from "./Gallery";
-import { AskSheet, VisitSheet, IdentifySheet, Sheet } from "./Sheets";
+import { AskSheet, VisitSheet, IdentifySheet, Sheet, RequirementSheet, shouldPromptIdentity } from "./Sheets";
 import { buyerAction, startDwell, track } from "./api";
 import { brand } from "@/config/brand";
 
 export type BuyerState = { identified: boolean; name: string | null; saved: boolean; reaction: "like" | "dislike" | null };
+export type BuyerVisit = { status: string; scheduledAt: string | null; requestedDate: string | null; requestedSlot: string | null } | null;
+
+const fmtVisit = (iso: string) => new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
+
+function icsHref(title: string, startIso: string, place: string, agentName: string, agentPhone: string) {
+  const d = (x: Date) => x.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const s = new Date(startIso);
+  const e = new Date(s.getTime() + 3600000);
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//PropPulse//Visit//EN", "BEGIN:VEVENT", `UID:${s.getTime()}@visit`, `DTSTAMP:${d(new Date())}`, `DTSTART:${d(s)}`, `DTEND:${d(e)}`, `SUMMARY:Site visit: ${title}`, `LOCATION:${place}`, `DESCRIPTION:With ${agentName} (+${agentPhone})`, "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", "DESCRIPTION:Site visit in 2 hours", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+/** The buyer always knows where their visit stands — and can add it to their calendar. */
+function VisitStatus({ visit, l, agent }: { visit: NonNullable<BuyerVisit>; l: PublicListing; agent: PublicAgent }) {
+  const place = [l.locality, l.city].filter(Boolean).join(", ");
+  const change = `https://wa.me/${agent.phone}?text=${encodeURIComponent(`Hi ${agent.name || agent.displayName}, I need to change my site visit for "${l.title}".`)}`;
+  if (visit.status === "requested")
+    return (
+      <div className="mt-4 flex items-start gap-3 rounded-2xl bg-amber-50 p-3 text-sm ring-1 ring-amber-200">
+        <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+        <div>
+          <p className="font-semibold text-amber-900">Visit requested · {visit.requestedDate} {visit.requestedSlot}</p>
+          <p className="text-amber-800">{agent.displayName} will confirm the exact time with you.</p>
+        </div>
+      </div>
+    );
+  if ((visit.status === "confirmed" || visit.status === "rescheduled") && visit.scheduledAt)
+    return (
+      <div className="mt-4 rounded-2xl bg-emerald-50 p-3 text-sm ring-1 ring-emerald-200">
+        <p className="flex items-center gap-2 font-semibold text-emerald-900"><CalendarCheck className="h-5 w-5" /> Site visit confirmed · {fmtVisit(visit.scheduledAt)}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <a href={icsHref(l.title, visit.scheduledAt, place, agent.displayName, agent.phone)} download="site-visit.ics" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 font-semibold text-emerald-800 ring-1 ring-emerald-200"><CalendarPlus className="h-4 w-4" /> Add to calendar</a>
+          <a href={change} target="_blank" rel="noopener" className="inline-flex h-9 items-center rounded-lg px-3 font-semibold text-emerald-800">Need to change?</a>
+        </div>
+      </div>
+    );
+  if (visit.status === "declined" || visit.status === "cancelled")
+    return <p className="mt-4 rounded-2xl bg-stone-100 p-3 text-sm text-stone-700">Your visit request couldn&apos;t be scheduled. <a href={change} className="font-semibold underline">Message {agent.displayName}</a> to pick another time.</p>;
+  return null;
+}
 
 export function AgentBar({ agent, compact }: { agent: PublicAgent; compact?: boolean }) {
   return (
@@ -89,6 +129,7 @@ export function ListingView({
   backHref,
   showSplash,
   trackOpen = true,
+  visit: initialVisit = null,
 }: {
   listing: PublicListing;
   agent: PublicAgent;
@@ -98,11 +139,13 @@ export function ListingView({
   backHref?: string;
   showSplash?: boolean;
   trackOpen?: boolean;
+  visit?: BuyerVisit;
 }) {
   const [state, setState] = useState(initial);
   const [splash, setSplash] = useState(!!showSplash);
-  const [sheet, setSheet] = useState<null | "ask" | "visit" | "save" | "report">(null);
-  const [visitRequested, setVisitRequested] = useState(false);
+  const [sheet, setSheet] = useState<null | "ask" | "visit" | "save" | "report" | "req">(null);
+  const [visit, setVisit] = useState<BuyerVisit>(initialVisit);
+  const visitBooked = !!visit && ["requested", "confirmed", "rescheduled"].includes(visit.status);
   const sold = l.status === "sold" || l.status === "rented";
 
   useEffect(() => {
@@ -117,7 +160,7 @@ export function ListingView({
     setState((s) => ({ ...s, saved: next }));
     const r = await buyerAction({ code, action: next ? "save" : "unsave", listingId: l.id });
     if (!r.ok) setState((s) => ({ ...s, saved: !next }));
-    else if (next && !state.identified) setSheet("save");
+    else if (next && !state.identified && shouldPromptIdentity()) setSheet("save");
   };
   const share = async () => {
     track(code, "share", {}, l.id);
@@ -182,7 +225,19 @@ export function ListingView({
             {l.price}
             {l.negotiable ? <span className="ml-2 align-middle text-sm font-semibold text-stone-500">Negotiable</span> : null}
           </p>
-          {l.stale ? <p className="mt-2 text-xs text-amber-700">Availability is being re-confirmed — ask {agent.displayName} for the latest status.</p> : null}
+          {l.perSqft || l.emi ? (
+            <p className="mt-1 text-sm text-stone-500">
+              {l.perSqft}
+              {l.perSqft && l.emi ? " · " : ""}
+              {l.emi ? <>EMI from <b className="text-stone-700">{l.emi}</b><span title="Indicative: 80% loan at 8.5% for 20 years" className="cursor-help">*</span></> : null}
+            </p>
+          ) : null}
+          {l.stale ? (
+            <p className="mt-2 text-xs text-amber-700">Availability is being re-confirmed — ask {agent.displayName} for the latest status.</p>
+          ) : (
+            <p className="mt-2 text-xs text-stone-400">Updated {daysAgo(l.updatedAt)}</p>
+          )}
+          {visit ? <VisitStatus visit={visit} l={l} agent={agent} /> : null}
 
           {l.specs.length ? (
             <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -242,12 +297,32 @@ export function ListingView({
           </section>
         ) : null}
 
+        {l.docs.length ? (
+          <section className="mt-7 px-4 sm:px-0">
+            <h2 className="mb-3 font-display text-lg font-bold">Floor plan & documents</h2>
+            <div className="space-y-2">
+              {l.docs.map((d) => (
+                <a key={d.id} href={d.url} target="_blank" rel="noopener" onClick={() => track(code, "gallery", { doc: d.id }, l.id)} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-stone-200">
+                  <FileText className="h-5 w-5 text-agent" /> <span className="font-medium">{d.name}</span> <span className="ml-auto text-sm font-semibold text-agent">Open</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section className="mt-7 px-4 sm:px-0">
           <h2 className="mb-3 font-display text-lg font-bold">Location</h2>
           <Location l={l} code={code} />
         </section>
 
         <section className="mt-8 px-4 sm:px-0">
+          <button onClick={() => setSheet("req")} className={`mb-4 flex w-full items-center gap-3 rounded-2xl p-4 text-left ring-1 ${sold ? "bg-agent text-white ring-transparent" : "bg-white ring-stone-200"}`}>
+            <Search className={`mr-3 h-5 w-5 shrink-0 ${sold ? "" : "text-agent"}`} />
+            <span className="min-w-0">
+              <span className="block font-semibold">{sold ? "This one's gone — want similar options?" : "Not quite right?"}</span>
+              <span className={`block text-sm ${sold ? "text-white/85" : "text-stone-500"}`}>Tell {agent.displayName} what you&apos;re looking for and get matching properties.</span>
+            </span>
+          </button>
           <div className="rounded-3xl bg-white p-5 ring-1 ring-stone-200">
             <AgentBar agent={agent} />
             {agent.tagline ? <p className="mt-3 text-sm text-stone-600">{agent.tagline}</p> : null}
@@ -281,19 +356,25 @@ export function ListingView({
             <a href={`https://wa.me/${agent.phone}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener" onClick={() => track(code, "whatsapp", {}, l.id)} aria-label="WhatsApp agent" className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#25D366] text-white">
               <MessageCircle className="h-5 w-5" />
             </a>
-            <button onClick={() => setSheet("visit")} disabled={visitRequested} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-agent text-[15px] font-bold text-white disabled:opacity-70">
-              <CalendarCheck className="h-5 w-5" /> {visitRequested ? "Visit requested" : "Book site visit"}
+            <button onClick={() => setSheet("visit")} disabled={visitBooked} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-agent text-[15px] font-bold text-white disabled:opacity-70">
+              <CalendarCheck className="h-5 w-5" /> {visit?.status === "confirmed" || visit?.status === "rescheduled" ? "Visit booked ✓" : visitBooked ? "Visit requested" : "Book site visit"}
             </button>
           </div>
         </div>
       ) : null}
 
       <AskSheet open={sheet === "ask"} onClose={() => setSheet(null)} code={code} listingId={l.id} agentName={agent.displayName} identified={state.identified} onIdentified={onIdentified} />
-      <VisitSheet open={sheet === "visit"} onClose={() => setSheet(null)} code={code} listingId={l.id} agentName={agent.displayName} onIdentified={onIdentified} onRequested={() => setVisitRequested(true)} />
+      <VisitSheet open={sheet === "visit"} onClose={() => setSheet(null)} code={code} listingId={l.id} agentName={agent.displayName} onIdentified={onIdentified} onRequested={(v) => setVisit({ status: "requested", scheduledAt: null, requestedDate: v.date, requestedSlot: v.slot })} />
+      <RequirementSheet open={sheet === "req"} onClose={() => setSheet(null)} code={code} agentName={agent.displayName} identified={state.identified} defaultPurpose={l.purpose} onIdentified={onIdentified} />
       <IdentifySheet open={sheet === "save"} onClose={() => setSheet(null)} code={code} agentName={agent.displayName} title="Saved ♥ — keep your shortlist" cta="Save & get updates" onDone={onIdentified} />
       <ReportSheet open={sheet === "report"} onClose={() => setSheet(null)} listingId={l.id} />
     </div>
   );
+}
+
+function daysAgo(iso: string) {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return d <= 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
 }
 
 export function PoweredBy() {

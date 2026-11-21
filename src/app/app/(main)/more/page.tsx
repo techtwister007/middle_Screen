@@ -33,6 +33,10 @@ export default async function More() {
           <MessageCircle className="h-5 w-5" /> Open WhatsApp assistant
         </a>
       </Card>
+      <Card className="p-4 text-sm text-stone-600">
+        <p className="mb-1 font-semibold text-stone-800">📲 Install the app on your phone</p>
+        <p><b>Android:</b> Chrome menu ⋮ → <i>Add to Home screen</i>. <b>iPhone:</b> Safari Share → <i>Add to Home Screen</i> (needed for alerts on iPhone).</p>
+      </Card>
       <Card className="p-4">
         <p className="mb-2 flex items-center gap-2 font-semibold"><LifeBuoy className="h-4 w-4" /> Feedback & help</p>
         <FeedbackBox />

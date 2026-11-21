@@ -13,6 +13,7 @@ WhatsApp-first property sharing & buyer intelligence for real estate agents.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is organised, data model, request flows |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Step-by-step free deployment on `proppulse.vectorscale.in` |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Running the pilot: admin tasks, payments, backups, rename, limits |
+| [docs/LIFECYCLE.md](docs/LIFECYCLE.md) | Agent / buyer / platform journey coverage, friction removed, what is deferred |
 | [bridge/baileys/README.md](bridge/baileys/README.md) | Testing with a real WhatsApp number (Baileys) |
 
 ---

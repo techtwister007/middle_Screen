@@ -9,6 +9,10 @@ import { generalListingShare } from "@/modules/shares";
 import { AgentBar, PoweredBy } from "@/components/buyer/ListingView";
 import { Unavailable } from "@/components/buyer/Unavailable";
 import { AgentSiteFilters } from "@/components/buyer/AgentSiteFilters";
+import { cookies } from "next/headers";
+import { Heart } from "lucide-react";
+import { BUYER_COOKIE } from "@/modules/buyer-page";
+import { buyerActionsFor } from "@/modules/buyer";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ handle: string }>; searchParams: Promise<{ purpose?: string; bhk?: string }> };
@@ -38,6 +42,9 @@ export default async function AgentSite({ params, searchParams }: Props) {
   if (sp.purpose === "sale" || sp.purpose === "rent") listings = listings.filter((l) => l.purpose === sp.purpose);
   if (sp.bhk) listings = listings.filter((l) => String(l.bhk) === sp.bhk);
   const codes = await Promise.all(listings.map((l) => generalListingShare(a.id, l.id).then((s) => s.code)));
+  // Buyer's own saved properties from this agent (cookie-based, no login)
+  const savedIds = new Set((await buyerActionsFor((await cookies()).get(BUYER_COOKIE)?.value, a.id)).filter((x) => x.saved).map((x) => x.listingId));
+  const saved = listings.map((l, i) => ({ l, code: codes[i] })).filter((x) => savedIds.has(x.l.id));
 
   return (
     <div style={{ ["--agent" as string]: agent.brandColor }} className="min-h-screen bg-stone-50">
@@ -72,6 +79,22 @@ export default async function AgentSite({ params, searchParams }: Props) {
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">
+        {saved.length ? (
+          <section className="mb-6">
+            <h2 className="mb-2 flex items-center gap-2 font-display text-lg font-bold"><Heart className="h-5 w-5 fill-rose-500 text-rose-500" /> Your saved properties</h2>
+            <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
+              {saved.map(({ l, code }) => (
+                <Link key={l.id} href={`/p/${code}`} className="w-56 shrink-0 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200">
+                  {l.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={l.images[0].sm} alt="" className="aspect-[4/3] w-full object-cover" />
+                  ) : <div className="aspect-[4/3] bg-stone-200" />}
+                  <div className="p-3"><p className="font-bold text-agent">{l.price}</p><p className="truncate text-sm font-medium">{l.title}</p></div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
         <AgentSiteFilters handle={handle} purpose={sp.purpose} bhk={sp.bhk} />
         {listings.length === 0 ? (
           <p className="py-16 text-center text-stone-500">No properties listed right now. Message me for current options.</p>

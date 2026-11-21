@@ -33,6 +33,9 @@ export type PublicListing = {
   location: { mode: "exact" | "area" | "hidden"; lat: number | null; lng: number | null };
   images: { id: string; lg: string; md: string; sm: string; w: number | null; h: number | null }[];
   videos: { id: string; url: string; mime: string | null }[];
+  docs: { id: string; url: string; name: string }[];
+  perSqft: string | null;
+  emi: string | null;
   youtubeId: string | null;
   stale: boolean;
   updatedAt: string;
@@ -58,6 +61,13 @@ export function youtubeId(url: string | null | undefined): string | null {
   if (!url) return null;
   const m = url.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{6,})/);
   return m?.[1] ?? null;
+}
+
+/** Monthly EMI for a loan (principal, annual rate %, years). Indicative only. */
+export function emi(principal: number, ratePct: number, years: number) {
+  const r = ratePct / 1200;
+  const n = years * 12;
+  return (principal * r * (1 + r) ** n) / ((1 + r) ** n - 1);
 }
 
 /** Round coordinates to ~500 m so "area only" never reveals the exact building. */
@@ -93,6 +103,9 @@ export function toPublicListing(l: typeof listings.$inferSelect, p: typeof prope
     },
     images: ms.filter((m) => m.kind === "image").map((m) => ({ id: m.id, lg: m.url, md: m.urlMd ?? m.url, sm: m.urlSm ?? m.url, w: m.width, h: m.height })),
     videos: ms.filter((m) => m.kind === "video").map((m) => ({ id: m.id, url: m.url, mime: m.mime })),
+    docs: ms.filter((m) => m.kind === "doc").map((m, i) => ({ id: m.id, url: m.url, name: m.hash || (i === 0 ? "Floor plan / brochure" : `Document ${i + 1}`) })),
+    perSqft: l.purpose === "sale" && l.price && l.priceMode !== "on_request" && (f.areaSqft || f.carpetSqft) ? `₹${Math.round(l.price / (f.areaSqft || f.carpetSqft)!).toLocaleString("en-IN")} / sq ft` : null,
+    emi: l.purpose === "sale" && l.price && l.priceMode !== "on_request" && l.price >= 1e6 ? `₹${Math.round(emi(l.price * 0.8, 8.5, 20)).toLocaleString("en-IN")}/month` : null,
     youtubeId: youtubeId(l.youtubeUrl),
     stale: Date.now() - new Date(l.verifiedAt).getTime() > (env.LISTING_VERIFY_DAYS + 7) * 86400000,
     updatedAt: new Date(l.updatedAt).toISOString(),

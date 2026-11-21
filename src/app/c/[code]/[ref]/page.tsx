@@ -24,6 +24,7 @@ export default async function CollectionItemPage({ params }: { params: Promise<{
       code={code}
       backHref={`/c/${code}`}
       trackOpen={false}
+      visit={await r.visitFor(l.id)}
       initial={{ identified: r.identified, name: r.lead?.name ?? null, saved: !!a?.saved, reaction: a?.reaction ?? null }}
     />
   );

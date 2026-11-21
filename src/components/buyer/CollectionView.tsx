@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Heart, ThumbsDown, ThumbsUp, Scale, MapPin, X, MessageCircle, Phone } from "lucide-react";
 import type { PublicAgent, PublicListing } from "@/modules/public";
 import { AgentBar, PoweredBy, Splash } from "./ListingView";
-import { IdentifySheet, Sheet } from "./Sheets";
+import { IdentifySheet, RequirementSheet, Sheet, shouldPromptIdentity } from "./Sheets";
 import { buyerAction, startDwell, track } from "./api";
 
 export type CollectionItemState = { saved: boolean; reaction: "like" | "dislike" | null; rank: number | null };
@@ -37,6 +37,7 @@ export function CollectionView({
   const [compare, setCompare] = useState<string[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [splash, setSplash] = useState(showSplash);
+  const [req, setReq] = useState(false);
 
   useEffect(() => {
     track(code, "open", {});
@@ -51,7 +52,7 @@ export function CollectionView({
   const react = (id: string, r: "like" | "dislike") => {
     const next = get(id).reaction === r ? null : r;
     update(id, { reaction: next }, "react", { reaction: next });
-    if (next === "like" && !identified) setAskId(true);
+    if (next === "like" && !identified && shouldPromptIdentity()) setAskId(true);
   };
   const ranked = useMemo(() => Object.entries(st).filter(([, v]) => v.rank).sort((a, b) => a[1].rank! - b[1].rank!).map(([k]) => k), [st]);
   const toggleRank = (id: string) => {
@@ -135,6 +136,10 @@ export function CollectionView({
             </article>
           );
         })}
+        <button onClick={() => setReq(true)} className="w-full rounded-2xl bg-white p-4 text-left ring-1 ring-stone-200">
+          <span className="block font-semibold">None of these quite right?</span>
+          <span className="block text-sm text-stone-500">Tell {agent.displayName} what you&apos;re looking for.</span>
+        </button>
         <div className="flex justify-center py-6 text-xs text-stone-400">
           <PoweredBy />
         </div>
@@ -166,6 +171,7 @@ export function CollectionView({
       </div>
 
       <CompareSheet open={showCompare} onClose={() => setShowCompare(false)} items={listings.filter((l) => compare.includes(l.id))} />
+      <RequirementSheet open={req} onClose={() => setReq(false)} code={code} agentName={agent.displayName} identified={identified} defaultPurpose={listings[0]?.purpose ?? "sale"} onIdentified={() => setIdentified(true)} />
       <IdentifySheet open={askId} onClose={() => setAskId(false)} code={code} agentName={agent.displayName} title="Keep your shortlist" cta="Save my picks" onDone={() => setIdentified(true)} />
     </div>
   );

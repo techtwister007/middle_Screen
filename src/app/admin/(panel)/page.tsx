@@ -26,6 +26,7 @@ export default async function AdminHome() {
     db.select({ n: count() }).from(reports).where(eq(reports.resolved, false)),
     db.select({ total: sql<number>`coalesce(sum(${payments.amountInr}),0)::int` }).from(payments).where(and(eq(payments.status, "confirmed"), gte(payments.confirmedAt, new Date(Date.now() - 30 * 86400000)))),
   ]);
+  const [deals] = await db.select({ n: count() }).from(listings).where(isNotNull(listings.closedLeadId));
   const acc = subs.map((s) => computeAccess(s));
   const paying = acc.filter((a) => a.status === "active" && a.state === "ok").length;
   const trial = acc.filter((a) => a.status === "trial" && a.state === "ok").length;
@@ -49,6 +50,7 @@ export default async function AdminHome() {
         <Stat label="Personal shares (7 d)" value={sh.n} hint={`${sh.n ? Math.round((opened.n / sh.n) * 100) : 0}% opened`} />
         <Stat label="Engaged buyers (7 d)" value={actions.n} hint="saved / liked / asked / visit" />
         <Stat label="Visit requests (7 d)" value={vs.n} />
+        <Stat label="Deals closed via app" value={deals.n} hint="all time — your sales proof" />
       </div>
       <Card className="p-4 text-sm text-stone-600">
         <p className="font-semibold text-stone-800">Pilot success criteria</p>

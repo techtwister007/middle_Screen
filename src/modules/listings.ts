@@ -243,3 +243,58 @@ export async function searchListings(agentId: string, q: SearchQuery, limit = 10
 }
 
 export const isLive = (s: ListingStatus) => s === "available" || s === "on_hold";
+
+/**
+ * Agent replies to a draft with corrections in plain words ("95 lakh, Gotri, 1450 sqft").
+ * Only fields actually mentioned are changed. Returns the list of updated fields.
+ */
+export async function applyCorrection(agentId: string, listingId: string, text: string): Promise<string[]> {
+  const { parsePropertyText } = await import("@/lib/ai/parse");
+  const { buildTitle } = await import("@/lib/ai/extract");
+  const row = await getListingWithProperty(listingId);
+  if (!row || row.l.agentId !== agentId) return [];
+  const { l, p } = row;
+  const x = parsePropertyText(text);
+  const changed: string[] = [];
+  const fields = { ...l.fields };
+  const listingPatch: Partial<typeof listings.$inferInsert> = {};
+  const propPatch: Partial<typeof properties.$inferInsert> = {};
+  if (x.price) {
+    listingPatch.price = x.price;
+    listingPatch.priceMax = x.priceMax ?? null;
+    listingPatch.priceMode = x.priceMax ? "range" : "exact";
+    changed.push("price");
+  }
+  if (x.negotiable) listingPatch.negotiable = true;
+  if (x.purpose && x.purpose !== l.purpose) {
+    listingPatch.purpose = x.purpose;
+    changed.push("purpose");
+  }
+  if (x.locality) {
+    propPatch.locality = x.locality;
+    changed.push("locality");
+  }
+  if (x.city) propPatch.city = x.city;
+  if (x.type && x.type !== p.type && /flat|apartment|villa|house|bungalow|plot|shop|office|pg/i.test(text)) {
+    propPatch.type = x.type;
+    changed.push("type");
+  }
+  for (const k of ["bhk", "areaSqft", "carpetSqft", "plotSqyd", "furnishing", "floor", "bathrooms", "parking", "facing", "possession", "deposit"] as const) {
+    if (x.fields[k] !== undefined) {
+      (fields as Record<string, unknown>)[k] = x.fields[k];
+      changed.push(k === "areaSqft" || k === "carpetSqft" || k === "plotSqyd" ? "area" : k);
+    }
+  }
+  if (x.fields.amenities?.length) fields.amenities = [...new Set([...(fields.amenities ?? []), ...x.fields.amenities])];
+  if (!changed.length) return [];
+  const type = propPatch.type ?? p.type;
+  const purpose = listingPatch.purpose ?? l.purpose;
+  // Regenerate the title only if it was the auto-generated one.
+  if (l.title === buildTitle(p.type, l.purpose, l.fields, p.locality)) listingPatch.title = buildTitle(type, purpose, fields, propPatch.locality ?? p.locality);
+  const price = listingPatch.price ?? l.price;
+  const locality = propPatch.locality ?? p.locality;
+  const missing = l.missing.filter((m) => !(m === "price" && price) && !(m === "locality" && locality) && !(m === "bhk" && fields.bhk) && !(m === "area" && (fields.areaSqft || fields.carpetSqft || fields.plotSqyd)) && !(m === "furnishing" && fields.furnishing) && m !== "details");
+  await db.update(listings).set({ ...listingPatch, fields, missing, updatedAt: new Date() }).where(eq(listings.id, listingId));
+  if (Object.keys(propPatch).length) await db.update(properties).set(propPatch).where(eq(properties.id, p.id));
+  return [...new Set(changed)];
+}

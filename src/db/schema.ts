@@ -23,8 +23,10 @@ export type WelcomeMode = "none" | "minimal" | "splash";
 export type BotContext = {
   /** Onboarding step when not finished. */
   onboarding?: "name" | "company" | "photo" | "promise";
-  /** Listing waiting for a 1/2/3 reply. */
+  /** Listing waiting for a 1/2/3 reply (free text = corrections). */
   pendingListingId?: string;
+  /** "share REF" sent without a buyer — next contact card / name+number completes it. */
+  pendingShare?: { listingIds: string[] };
 };
 
 export const agents = pgTable(
@@ -196,6 +198,9 @@ export const listings = pgTable(
     verifiedAt: ts("verified_at").notNull().defaultNow(),
     verifyAskedAt: ts("verify_asked_at"),
     disabledByAdmin: boolean("disabled_by_admin").notNull().default(false),
+    /** Deal attribution: the lead this property was sold/rented to (pilot proof-of-value). */
+    closedLeadId: text("closed_lead_id"),
+    closedAt: ts("closed_at"),
     publishedAt: ts("published_at"),
     createdAt: created(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
@@ -284,6 +289,8 @@ export const leads = pgTable(
     followUpNote: text("follow_up_note"),
     lastActivityAt: ts("last_activity_at"),
     intentScore: integer("intent_score").notNull().default(0),
+    /** Last time the agent called / messaged (clears the lead from "Needs attention" until new activity). */
+    lastContactedAt: ts("last_contacted_at"),
     createdAt: created(),
   },
   (t) => [index("leads_agent_idx").on(t.agentId, t.lastActivityAt), index("leads_agent_phone_idx").on(t.agentId, t.phone)],
@@ -355,6 +362,7 @@ export type EventType =
   | "ask"
   | "visit_request"
   | "share"
+  | "requirement"
   | "dwell";
 
 export const events = pgTable(
