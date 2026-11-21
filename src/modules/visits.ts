@@ -32,7 +32,7 @@ export async function todaysVisits(agentId: string) {
     .orderBy(asc(visits.scheduledAt));
 }
 
-export async function updateVisit(agentId: string, visitId: string, patch: { status?: VisitStatus; scheduledAt?: Date | null; outcome?: "liked" | "not_liked" | "negotiating" | null; feedback?: string | null }) {
+export async function updateVisit(agentId: string, visitId: string, patch: { status?: VisitStatus; scheduledAt?: Date | null; remindedAt?: Date | null; outcome?: "liked" | "not_liked" | "negotiating" | null; feedback?: string | null }) {
   const [v] = await db.update(visits).set(patch).where(and(eq(visits.id, visitId), eq(visits.agentId, agentId))).returning();
   if (!v) throw new Error("not found");
   if (v.leadId && patch.outcome) {
