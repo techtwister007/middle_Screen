@@ -271,21 +271,126 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .capt{font-weight:600;font-size:18px;margin:22px 0 10px}
 .capt:first-child{margin-top:0}
 
+
+/* ================= CLASSIC: dense, fact-first (Booking-style craft) ================= */
+.ph[data-look=bk]{--bg:#eef0f3;--bg2:#f5f6f8;--card:#ffffff;--ink:#1a1a1a;--ink2:#3d3d3d;--muted:#5e6168;--line:#d4d7dc;--line2:#e7e9ec;--ok:#007a32;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hind Vadodara",sans-serif;font-size:15px;line-height:1.45}
+.ph[data-look=bk][data-mode=dark]{--bg:#0e1013;--bg2:#181b20;--card:#171a1f;--ink:#f1f2f4;--ink2:#d2d5da;--muted:#a4a9b1;--line:#30343b;--line2:#262a30;--ok:#4cc77a}
+[data-look=bk] .sbar{color:var(--on-band)!important}
+.k-top{position:sticky;top:0;z-index:15}
+.k-band{background:var(--band);color:var(--on-band);padding:50px 8px 10px;display:flex;align-items:center;gap:4px}
+@media (max-width:520px){.k-band{padding-top:10px}}
+.k-band .ib{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--on-band)}
+.k-band .ib:active{transform:scale(.94)}
+.k-band .ib[aria-pressed="true"] .ico{fill:#ff5a6a;stroke:#ff5a6a}
+.k-band .ib.pop .ico{animation:pop .45s var(--ease)}
+.k-band .t{flex:1;min-width:0;line-height:1.2}
+.k-band .t b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-band .t span{font-size:13px;opacity:.82}
+.k-tabs{display:flex;gap:4px;background:var(--card);border-bottom:1px solid var(--line2);padding:0 8px;overflow-x:auto;scrollbar-width:none}
+.k-tabs::-webkit-scrollbar{display:none}
+.k-tabs button{height:44px;padding:0 12px;font-size:14px;font-weight:600;color:var(--muted);position:relative;flex:none}
+.k-tabs button[aria-current="true"]{color:var(--accent-ink)}
+.k-tabs button[aria-current="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--accent-ink)}
+.k-card{background:var(--card);margin:8px 8px 0;border-radius:14px;padding:18px 16px;border:1px solid var(--line2)}
+.k-card>h2{font-size:18px;font-weight:700;line-height:1.25;margin-bottom:12px}
+.k-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.k-badge{font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--bg2);color:var(--ink2);border:1px solid var(--line2)}
+.k-badge.hl{background:var(--hl);color:var(--on-hl);border-color:transparent}
+.k-head h1{font-size:22px;font-weight:700;line-height:1.2;letter-spacing:-.005em}
+.k-addr{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;color:var(--ink2)}
+.k-addr .ico{width:16px;height:16px}
+.k-link{color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.k-coll{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:118px 118px;gap:4px;margin-top:14px;border-radius:12px;overflow:hidden}
+.k-coll>div{position:relative;overflow:hidden;background:var(--bg2)}
+.k-coll>div:first-child{grid-row:span 2}
+.k-coll .more{position:absolute;inset:0;background:rgba(0,0,0,.5);color:#fff;font-weight:700;font-size:16px;display:grid;place-items:center;width:100%}
+.k-price .lab{font-size:13px;color:var(--muted)}
+.k-price .amt{font-size:30px;font-weight:700;line-height:1.1;letter-spacing:-.01em;margin-top:2px}
+.k-price .per{font-size:14px;color:var(--ink2)}
+.k-checks{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.k-checks li{display:flex;gap:8px;align-items:flex-start;font-size:14.5px;color:var(--ok);font-weight:600}
+.k-checks li span{color:var(--muted);font-weight:400;display:block;font-size:13px}
+.k-checks .ico{width:18px;height:18px;stroke-width:2.2;margin-top:1px}
+.k-btns{display:grid;gap:8px;margin-top:16px}
+[data-look=bk] .btn{border-radius:10px;height:46px;font-size:15.5px;width:100%}
+[data-look=bk] .btn-out{border:1px solid var(--accent-ink);color:var(--accent-ink);margin-top:12px}
+[data-look=bk] .btn-ghost{background:transparent;color:var(--accent-ink);border:1px solid var(--line)}
+.k-pop{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+.k-pop div{display:flex;gap:8px;align-items:center;font-size:14px}
+.k-pop .ico{color:var(--ok);width:20px;height:20px}
+.k-table{display:grid;border-top:1px solid var(--line2);margin-top:6px}
+.k-table div{display:grid;grid-template-columns:44% 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:14.5px}
+.k-table dt{color:var(--muted)}
+.k-table dd{margin:0;font-weight:600}
+[data-look=bk] .desc{font-size:15px;line-height:22px;-webkit-line-clamp:4}
+[data-look=bk] .btn-gray{margin-top:10px;height:40px;font-size:14.5px;background:transparent;color:var(--accent-ink);justify-content:flex-start;padding:0}
+.k-fac{display:grid;gap:16px}
+.k-fac h3{font-size:15px;font-weight:700;display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.k-fac h3 .ico{width:18px;height:18px}
+.k-fac ul{list-style:none;margin:0;padding:0 0 0 26px;display:grid;gap:4px;font-size:14px;color:var(--ink2)}
+.k-fac li{display:flex;gap:6px;align-items:center}
+.k-fac li .ico{width:15px;height:15px;color:var(--ok);stroke-width:2.2}
+.k-map{position:relative;border-radius:12px;overflow:hidden}
+.k-map .map{aspect-ratio:16/10;border-radius:12px}
+.k-map .go{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:40px;padding:0 16px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:14px;display:flex;gap:6px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.k-group{margin-top:16px}
+.k-group h3{font-size:15px;font-weight:700;display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.k-group h3 .ico{width:18px;height:18px}
+[data-look=bk] .near{margin:0}
+[data-look=bk] .near li{margin:0;border-radius:0;padding:9px 0;background:none!important;border-bottom:1px solid var(--line2)}
+[data-look=bk] .near .nm{font-size:14.5px}
+[data-look=bk] .near .nm span{font-size:12.5px}
+[data-look=bk] .near .d{font-size:14px}
+[data-look=bk] .search{height:48px;border-radius:12px;box-shadow:none;border:1px solid var(--line);margin-top:10px;padding:0 14px}
+[data-look=bk] .res{border-radius:12px}
+[data-look=bk] .emi .big{font-size:28px;font-weight:700}
+[data-look=bk] input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(var(--accent),var(--accent)) 0/var(--p,50%) 100% no-repeat,var(--line)}
+[data-look=bk] input[type=range]::-webkit-slider-thumb{margin-top:-11px;border:2px solid var(--accent)}
+.k-agent{display:flex;gap:12px;align-items:center}
+.k-logo{width:56px;height:56px;border-radius:12px;background:var(--band);color:var(--on-band);display:grid;place-items:center;font-weight:700;font-size:20px;flex:none}
+.k-agent b{display:block;font-size:16px;font-weight:700}
+.k-agent span{font-size:13.5px;color:var(--muted)}
+.k-facts3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.k-facts3 div{background:var(--bg2);border-radius:10px;padding:10px;text-align:center}
+.k-facts3 b{display:block;font-size:17px;font-weight:700}
+.k-facts3 span{font-size:12px;color:var(--muted)}
+.k-lines{display:grid;gap:8px;margin-top:14px;font-size:14px;color:var(--ink2)}
+.k-lines div{display:flex;gap:8px;align-items:center}
+.k-lines .ico{width:18px;height:18px;color:var(--muted)}
+.k-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.k-two .btn{margin:0}
+[data-look=bk] .ask{border-top:1px solid var(--line2);margin-top:14px;padding-top:14px}
+.k-rules div{display:grid;grid-template-columns:22px 40% 1fr;gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid var(--line2);font-size:14.5px}
+.k-rules div:last-child{border-bottom:0}
+.k-rules .ico{width:18px;height:18px;color:var(--muted);margin-top:2px}
+.k-rules b{font-weight:700}
+.k-rules span{color:var(--ink2)}
+[data-look=bk] .foot{margin:8px 8px 0;border-radius:14px 14px 0 0;background:var(--card);border:1px solid var(--line2);border-bottom:0}
+[data-look=bk] .bb{border-radius:16px 16px 0 0;background:var(--card);padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+[data-look=bk] .bb .p b{font-size:20px;font-weight:700}
+[data-look=bk] .bb .p span{text-decoration:none;color:var(--ok);font-weight:600;font-size:13px}
+[data-look=bk] .bb .btn{width:auto;min-width:160px}
+[data-look=bk] .sheet{background:var(--card);border-radius:18px 18px 0 0}
+[data-look=bk] .day[aria-pressed="true"],[data-look=bk] .slot[aria-pressed="true"]{border:2px solid var(--accent-ink);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+[data-look=bk] .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.enter .body>*{animation:rise .5s var(--ease) both}
+.enter .body>*,.enter .k-card{animation:rise .5s var(--ease) both}
 .enter .body>*:nth-child(2){animation-delay:.05s}.enter .body>*:nth-child(3){animation-delay:.1s}.enter .body>*:nth-child(4){animation-delay:.15s}
 @media (prefers-reduced-motion:reduce){.ph *{animation:none!important;transition:none!important}}
 </style>
 
 <div>
  <header class="bar" id="bar"><div class="bar-in">
-  <div class="bt">Signature <span>property page, sample data</span></div>
+  <div class="bt">Property page <span>sample data</span></div>
+  <div class="seg" role="group" aria-label="Look" id="looks"></div>
   <div class="sw" role="group" aria-label="Agent colour" id="sw"></div>
   <div class="seg" role="group" aria-label="Mode" id="modes"></div>
  </div></header>
  <main class="stage">
   <div class="device"><div class="ph" id="ph" data-mode="light"></div></div>
-  <aside class="notes">
+  <aside class="notes" id="notes" aria-live="polite">
    <h2>Airbnb-style craft, PropPulse content</h2>
    <p>White page, one clean typeface, generous spacing and thin dividers between sections. Round buttons over the photo, a content sheet that overlaps the photo, a summary under the title, an agent card, a real-looking map and a price-and-action bar at the bottom.</p>
    <ul>
@@ -307,6 +412,7 @@ const I={
  heart:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
  x:'<path d="M18 6 6 18M6 6l12 12"/>',
  chev:'<path d="m9 18 6-6-6-6"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
  tree:'<path d="M12 22v-6"/><path d="M17 8A5 5 0 0 0 7 8c0 1 .3 2 .8 2.8A4 4 0 0 0 8 18h8a4 4 0 0 0 .2-7.2c.5-.8.8-1.8.8-2.8Z"/>',
  key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>',
@@ -334,12 +440,17 @@ const I={
 const ic=(n,s='')=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" ${s}>${I[n]}</svg>`;
 
 const SCHEMES=[['Neem','#1f5c45'],['Indigo','#2b3c8c'],['Laterite','#a3401f'],['Ink','#222222']];
-const state={scheme:0,mode:'light'};
+const state={look:'sig',scheme:0,mode:'light'};
+const BK=[['Navy','#0b3a8c','#1668e3','#f5b70a'],['Teal','#0b4b52','#0e7f8a','#f2b705'],['Maroon','#5e1a26','#b02e3e','#f2b705'],['Forest','#173f2b','#1d7a46','#f2b705']];
 const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const lum=h=>{const c=hex2rgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
 const cr=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
 const mixh=(a,b,t)=>'#'+hex2rgb(a).map((v,i)=>Math.round(v+(hex2rgb(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
 function colours(){
+ if(state.look==='bk'){const [,band,act,hl]=BK[state.scheme];const dark=state.mode==='dark';
+  const b=dark?mixh(band,'#000000',.35):band;let a=act;if(dark&&cr(a,'#0e1013')<3)a=mixh(a,'#ffffff',.25);
+  const ai=dark?(cr(a,'#171a1f')<4.5?mixh(a,'#ffffff',.45):a):(cr(a,'#ffffff')<4.5?mixh(a,'#000000',.25):a);
+  return {band:b,'on-band':'#ffffff',accent:a,'on-accent':cr('#ffffff',a)>=4.5?'#ffffff':'#111111','accent-ink':ai,hl,'on-hl':'#1a1a1a'};}
  let a=SCHEMES[state.scheme][1];
  if(state.mode==='dark'){ if(cr(a,'#121212')<2.2) a=state.scheme===3?'#f2f2f2':mixh(a,'#ffffff',.3); }
  const on=cr('#ffffff',a)>=4.5?'#ffffff':'#151515';
@@ -380,6 +491,7 @@ function map(){
 }
 
 function page(){
+ if(state.look==='bk')return pageBk();
  const g=['bldg','living','kitchen','view','room'];
  return `<div class="sbar"><span>9:41</span><i></i></div>
  <div class="sh" id="sh"><button class="circ" aria-label="Back">${ic('back')}</button><span class="ttl">3 BHK flat in Gotri</span><button class="circ" aria-label="Share">${ic('share')}</button><button class="circ heartb" aria-label="Save" aria-pressed="false">${ic('heart')}</button></div>
@@ -447,6 +559,62 @@ function page(){
   <div class="bd">${[['Building',['bldg']],['Living room',['living','living']],['Kitchen',['kitchen']],['Bedroom',['room']],['Balcony',['view']]].map(([c,ks])=>`<p class="capt">${c}</p><div class="grid2">${ks.map((k,i)=>`<div class="${ks.length===1||i===0&&ks.length===3?'w':''}"><img src="${IMG[k]}" alt="${c}" loading="lazy"></div>`).join('')}</div>`).join('')}</div></div>`;
 }
 
+function sheets(){const l=state.look;state.look='sig';const h=page().split('<div class="scrim" id="scrim"></div>')[1];state.look=l;return h}
+function pageBk(){
+ const nearGroups=[['Schools','school',[0]],['Daily needs','home',[2,3]],['Hospitals','shield',[1]],['Transport','car',[4]]];
+ return `<div class="sbar"><span>9:41</span><i></i></div>
+ <div class="scr enter" id="scr">
+  <div class="k-top"><div class="k-band"><button class="ib" aria-label="Back">${ic('back')}</button><div class="t"><b>3 BHK flat in Gotri</b><span>Sharma Properties</span></div><button class="ib" aria-label="Share">${ic('share')}</button><button class="ib heartb" aria-label="Save" aria-pressed="false">${ic('heart')}</button></div>
+  <nav class="k-tabs" id="tabs" aria-label="Sections">${[['photos','Overview'],['details','Details'],['area','Area'],['cost','Cost']].map(([k,v],i)=>`<button data-go="${k}" aria-current="${i===0}">${v}</button>`).join('')}</nav></div>
+  <section class="k-card k-head" id="photos">
+   <div class="k-badges"><span class="k-badge">Flat</span><span class="k-badge">For sale</span><span class="k-badge hl">Verified 3 days ago</span></div>
+   <h1>3 BHK flat in Gotri</h1>
+   <p class="k-addr">${ic('home')}Gotri, Vadodara <button class="k-link" data-go2="area">Show on map</button></p>
+   <div class="k-coll"><div><img src="${IMG.bldg}" alt="Building"></div><div><img src="${IMG.living}" alt="Living room"></div><div><img src="${IMG.kitchen}" alt="Kitchen"><button class="more" id="cnt" aria-label="Show all 12 photos">+9</button></div></div>
+  </section>
+  <section class="k-card k-price">
+   <p class="lab">Price</p><p class="amt tn">₹95 L</p><p class="per tn">₹6,552 per sq ft, 1,450 sq ft carpet</p>
+   <ul class="k-checks">${[['Negotiable','The owner will consider a serious offer'],['Ready to move','No waiting for possession'],['Clear title','Society NOC available']].map(c=>`<li>${ic('check')}<div>${c[0]}<span>${c[1]}</span></div></li>`).join('')}</ul>
+   <div class="k-btns"><button class="btn btn-p" data-visit>${ic('cal')}Book a site visit</button><button class="btn btn-ghost">${ic('wa')}WhatsApp Rakesh</button></div>
+  </section>
+  <section class="k-card"><h2>Most popular features</h2><div class="k-pop">${[['lift','Lift'],['gym','Gym'],['car','Covered parking'],['shield','24×7 security'],['bolt','Power backup'],['tree','Garden-facing balcony']].map(a=>`<div>${ic(a[0])}${a[1]}</div>`).join('')}</div></section>
+  <section class="k-card" id="details"><h2>About this flat</h2>
+   <p class="desc" id="desc">A bright, fully furnished flat on the fifth floor of a well-kept society in Gotri. The living room opens onto a balcony that looks over the society garden, and the kitchen comes fitted with a chimney and hob. Both bedrooms have wardrobes and the master has its own bathroom. The society has a lift, a gym and 24×7 security, and Gotri Road with its shops is a two-minute drive. The owner is open to a quick registration.</p>
+   <button class="btn btn-gray" id="more">Show more</button>
+   <dl class="k-table tn">${[['Configuration','3 BHK, 2 bathrooms'],['Carpet area','1,450 sq ft'],['Floor','5th of 12'],['Facing','East'],['Furnishing','Fully furnished'],['Possession','Ready to move'],['Parking','1 covered'],['Reference','8CFAG']].map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>
+  </section>
+  <section class="k-card"><h2>Facilities</h2><div class="k-fac">${[['home','Building',['Lift','Power backup','Visitor parking']],['shield','Safety',['24×7 security','CCTV in common areas','Fire safety']],['play','For the family',["Children's play area",'Gym','Society garden']]].map(g=>`<div><h3>${ic(g[0])}${g[1]}</h3><ul>${g[2].map(x=>`<li>${ic('check')}${x}</li>`).join('')}</ul></div>`).join('')}</div><button class="btn btn-out" id="allam">Show all 14 facilities</button></section>
+  <section class="k-card" id="area"><h2>Area info</h2>
+   <div class="k-map">${map().replace('<svg ','<svg preserveAspectRatio="xMidYMid slice" ')}<button class="go">${ic('search')}Show on map</button></div>
+   <p class="mapnote"><b>6 schools and 3 hospitals</b> within 2 km. The exact address is shared after you book a visit.</p>
+   <ul class="near tn" id="near">${NEAR.map((n,i)=>`<li data-c="${n[4]}" class="${i>=5?'x':''}"><div class="nm">${n[0]}<span>${n[1]}, ${n[3]}</span></div><div class="d">${n[2]} km</div></li>`).join('')}</ul>
+   <button class="btn btn-out" id="allnear">Show all ${NEAR.length} places</button>
+   <div class="k-group"><h3>${ic('search')}How far is your place?</h3>
+   <label class="search" for="pl">${ic('search')}<input id="pl" placeholder="Office, school or family home" autocomplete="off"></label>
+   <ul class="sugg" id="sugg"></ul><div class="res" id="res"></div>
+   <p class="fine">Shared only with Rakesh. Times are approximate, without traffic. Map data © OpenStreetMap contributors.</p></div>
+  </section>
+  <section class="k-card emi" id="cost"><h2>Monthly payment</h2>
+   <p class="big tn" id="emiv">₹65,955</p><p class="sub" id="emis">per month for 20 years</p>
+   <div class="sl"><div class="lab"><span>Loan</span><b class="tn" id="lv"></b></div><input type="range" id="lp" min="50" max="90" step="5" value="80" aria-label="Loan as percent of price"></div>
+   <div class="sl"><div class="lab"><span>Tenure</span><b class="tn" id="tv"></b></div><input type="range" id="tn" min="5" max="30" value="20" aria-label="Tenure in years"></div>
+   <div class="sl"><div class="lab"><span>Interest rate</span><b class="tn" id="rv"></b></div><input type="range" id="rt" min="7" max="12" step=".1" value="8.5" aria-label="Interest rate"></div>
+   <div class="cost tn"><div><span>Price</span><span>₹${inr(P.price)}</span></div><div><span>Stamp duty, 4.9%</span><span>₹${inr(P.price*.049)}</span></div><div><span>Registration, 1%</span><span>₹${inr(P.price*.01)}</span></div><div class="tot"><span>Total cost</span><span>₹${inr(P.price*1.059)}</span></div></div>
+  </section>
+  <section class="k-card"><h2>Listed by</h2>
+   <div class="k-agent"><div class="k-logo">SP</div><div><b>Sharma Properties</b><span>Rakesh Sharma, RERA registered</span></div></div>
+   <div class="k-facts3 tn"><div><b>24</b><span>Homes listed</span></div><div><b>12 yrs</b><span>In Vadodara</span></div><div><b>10 min</b><span>Usual reply</span></div></div>
+   <div class="k-lines"><div>${ic('lang')}Gujarati, Hindi, English</div><div>${ic('home')}Gotri, Alkapuri, Vasna-Bhayli</div></div>
+   <div class="k-two"><button class="btn btn-ghost">${ic('phone')}Call</button><button class="btn btn-p">${ic('wa')}WhatsApp</button></div>
+   <button class="ask">${ic('chat')}<div><b>Not quite right?</b><span>Tell Rakesh what you are looking for</span></div><span class="chev">${ic('chev')}</span></button>
+  </section>
+  <section class="k-card"><h2>Things to know</h2><div class="k-rules">${[['rupee','Maintenance','About ₹3,500 a month to the society'],['doc','Documents','Clear title, society NOC available'],['brief','Brokerage','1% of the final price, on registration'],['key','Possession','Immediate, keys after registration']].map(r=>`<div>${ic(r[0])}<b>${r[1]}</b><span>${r[2]}</span></div>`).join('')}</div></section>
+  <footer class="foot"><span>with <span class="h">❤</span> from <a href="https://vectorscale.in" target="_blank" rel="noopener">PropPulse</a></span><button style="font-size:14px;text-decoration:underline;text-underline-offset:3px">Report listing</button></footer>
+ </div>
+ <div class="bb"><div class="p"><b class="tn">₹95 L</b><span>Negotiable</span></div><button class="btn btn-p" data-visit>Book a visit</button></div>
+ <div class="scrim" id="scrim"></div>${sheets()}`;
+}
+
 const ph=$('#ph');
 function visitForm(){
  const days=[['Today','21','Nov'],['Tomorrow','22','Nov'],['Sat','23','Nov'],['Sun','24','Nov'],['Mon','25','Nov'],['Tue','26','Nov']];
@@ -463,7 +631,8 @@ function closeSheets(){ph.classList.remove('dim');$$('.sheet',ph).forEach(s=>s.c
 function wireClose(){$$('[data-close]',ph).forEach(b=>b.onclick=closeSheets)}
 
 function render(){
- ph.dataset.mode=state.mode;
+ ph.dataset.mode=state.mode;ph.dataset.look=state.look;
+ ['band','on-band','accent-ink','hl','on-hl'].forEach(k=>ph.style.removeProperty('--'+k));
  Object.entries(colours()).forEach(([k,v])=>ph.style.setProperty('--'+k,v));
  const y=$('#scr')?.scrollTop;
  ph.innerHTML=page();
@@ -471,7 +640,13 @@ function render(){
  wire();chrome();
 }
 function chrome(){
- $('#sw').innerHTML=SCHEMES.map((s,i)=>`<button aria-pressed="${i===state.scheme}" aria-label="${s[0]}" title="${s[0]}" style="background:${s[1]}"></button>`).join('');
+ $('#looks').innerHTML=[['sig','Signature'],['bk','Classic']].map(([k,v])=>`<button aria-pressed="${k===state.look}" data-l="${k}">${v}</button>`).join('');
+ $$('#looks button').forEach(b=>b.onclick=()=>{if(state.look===b.dataset.l)return;state.look=b.dataset.l;state.scheme=0;const s=$('#scr');if(s)s.scrollTop=0;render()});
+ const N={sig:['Signature: Airbnb-style craft','White page, DM Sans, generous spacing and thin dividers. Round buttons over the photo, a content panel that overlaps it, a summary under the title, an agent card, a drawn map and a price-and-WhatsApp bar.'],
+  bk:['Classic: Booking-style craft','Dense and fact-first. A coloured top band with section tabs, a photo collage with a +9 tile, green reassurance ticks next to the price, white section cards on grey, area lists with distances, and a strong blue Book a visit button. Uses the phone’s own font, so nothing extra downloads.']}[state.look];
+ $('#notes').innerHTML=`<h2>${N[0]}</h2><p>${N[1]}</p><ul><li>The agent’s colours appear only on the band, buttons and logo.</li><li>Try: tap the heart, scroll (tabs follow you), Show all photos, Book a visit, type “Alembic” in the area search, move the EMI sliders, switch Light and Dark.</li></ul><p class="fine">Sample listing. Photos are stock stand-ins; agent, RERA, maintenance and counts are placeholders. Not affiliated with Airbnb or Booking.com; none of their branding, colours or fonts are used.</p>`;
+ const SW=state.look==='bk'?BK.map(b=>[b[0],b[1]]):SCHEMES;
+ $('#sw').innerHTML=SW.map((s,i)=>`<button aria-pressed="${i===state.scheme}" aria-label="${s[0]}" title="${s[0]}" style="background:${s[1]}"></button>`).join('');
  $('#modes').innerHTML=['light','dark'].map(m=>`<button aria-pressed="${m===state.mode}">${m==='light'?'Light':'Dark'}</button>`).join('');
  $$('#sw button').forEach((b,i)=>b.onclick=()=>{state.scheme=i;render()});
  $$('#modes button').forEach((b,i)=>b.onclick=()=>{state.mode=i?'dark':'light';render()});
@@ -479,12 +654,12 @@ function chrome(){
 }
 function wire(){
  const scr=$('#scr'),gal=$('#gal'),cnt=$('#cnt');
- gal.addEventListener('scroll',()=>{cnt.textContent=Math.round(gal.scrollLeft/gal.clientWidth)+1+' / 12'},{passive:true});
+ if(gal)gal.addEventListener('scroll',()=>{cnt.textContent=Math.round(gal.scrollLeft/gal.clientWidth)+1+' / 12'},{passive:true});
  const secs=['photos','details','area','cost'];
- const onScroll=()=>{const y=scr.scrollTop;ph.classList.toggle('scrolled',y>290);
-  let cur='photos';secs.forEach(s=>{const el=$('#'+s);if(el&&el.offsetTop-150<=y)cur=s});$$('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===cur))};
+ const onScroll=()=>{const y=scr.scrollTop;ph.classList.toggle('scrolled',y>290);const off=state.look==='bk'?($('.k-top')?.offsetHeight||0)+12:150;
+  let cur='photos';secs.forEach(s=>{const el=$('#'+s);if(el&&el.offsetTop-off<=y)cur=s});$$('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===cur))};
  scr.addEventListener('scroll',onScroll,{passive:true});onScroll();
- $$('#tabs button').forEach(b=>b.onclick=()=>{const el=$('#'+b.dataset.go);scr.scrollTo({top:Math.max(0,el.offsetTop-(b.dataset.go==='photos'?0:140)),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
+ $$('#tabs button').forEach(b=>b.onclick=()=>{const el=$('#'+b.dataset.go);scr.scrollTo({top:Math.max(0,el.offsetTop-(b.dataset.go==='photos'?0:(state.look==='bk'?$('.k-top').offsetHeight+8:140))),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
  $$('.heartb').forEach(h=>h.onclick=()=>{const on=h.getAttribute('aria-pressed')!=='true';$$('.heartb').forEach(x=>{x.setAttribute('aria-pressed',on);x.classList.remove('pop');void x.offsetWidth;if(on)x.classList.add('pop')})});
  $('#more').onclick=()=>{const d=$('#desc');const o=d.classList.toggle('open');$('#more').textContent=o?'Show less':'Show more'};
  $('#allnear').onclick=()=>{const l=$('#near');const all=!l.dataset.all;l.dataset.all=all?'1':'';$$('#near li').forEach((li,i)=>li.classList.toggle('x',!all&&i>=5&&!li.dataset.f));$('#allnear').textContent=all?'Show fewer':`Show all ${NEAR.length} places`};
@@ -503,7 +678,9 @@ function wire(){
    res.innerHTML=`<h3>${m[0]} is ${m[2]} km away</h3><div class="m tn"><div><b>${m[3]} min</b><span>Car</span></div><div><b>${m[4]} min</b><span>Two-wheeler</span></div><div><b>${m[2]<5?Math.round(m[2]*12)+' min':'–'}</b><span>${m[2]<5?'Walk':'Too far to walk'}</span></div></div>`;
    res.classList.remove('on');void res.offsetWidth;res.classList.add('on')})};
  $('#cnt').onclick=()=>openSheet('photosheet');
- $('#bv2').onclick=()=>openSheet('visit');
+ if($('#bv2'))$('#bv2').onclick=()=>openSheet('visit');
+ $$('[data-visit]',ph).forEach(b=>b.onclick=()=>openSheet('visit'));
+ $$('[data-go2]',ph).forEach(b=>b.onclick=()=>$('#tabs button[data-go='+b.dataset.go2+']').click());
  $('#scrim').onclick=closeSheets;wireClose();
  ph.onkeydown=e=>{if(e.key==='Escape')closeSheets()};
 }
