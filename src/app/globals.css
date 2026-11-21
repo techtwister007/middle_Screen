@@ -27,8 +27,8 @@
   --color-brand-800: #1f4d36;
   --color-brand-900: #173a29;
 
-  --font-sans: var(--font-dm), var(--font-hind), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: var(--font-dm), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm), var(--font-hind), var(--font-hind-deva), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-dm), var(--font-hind), var(--font-hind-deva), ui-sans-serif, system-ui, sans-serif;
 
   --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;

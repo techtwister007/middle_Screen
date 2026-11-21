@@ -208,3 +208,20 @@ test("agent website lists public properties", async ({ page, request }) => {
 });
 
 export { fixture };
+
+test("buyer switches the page to Hindi and Gujarati; the choice is remembered", async ({ page }) => {
+  await page.goto(personalUrl);
+  await expect(page.getByRole("button", { name: /Book site visit/ })).toBeVisible();
+  await page.getByRole("button", { name: "Language" }).click();
+  await page.getByRole("menuitemradio", { name: "हिन्दी" }).click();
+  await expect(page.getByRole("button", { name: /साइट विज़िट बुक करें/ })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: /साइट विज़िट बुक करें/ })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.lang)).toBe("hi-IN");
+  await page.getByRole("button", { name: "भाषा" }).click();
+  await page.getByRole("menuitemradio", { name: "ગુજરાતી" }).click();
+  await expect(page.getByRole("button", { name: /સાઇટ વિઝિટ બુક કરો/ })).toBeVisible();
+  await page.getByRole("button", { name: "ભાષા" }).click();
+  await page.getByRole("menuitemradio", { name: "English" }).click();
+  await expect(page.getByRole("button", { name: /Book site visit/ })).toBeVisible();
+});

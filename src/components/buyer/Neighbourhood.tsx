@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { GraduationCap, Cross, ShoppingBag, Trees, Bus, Search, Loader2, Car, Bike, Footprints, MapPin } from "lucide-react";
 import { NEARBY_CATS, NEARBY_LABELS, NEARBY_SINGULAR, bikeMin, driveMin, haversineKm, walkMin, type NearbyCat, type PublicNearby } from "@/lib/geo";
 import { track } from "./api";
+import { useT } from "./lang";
 
 const ICON: Record<NearbyCat, typeof GraduationCap> = { school: GraduationCap, health: Cross, daily: ShoppingBag, park: Trees, transport: Bus };
 /** Category dot colours, readable on both light and dark cards. */
@@ -12,6 +13,7 @@ const DOT: Record<NearbyCat, string> = { school: "#2f6fde", health: "#d0453f", d
 type Place = { name: string; sub: string; lat: number; lng: number };
 
 export function Neighbourhood({ nearby, lat, lng, code, listingId, agentName }: { nearby: PublicNearby | null; lat: number | null; lng: number | null; code: string; listingId: string; agentName: string }) {
+  const { t } = useT();
   const [cat, setCat] = useState<NearbyCat | "all">("all");
   const [all, setAll] = useState(false);
   const places = useMemo(() => (nearby?.places ?? []).filter((p) => cat === "all" || p.cat === cat), [nearby, cat]);
@@ -30,17 +32,17 @@ export function Neighbourhood({ nearby, lat, lng, code, listingId, agentName }: 
                 <div key={c} className="rounded-2xl bg-stone-100 p-3">
                   <I className="h-[18px] w-[18px]" style={{ color: DOT[c] }} />
                   <p className="tnum mt-1.5 text-[22px] font-bold leading-none">{nearby.counts[c]}</p>
-                  <p className="mt-1 text-xs leading-tight text-stone-500">{NEARBY_LABELS[c].toLowerCase()} within 2 km</p>
+                  <p className="mt-1 text-xs leading-tight text-stone-500">{t(NEARBY_LABELS[c])} · {t("within 2 km")}</p>
                 </div>
               );
             })}
           </div>
 
-          <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5" role="group" aria-label="Show places">
+          <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5" role="group" aria-label={t("All")}>
             {(["all", ...present] as const).map((c) => (
               <button key={c} onClick={() => setCat(c)} aria-pressed={cat === c} className={`press flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${cat === c ? "bg-stone-900 text-stone-50" : "bg-stone-100 text-stone-700"}`}>
                 {c !== "all" ? <span className="h-2 w-2 rounded-full" style={{ background: DOT[c] }} /> : null}
-                {c === "all" ? "All" : NEARBY_LABELS[c]}
+                {c === "all" ? t("All") : t(NEARBY_LABELS[c])}
               </button>
             ))}
           </div>
@@ -55,7 +57,7 @@ export function Neighbourhood({ nearby, lat, lng, code, listingId, agentName }: 
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100"><I className="h-[18px] w-[18px]" style={{ color: DOT[p.cat] }} /></span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-medium">{p.name}</p>
-                    <p className="text-xs text-stone-500">{NEARBY_SINGULAR[p.cat]} · {p.drive} min drive{p.walk ? ` · ${p.walk} min walk` : ""}</p>
+                    <p className="text-xs text-stone-500">{t(NEARBY_SINGULAR[p.cat])} · {t("{n} min drive", { n: p.drive })}{p.walk ? ` · ${t("{n} min walk", { n: p.walk })}` : ""}</p>
                   </div>
                   <span className="shrink-0 text-sm font-semibold">{nearby.approx ? "~" : ""}{p.km} km</span>
                 </li>
@@ -64,7 +66,7 @@ export function Neighbourhood({ nearby, lat, lng, code, listingId, agentName }: 
           </ul>
           {cat === "all" && places.length > 5 ? (
             <button onClick={() => setAll((x) => !x)} className="press h-11 w-full rounded-[14px] bg-stone-100 text-sm font-semibold">
-              {all ? "Show fewer" : `Show all ${places.length} places`}
+              {all ? t("Show fewer") : t("Show all {n} places", { n: places.length })}
             </button>
           ) : null}
         </>
@@ -72,7 +74,7 @@ export function Neighbourhood({ nearby, lat, lng, code, listingId, agentName }: 
 
       {lat != null && lng != null ? <YourPlace lat={lat} lng={lng} code={code} listingId={listingId} agentName={agentName} /> : null}
 
-      <p className="text-xs text-stone-500">Distances are {nearby?.approx ? "approximate (area only) and " : ""}without traffic. Map data © OpenStreetMap contributors.</p>
+      <p className="text-xs text-stone-500">{t(nearby?.approx ? "Distances are approximate (area only) and without traffic." : "Distances are without traffic.")} Map data © OpenStreetMap contributors.</p>
     </div>
   );
 }
@@ -101,15 +103,16 @@ function Rings({ nearby, cat }: { nearby: PublicNearby; cat: NearbyCat | "all" }
 }
 
 function YourPlace({ lat, lng, code, listingId, agentName }: { lat: number; lng: number; code: string; listingId: string; agentName: string }) {
+  const { t } = useT();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [list, setList] = useState<Place[]>([]);
   const [pick, setPick] = useState<Place | null>(null);
-  const t = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (t.current) clearTimeout(t.current);
+    if (timer.current) clearTimeout(timer.current);
     if (q.trim().length < 3 || (pick && pick.name === q)) return setList([]);
-    t.current = setTimeout(async () => {
+    timer.current = setTimeout(async () => {
       setBusy(true);
       const r = await fetch(`/api/places?${new URLSearchParams({ q, code, lat: String(lat), lng: String(lng) })}`).then((x) => x.json()).catch(() => ({ places: [] }));
       setBusy(false);
@@ -125,10 +128,10 @@ function YourPlace({ lat, lng, code, listingId, agentName }: { lat: number; lng:
   };
   return (
     <div className="rounded-[18px] bg-stone-100 p-4">
-      <label htmlFor="yourplace" className="text-[15px] font-semibold">How far is your place?</label>
+      <label htmlFor="yourplace" className="text-[15px] font-semibold">{t("How far is your place?")}</label>
       <div className="mt-2 flex h-12 items-center gap-2 rounded-[14px] bg-white px-3.5 ring-1 ring-stone-200 focus-within:ring-2 focus-within:ring-agent">
         <Search className="h-4 w-4 text-stone-500" />
-        <input id="yourplace" value={q} onChange={(e) => { setQ(e.target.value); setPick(null); }} placeholder="Office, school or family home" autoComplete="off" className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-stone-500" />
+        <input id="yourplace" value={q} onChange={(e) => { setQ(e.target.value); setPick(null); }} placeholder={t("Office, school or family home")} autoComplete="off" className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-stone-500" />
         {busy ? <Loader2 className="h-4 w-4 animate-spin text-stone-500" /> : null}
       </div>
       {list.length ? (
@@ -145,12 +148,12 @@ function YourPlace({ lat, lng, code, listingId, agentName }: { lat: number; lng:
       ) : null}
       {pick ? (
         <div className="mt-3 [animation:rise_.35s_cubic-bezier(.22,1,.36,1)_backwards]">
-          <p className="tnum text-sm font-semibold">{pick.name} is about {km} km away</p>
+          <p className="tnum text-sm font-semibold">{t("{place} is about {km} km away", { place: pick.name, km })}</p>
           <div className="tnum mt-2 grid grid-cols-3 gap-2">
             {[
-              { I: Car, v: `${driveMin(km)} min`, l: "Car" },
-              { I: Bike, v: `${bikeMin(km)} min`, l: "Two-wheeler" },
-              { I: Footprints, v: walkMin(km) ? `${walkMin(km)} min` : "–", l: walkMin(km) ? "Walk" : "Too far to walk" },
+              { I: Car, v: t("{n} min", { n: driveMin(km) }), l: t("Car") },
+              { I: Bike, v: t("{n} min", { n: bikeMin(km) }), l: t("Two-wheeler") },
+              { I: Footprints, v: walkMin(km) ? t("{n} min", { n: walkMin(km)! }) : "–", l: t(walkMin(km) ? "Walk" : "Too far to walk") },
             ].map((m) => (
               <div key={m.l} className="rounded-xl bg-white p-2.5 text-center">
                 <m.I className="mx-auto h-4 w-4 text-stone-500" />
@@ -161,7 +164,7 @@ function YourPlace({ lat, lng, code, listingId, agentName }: { lat: number; lng:
           </div>
         </div>
       ) : null}
-      <p className="mt-2 text-xs text-stone-500">Shared only with {agentName}.</p>
+      <p className="mt-2 text-xs text-stone-500">{t("Shared only with {name}.", { name: agentName })}</p>
     </div>
   );
 }

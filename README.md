@@ -23,6 +23,12 @@ WhatsApp-first property sharing & buyer intelligence for real estate agents.
 - **Look:** forest green on warm paper, DM Sans (self-hosted), rounded surfaces, automatic **dark mode**, motion throughout (page entrances, sheets, press feedback), a branded welcome screen and loading skeletons. Design plan and history: [docs/UI_REDESIGN_PLAN.md](docs/UI_REDESIGN_PLAN.md).
 - **Buyer property page:** hero photos, overlapping summary card, pinned section tabs, EMI and total cost, **neighbourhood** (nearby schools, hospitals, shops, parks and transport with drive/walk times, a rings diagram, and "How far is your place?"), visit booking, ask, save, share.
 - **Collections:** like / not for me, rank, compare, progress, top-picks on WhatsApp. **Agent website** with filters and "Save contact".
+- **Languages:** buyer pages switch between English, हिन्दी and ગુજરાતી (remembered per phone; follows the phone's language on first visit). Agent-written text stays as typed.
+- **Page looks:** Signature (photo first) or Classic (compact, details first), chosen for all listings or per listing, in any brand colour. Light and dark both work.
+- **Price drops:** lowering a price shows "Price reduced" to buyers and lists interested buyers to tell in one tap each.
+- **Owner report:** a signed live link for the property owner with views, interest and visits; buyer names stay private (`report REF` on WhatsApp).
+- **Greeting cards:** festival cards (Diwali, Navratri, Uttarayan, Holi, Eid, Christmas and more) in the agent's colours, shared straight to WhatsApp.
+- **WhatsApp branding:** `colour maroon`, `name:`, `company:`, `tagline:`, `look classic`, `welcome off`, `branding`, or an image captioned `logo` / `photo`.
 - **Agent app:** Today screen with "Needs attention", buyers with intent and next action, listing editor with a **listing-strength** meter, **WhatsApp Status image** and **copy-for-portals** per listing, today's **visit route** in Google Maps, branding with live preview.
 
 Neighbourhood data comes from OpenStreetMap through Photon (free). It is computed in a background job when a listing is published or edited and cached on the property, so buyer pages make no map calls. Set `NEARBY_PROVIDER=off` to disable it (tests do this). Area-only listings show rounded distances and quantised directions so the building can't be pinpointed.

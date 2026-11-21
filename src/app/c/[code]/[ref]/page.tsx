@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { LANG_COOKIE, isLang } from "@/lib/i18n/buyer";
 import { resolveBuyerPage } from "@/modules/buyer-page";
 import { loadPublicListings } from "@/modules/public";
 import { ListingView } from "@/components/buyer/ListingView";
@@ -19,6 +21,7 @@ export default async function CollectionItemPage({ params }: { params: Promise<{
   const a = r.actions.find((x) => x.listingId === l.id);
   return (
     <ListingView
+      lang={langOf((await cookies()).get(LANG_COOKIE)?.value)}
       listing={l}
       agent={r.agent}
       code={code}
@@ -29,3 +32,5 @@ export default async function CollectionItemPage({ params }: { params: Promise<{
     />
   );
 }
+
+const langOf = (v: string | undefined) => (isLang(v) ? v : null);

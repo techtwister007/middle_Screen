@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { LANG_COOKIE, isLang } from "@/lib/i18n/buyer";
 import { resolveBuyerPage } from "@/modules/buyer-page";
 import { loadPublicListings } from "@/modules/public";
 import { CollectionView, type CollectionItemState } from "@/components/buyer/CollectionView";
@@ -34,6 +36,7 @@ export default async function CollectionPage({ params }: Props) {
   for (const a of r.actions) initial[a.listingId] = { saved: a.saved, reaction: a.reaction, rank: a.rank };
   return (
     <CollectionView
+      lang={langOf((await cookies()).get(LANG_COOKIE)?.value)}
       code={code}
       title={r.collection.title}
       note={r.collection.note}
@@ -46,3 +49,5 @@ export default async function CollectionPage({ params }: Props) {
     />
   );
 }
+
+const langOf = (v: string | undefined) => (isLang(v) ? v : null);

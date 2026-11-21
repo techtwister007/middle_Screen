@@ -7,10 +7,22 @@ import type { PublicAgent, PublicListing } from "@/modules/public";
 import { PoweredBy, Splash } from "./ListingView";
 import { IdentifySheet, RequirementSheet, Sheet, shouldPromptIdentity } from "./Sheets";
 import { buyerAction, startDwell, track } from "./api";
+import { LangProvider, LangSwitch, useT } from "./lang";
+import type { Lang } from "@/lib/i18n/buyer";
 
 export type CollectionItemState = { saved: boolean; reaction: "like" | "dislike" | null; rank: number | null };
 
-export function CollectionView({
+type CollectionViewProps = Parameters<typeof CollectionViewInner>[0] & { lang?: Lang | null };
+
+export function CollectionView({ lang, ...props }: CollectionViewProps) {
+  return (
+    <LangProvider initial={lang}>
+      <CollectionViewInner {...props} />
+    </LangProvider>
+  );
+}
+
+function CollectionViewInner({
   code,
   title,
   note,
@@ -31,6 +43,7 @@ export function CollectionView({
   greetingName: string | null;
   showSplash: boolean;
 }) {
+  const { t } = useT();
   const [st, setSt] = useState(initial);
   const [identified, setIdentified] = useState(initialIdentified);
   const [askId, setAskId] = useState(false);
@@ -93,12 +106,13 @@ export function CollectionView({
             )}
             <div className="min-w-0 leading-tight">
               <p className="truncate text-[15px] font-semibold">{agent.displayName}</p>
-              <p className="truncate text-[13px] text-stone-500">Picked for you</p>
+              <p className="truncate text-[13px] text-stone-500">{t("Picked for you")}</p>
             </div>
+            <div className="ml-auto"><LangSwitch /></div>
           </div>
-          <h1 className="mt-5 text-[28px] font-semibold leading-[1.12] tracking-tight text-balance">{greetingName ? `Properties selected for ${greetingName.split(" ")[0]}` : title}</h1>
+          <h1 className="mt-5 text-[28px] font-semibold leading-[1.12] tracking-tight text-balance">{greetingName ? t("Properties selected for {name}", { name: greetingName.split(" ")[0] }) : title}</h1>
           <p className="mt-1.5 text-[15px] text-stone-500">
-            {listings.length} propert{listings.length === 1 ? "y" : "ies"} · curated by {agent.displayName}
+            {listings.length === 1 ? t("1 property · curated by {name}", { name: agent.displayName }) : t("{n} properties · curated by {name}", { n: listings.length, name: agent.displayName })}
           </p>
           {note ? (
             <div className="mt-4 flex gap-3 rounded-[20px] bg-white p-4 shadow-card">
@@ -108,8 +122,8 @@ export function CollectionView({
           ) : null}
           <div className="mt-5">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-stone-700">You&apos;ve reviewed {reviewed} of {listings.length}</span>
-              <span className="text-stone-500">Like, skip or rank</span>
+              <span className="font-medium text-stone-700">{t("You've reviewed {x} of {n}", { x: reviewed, n: listings.length })}</span>
+              <span className="text-stone-500">{t("Like, skip or rank")}</span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200">
               <div className="h-full rounded-full bg-agent transition-[width] duration-500 ease-[cubic-bezier(.22,1,.36,1)]" style={{ width: `${listings.length ? (reviewed / listings.length) * 100 : 0}%` }} />
@@ -151,18 +165,18 @@ export function CollectionView({
               </Link>
               <div className="grid grid-cols-2 gap-2 px-4 pb-2 pt-3">
                 <button onClick={() => react(l.id, "like")} aria-label="Like" className={`press flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-sm font-semibold ${s.reaction === "like" ? "bg-emerald-700 text-white" : "bg-stone-100 text-stone-800"}`}>
-                  <ThumbsUp key={String(s.reaction === "like")} className={`h-4 w-4 ${s.reaction === "like" ? "[animation:pop_.45s_cubic-bezier(.22,1,.36,1)]" : ""}`} /> Like
+                  <ThumbsUp key={String(s.reaction === "like")} className={`h-4 w-4 ${s.reaction === "like" ? "[animation:pop_.45s_cubic-bezier(.22,1,.36,1)]" : ""}`} /> {t("Like")}
                 </button>
                 <button onClick={() => react(l.id, "dislike")} aria-label="Not for me" className={`press flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-sm font-semibold ${s.reaction === "dislike" ? "bg-[#4a544e] text-white" : "bg-stone-100 text-stone-800"}`}>
-                  <ThumbsDown className="h-4 w-4" /> Not for me
+                  <ThumbsDown className="h-4 w-4" /> {t("Not for me")}
                 </button>
               </div>
               <div className="flex gap-2 px-4 pb-4">
                 <button onClick={() => toggleRank(l.id)} aria-label="Rank" className={`press flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${s.rank ? "bg-agent text-white" : "bg-white text-stone-700 ring-1 ring-stone-200"}`}>
-                  {s.rank ? `#${s.rank} favourite` : "Rank it"}
+                  {s.rank ? t("#{n} favourite", { n: s.rank }) : t("Rank it")}
                 </button>
                 <button onClick={() => toggleCompare(l.id)} aria-label="Compare" className={`press flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold ${compare.includes(l.id) ? "bg-sky-700 text-white" : "bg-white text-stone-700 ring-1 ring-stone-200"}`}>
-                  <Scale className="h-3.5 w-3.5" /> {compare.includes(l.id) ? "Comparing" : "Compare"}
+                  <Scale className="h-3.5 w-3.5" /> {t(compare.includes(l.id) ? "Comparing" : "Compare")}
                 </button>
               </div>
             </article>
@@ -171,8 +185,8 @@ export function CollectionView({
         <button onClick={() => setReq(true)} className="press flex w-full items-center gap-3 rounded-[22px] bg-white p-4 text-left shadow-card">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100 text-agent"><MessageCircle className="h-5 w-5" /></span>
           <span>
-            <span className="block font-semibold">None of these quite right?</span>
-            <span className="block text-sm text-stone-500">Tell {agent.displayName} what you&apos;re looking for.</span>
+            <span className="block font-semibold">{t("None of these quite right?")}</span>
+            <span className="block text-sm text-stone-500">{t("Tell {name} what you're looking for.", { name: agent.displayName })}</span>
           </span>
         </button>
         <div className="flex justify-center py-6 text-[13px] text-stone-500">
@@ -184,7 +198,7 @@ export function CollectionView({
         <div className="mx-auto flex max-w-3xl gap-2 rounded-[22px] bg-white p-2 shadow-float">
           {compare.length >= 2 ? (
             <button onClick={() => { setShowCompare(true); track(code, "compare", { ids: compare }); }} className="press flex h-12 flex-1 items-center justify-center gap-2 rounded-[14px] bg-sky-700 font-semibold text-white">
-              <Scale className="h-5 w-5" /> Compare {compare.length}
+              <Scale className="h-5 w-5" /> {t("Compare {n}", { n: compare.length })}
             </button>
           ) : (
             <>
@@ -198,7 +212,7 @@ export function CollectionView({
                 onClick={() => track(code, "whatsapp")}
                 className="press flex h-12 flex-1 items-center justify-center gap-2 rounded-[14px] bg-[#1f8f4e] font-semibold text-white"
               >
-                <MessageCircle className="h-5 w-5" /> {ranked.length ? "Send my top picks" : `WhatsApp ${agent.name?.split(" ")[0] || "agent"}`}
+                <MessageCircle className="h-5 w-5" /> {ranked.length ? t("Send my top picks") : `WhatsApp ${agent.name?.split(" ")[0] || "agent"}`}
               </a>
             </>
           )}
@@ -207,23 +221,24 @@ export function CollectionView({
 
       <CompareSheet open={showCompare} onClose={() => setShowCompare(false)} items={listings.filter((l) => compare.includes(l.id))} />
       <RequirementSheet open={req} onClose={() => setReq(false)} code={code} agentName={agent.displayName} identified={identified} defaultPurpose={listings[0]?.purpose ?? "sale"} onIdentified={() => setIdentified(true)} />
-      <IdentifySheet open={askId} onClose={() => setAskId(false)} code={code} agentName={agent.displayName} title="Keep your shortlist" cta="Save my picks" onDone={() => setIdentified(true)} />
+      <IdentifySheet open={askId} onClose={() => setAskId(false)} code={code} agentName={agent.displayName} title={t("Keep your shortlist")} cta={t("Save my picks")} onDone={() => setIdentified(true)} />
     </div>
   );
 }
 
 function CompareSheet({ open, onClose, items }: { open: boolean; onClose: () => void; items: PublicListing[] }) {
+  const { t } = useT();
   const rows: { label: string; get: (l: PublicListing) => string }[] = [
     { label: "Price", get: (l) => l.price },
-    { label: "Type", get: (l) => l.typeLabel },
+    { label: "Type", get: (l) => t(l.typeLabel) },
     { label: "BHK", get: (l) => (l.bhk ? `${l.bhk} BHK` : "—") },
     { label: "Area", get: (l) => l.area ?? "—" },
     { label: "Location", get: (l) => [l.locality, l.city].filter(Boolean).join(", ") || "—" },
-    ...["Furnishing", "Floor", "Bathrooms", "Parking", "Facing", "Possession", "Age"].map((k) => ({ label: k, get: (l: PublicListing) => l.specs.find((s) => s.label === k)?.value ?? "—" })),
-    { label: "Amenities", get: (l) => (l.amenities.length ? l.amenities.slice(0, 6).join(", ") : "—") },
+    ...["Furnishing", "Floor", "Bathrooms", "Parking", "Facing", "Possession", "Age"].map((k) => ({ label: k, get: (l: PublicListing) => t(l.specs.find((s) => s.label === k)?.value ?? "—") })),
+    { label: "Amenities", get: (l) => (l.amenities.length ? l.amenities.slice(0, 6).map((a) => t(a)).join(", ") : "—") },
   ];
   return (
-    <Sheet open={open} onClose={onClose} title="Compare">
+    <Sheet open={open} onClose={onClose} title={t("Compare")}>
       <div className="-mx-5 max-h-[70vh] overflow-auto px-5">
         <table className="w-full text-sm">
           <thead>
@@ -243,7 +258,7 @@ function CompareSheet({ open, onClose, items }: { open: boolean; onClose: () => 
           <tbody>
             {rows.map((r) => (
               <tr key={r.label} className="border-t border-stone-100">
-                <td className="py-2 pr-2 text-xs font-medium text-stone-500">{r.label}</td>
+                <td className="py-2 pr-2 text-xs font-medium text-stone-500">{t(r.label)}</td>
                 {items.map((l) => (
                   <td key={l.id} className="p-1 py-2 align-top text-stone-800">
                     {r.get(l)}
