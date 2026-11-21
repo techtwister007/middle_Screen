@@ -10,8 +10,8 @@ export const PROMISE_POINTS = [
 
 export function AgentPromise({ compact }: { compact?: boolean }) {
   return (
-    <div className="rounded-2xl bg-brand-50 p-4 ring-1 ring-brand-100">
-      <p className="flex items-center gap-2 font-display font-bold text-brand-900">
+    <div className="rounded-[20px] bg-brand-50 p-5">
+      <p className="flex items-center gap-2 font-semibold text-brand-900">
         <ShieldCheck className="h-5 w-5" /> Your buyers are yours. Always.
       </p>
       <ol className={`mt-2 list-decimal space-y-1 pl-5 text-brand-900/85 ${compact ? "text-xs" : "text-sm"}`}>

@@ -42,7 +42,7 @@ export function LoginClient({ devTools, next }: { devTools: boolean; next: strin
 
   return (
     <div className="mt-5 space-y-4">
-      <button onClick={start} disabled={waiting} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1f8f4e] font-semibold text-white shadow-sm disabled:opacity-80">
+      <button onClick={start} disabled={waiting} className="press flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] bg-[#1f8f4e] font-semibold text-white disabled:opacity-80">
         {waiting ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
         {waiting ? "Waiting for your message…" : "Continue with WhatsApp"}
       </button>
