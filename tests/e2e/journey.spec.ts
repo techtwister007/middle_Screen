@@ -154,7 +154,9 @@ test("bot commands: list, find, price, sold, leads, today, contact card", async 
   const find = (await wa(request, AGENT, "find 3bhk gotri under 1cr")).join();
   expect(find).toContain("1 match");
   expect((await wa(request, AGENT, "find 2bhk alkapuri under 30L")).join()).toContain("No matching");
-  expect((await wa(request, AGENT, `price ${ref} 92L`)).join()).toContain("₹92 L");
+  const price = (await wa(request, AGENT, `price ${ref} 92L`)).join();
+  expect(price).toContain("₹92 L");
+  expect(price).toMatch(/was ₹9\d(\.\d)? L[\s\S]*showed interest/);
   expect((await wa(request, AGENT, "leads")).join()).toContain("Priya Patel");
   expect((await wa(request, AGENT, "today")).join()).toContain("Today");
   expect((await wa(request, AGENT, { type: "contact", contact: { name: "Neha Joshi", phone: "9876500009" } })).join()).toContain("Added *Neha Joshi*");
@@ -164,6 +166,7 @@ test("bot commands: list, find, price, sold, leads, today, contact card", async 
 test("price change keeps the same link; sold shows on buyer page", async ({ page, request }) => {
   await page.goto(personalUrl);
   await expect(page.getByText("₹92 L").first()).toBeVisible();
+  await expect(page.getByText("Price reduced")).toBeVisible();
   await wa(request, AGENT, `sold ${ref}`);
   await page.reload();
   await expect(page.getByText("Sold", { exact: true })).toBeVisible();

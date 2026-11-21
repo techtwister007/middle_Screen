@@ -23,6 +23,8 @@ export type PublicListing = {
   status: string;
   price: string;
   priceValue: number | null;
+  /** The earlier price when the agent lowered it in the last 30 days. */
+  wasPrice: string | null;
   negotiable: boolean;
   specs: { label: string; value: string }[];
   amenities: string[];
@@ -90,6 +92,7 @@ export function toPublicListing(l: typeof listings.$inferSelect, p: typeof prope
     status: l.status,
     price: priceLabel(l),
     priceValue: l.price,
+    wasPrice: l.prevPrice && l.priceDroppedAt && l.priceMode !== "on_request" && Date.now() - new Date(l.priceDroppedAt).getTime() < 30 * 86400000 ? priceLabel({ ...l, price: l.prevPrice, priceMax: null, priceMode: "exact" }) : null,
     negotiable: l.negotiable,
     specs: keySpecs(p.type, f),
     amenities: f.amenities ?? [],

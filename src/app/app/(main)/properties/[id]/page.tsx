@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { ExternalLink, Pencil, Eye, Users, Heart, CalendarCheck, Share2, AlertTriangle, Sparkles, Image as ImageIcon } from "lucide-react";
 import { CopyText } from "@/components/app/CopyText";
+import { PriceDropCard, type DropBuyer } from "@/components/app/PriceDropCard";
 import { db } from "@/db";
 import { buyerActions, events, leads, shares } from "@/db/schema";
 import { requireAgent } from "@/lib/auth/session";
@@ -67,6 +68,29 @@ export default async function PropertyDetail({ params, searchParams }: { params:
     publicUrl ? `Photos, location and site-visit booking: ${publicUrl}` : "",
     `Contact: ${agent.name || ""} +${agent.phone}`,
   ].filter(Boolean).join("\n\n");
+  // Price cut in the last 14 days: list buyers who showed interest, each with their own link.
+  const dropBuyers: DropBuyer[] = [];
+  const showDrop = l.prevPrice != null && l.priceDroppedAt != null && Date.now() - new Date(l.priceDroppedAt).getTime() < 14 * 86400000 && (l.status === "available" || l.status === "on_hold");
+  if (showDrop) {
+    const now = priceLabel(l), was = priceLabel({ ...l, price: l.prevPrice, priceMax: null, priceMode: "exact" });
+    const seen = new Set<string>();
+    const push = (lead: typeof leads.$inferSelect, why: string) => {
+      if (seen.has(lead.id) || !lead.phone || lead.stage === "closed" || lead.stage === "lost") return;
+      seen.add(lead.id);
+      const own = sharedTo.find((x) => x.lead.id === lead.id)?.s.code ?? general?.code;
+      const first = (lead.name || "").split(" ")[0];
+      dropBuyers.push({
+        id: lead.id,
+        name: lead.name || `+${lead.phone}`,
+        phone: lead.phone,
+        why,
+        text: `Hi${first ? ` ${first}` : ""}, good news: ${l.title} is now ${now} (was ${was}).${own ? `\n\n${listingUrl(own)}` : ""}\n\n${agent.name || ""}`.trim(),
+      });
+    };
+    const ranked = [...engaged].sort((a, b) => Number(b.visit) - Number(a.visit) || Number(b.saved) - Number(a.saved) || b.opens - a.opens);
+    for (const e of ranked) push(e.lead, e.visit ? "Asked for a visit" : e.saved ? "Saved it" : `Opened ${e.opens} time${e.opens === 1 ? "" : "s"}`);
+    for (const m of matches) push(m, "Matches what they want");
+  }
   const stale = Date.now() - new Date(l.verifiedAt).getTime() > env.LISTING_VERIFY_DAYS * 86400000;
   const live = l.status === "available" || l.status === "on_hold";
 
@@ -94,6 +118,7 @@ export default async function PropertyDetail({ params, searchParams }: { params:
         </Card>
       ) : null}
       {(sp.verify || stale) && live ? <VerifyBanner id={id} /> : null}
+      {showDrop ? <PriceDropCard was={priceLabel({ ...l, price: l.prevPrice, priceMax: null, priceMode: "exact" })} now={priceLabel(l)} buyers={dropBuyers.slice(0, 20)} /> : null}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">

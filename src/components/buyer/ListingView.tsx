@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft, FileText, Search, CalendarPlus, Clock } from "lucide-react";
+import { Heart, MapPin, Phone, MessageCircle, Share2, CalendarCheck, HelpCircle, Play, BadgeCheck, Flag, ChevronLeft, FileText, Search, CalendarPlus, Clock, TrendingDown } from "lucide-react";
 import type { PublicAgent, PublicListing } from "@/modules/public";
 import { Gallery } from "./Gallery";
 import { Neighbourhood } from "./Neighbourhood";
@@ -267,8 +267,14 @@ export function ListingView({
           ) : null}
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <p className="tnum font-display text-[32px] font-bold leading-none tracking-tight text-agent">{l.price}</p>
+            {l.wasPrice ? <span className="tnum text-[15px] text-stone-500 line-through decoration-stone-400">{l.wasPrice}</span> : null}
             {l.negotiable ? <span className="text-sm font-semibold text-stone-500">Negotiable</span> : null}
           </div>
+          {l.wasPrice ? (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[13px] font-semibold text-emerald-800 [animation:pop_.45s_.3s_cubic-bezier(.22,1,.36,1)_backwards]">
+              <TrendingDown className="h-3.5 w-3.5" /> Price reduced
+            </p>
+          ) : null}
           {l.perSqft || l.emi ? (
             <p className="tnum mt-2 text-sm text-stone-500">
               {l.perSqft}

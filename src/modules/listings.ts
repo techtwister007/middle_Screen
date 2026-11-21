@@ -1,4 +1,5 @@
 import "server-only";
+import { priceDropFields } from "@/lib/price";
 import { and, desc, eq, inArray, ne, sql, gte, lte, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -133,6 +134,7 @@ export async function updateListing(agentId: string, listingId: string, input: L
     .where(eq(properties.id, l.propertyId));
   if (l.status !== "draft") await enqueue("compute_nearby", { propertyId: l.propertyId });
   const priceChanged = l.price !== input.price;
+  const drop = priceDropFields(l, input.price);
   await db
     .update(listings)
     .set({
@@ -147,6 +149,7 @@ export async function updateListing(agentId: string, listingId: string, input: L
       locationPrivacy: input.locationPrivacy,
       showBuilding: input.showBuilding ?? false,
       youtubeUrl: input.youtubeUrl ?? null,
+      ...drop,
       visibility: input.visibility,
       missing: [],
       updatedAt: new Date(),
@@ -192,9 +195,10 @@ export async function setListingStatus(agentId: string, listingId: string, statu
 }
 
 export async function setListingPrice(agentId: string, listingId: string, price: number) {
+  const cur = await getOwnListing(agentId, listingId);
   const [r] = await db
     .update(listings)
-    .set({ price, priceMax: null, priceMode: "exact", updatedAt: new Date(), verifiedAt: new Date() })
+    .set({ price, priceMax: null, priceMode: "exact", updatedAt: new Date(), verifiedAt: new Date(), ...(cur ? priceDropFields(cur, price) : {}) })
     .where(and(eq(listings.id, listingId), eq(listings.agentId, agentId)))
     .returning();
   return r;

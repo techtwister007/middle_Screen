@@ -25,6 +25,8 @@ export const M = {
   discarded: () => `🗑️ Discarded. Send new photos anytime.`,
   notFound: (ref: string) => `I couldn't find a property with ref *${ref}*. Type *list* to see your properties.`,
   statusUpdated: (title: string, status: string) => `✔️ ${title} is now *${status}*.`,
+  priceDropped: (title: string, was: string, now: string, n: number, link: string) =>
+    `✔️ Price lowered: ${title} → *${now}* (was ${was}). Buyers now see a "Price reduced" tag.\n\n${n} buyer${n > 1 ? "s" : ""} showed interest. Tell them in one tap each:\n${link}`,
   priceUpdated: (title: string, price: string) => `✔️ Price updated: ${title} → *${price}*. Same link, buyers see the new price.`,
   shareReady: (name: string, url: string, waLink: string) =>
     `🔗 Personal link for *${name}*:\n${url}\n\nTap to send it from your WhatsApp:\n${waLink}\n\nYou'll be alerted when ${name} opens it.`,

@@ -203,6 +203,9 @@ export const listings = pgTable(
     disabledByAdmin: boolean("disabled_by_admin").notNull().default(false),
     /** Deal attribution: the lead this property was sold/rented to (pilot proof-of-value). */
     closedLeadId: text("closed_lead_id"),
+    /** Set when the agent lowers the price: shown to buyers as "Price reduced" and used for price-drop alerts. */
+    prevPrice: bigint("prev_price", { mode: "number" }),
+    priceDroppedAt: timestamp("price_dropped_at", { withTimezone: true }),
     closedAt: ts("closed_at"),
     publishedAt: ts("published_at"),
     createdAt: created(),

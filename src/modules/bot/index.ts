@@ -2,7 +2,7 @@ import "server-only";
 import { and, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { appUrl } from "@/config/env";
 import { db } from "@/db";
-import { agents, leads, visits, waMessages, type ListingStatus } from "@/db/schema";
+import { agents, events, leads, visits, waMessages, type ListingStatus } from "@/db/schema";
 import { id } from "@/lib/ids";
 import { normalizePhone, waLink } from "@/lib/phone";
 import { inr, istDayRange, priceLabel } from "@/lib/format";
@@ -268,6 +268,14 @@ async function command(agent: Agent, from: string, text: string) {
     const amount = parseAmount(m[2].replace(/\s+/g, ""));
     if (!amount || amount < 1000) return reply(from, "Please write the price like *92L*, *1.2cr* or *25000*.", agent.id);
     await setListingPrice(agent.id, l.id, amount);
+    if (l.price != null && amount < l.price) {
+      const [c] = await db
+        .select({ n: sql<number>`count(distinct ${leads.id})::int` })
+        .from(events)
+        .innerJoin(leads, eq(leads.id, events.leadId))
+        .where(and(eq(events.listingId, l.id), sql`${leads.stage} not in ('closed','lost')`, isNotNull(leads.phone)));
+      if (c?.n) return reply(from, M.priceDropped(l.title, inr(l.price), inr(amount), c.n, await magicLink(agent.id, `/app/properties/${l.id}`)), agent.id);
+    }
     return reply(from, M.priceUpdated(l.title, inr(amount)), agent.id);
   }
 
