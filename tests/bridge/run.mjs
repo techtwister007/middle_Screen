@@ -9,6 +9,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import postgres from "postgres";
 
+import { readFileSync as rf } from "node:fs";
+// Use the same secret the app uses (from .env), like a real setup.
+const envFile = (() => { try { return rf(".env", "utf8"); } catch { return ""; } })();
+const SECRET = process.env.BRIDGE_SECRET ?? envFile.match(/^BRIDGE_SECRET=\s*([^#\s]*)/m)?.[1] ?? "dev-bridge";
 const APP = process.env.APP_URL ?? "http://localhost:3000";
 const DB = process.env.DATABASE_URL ?? "postgres://pp:pp@localhost:5432/proppulse";
 const sql = postgres(DB, { max: 1, onnotice: () => {} });
@@ -23,7 +27,7 @@ const check = (name, ok, extra = "") => {
 function startBridge(env = {}, port = 7777) {
   const p = spawn(process.execPath, ["--import", path.resolve("tests/bridge/register.mjs"), "index.mjs"], {
     cwd: path.resolve("bridge/baileys"),
-    env: { ...process.env, APP_URL: APP, BRIDGE_SECRET: "dev-bridge", AUTH_DIR: auth, MAX_PER_MINUTE: "4", FAKE_WA_PORT: String(port), ...env },
+    env: { ...process.env, APP_URL: APP, BRIDGE_SECRET: SECRET, AUTH_DIR: auth, MAX_PER_MINUTE: "4", FAKE_WA_PORT: String(port), ...env },
   });
   let out = "";
   p.stdout.on("data", (d) => (out += d));

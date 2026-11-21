@@ -39,7 +39,7 @@ No Supabase / Vercel / Cloudflare account / Groq / Razorpay needed. Cost: ₹0.
    Optional: `AI_API_KEY=` a free Groq key → voice notes + nicer descriptions. Without it a built-in parser is used.
 5. Bot WhatsApp number: spare SIM + **WhatsApp Business** app, profile name & photo set. See
    [bridge/baileys/README.md](../bridge/baileys/README.md) for how to keep it safe from blocks.
-6. Bridge settings: `copy bridge\baileys\.env.example bridge\baileys\.env` and put the **same** `BRIDGE_SECRET`.
+6. Bridge settings: nothing to do — `npm run local` passes the app's `BRIDGE_SECRET` to the bridge. (Only if you run the bridge on its own: `copy bridge\baileys\.env.example bridge\baileys\.env` with the same secret.)
 
 ## Every time you test
 
